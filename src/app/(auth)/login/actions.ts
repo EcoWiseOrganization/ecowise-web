@@ -25,19 +25,41 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
+  const origin = (await headers()).get("origin");
 
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
 
-  const { error } = await supabase.auth.signUp(data);
-
-  if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}&tab=signup`);
+  if (password !== confirmPassword) {
+    redirect(`/register?error=${encodeURIComponent("Passwords do not match")}`);
   }
 
-  redirect("/login?message=Check your email to confirm your account&tab=signup");
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: name,
+      },
+      emailRedirectTo: `${origin}/callback`,
+    },
+  });
+
+  if (error) {
+    redirect(`/register?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Supabase returns a user with an empty identities array when the email already exists
+  // but email confirmations are enabled
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    redirect(
+      `/register?error=${encodeURIComponent("An account with this email already exists")}`
+    );
+  }
+
+  redirect("/register?message=Check your email to confirm your account");
 }
 
 export async function signInWithGoogle() {
@@ -47,7 +69,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${origin}/callback`,
     },
   });
 
