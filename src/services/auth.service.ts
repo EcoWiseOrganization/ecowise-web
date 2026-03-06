@@ -1,25 +1,20 @@
-interface ApiResponse {
-  success?: boolean;
-  error?: string;
-}
+import axios from "axios";
+import type { ApiResponse, VerifyForgotPasswordOtpResponse } from "@/types/api.types";
 
-interface VerifyForgotPasswordOtpResponse extends ApiResponse {
-  resetToken?: string;
-}
+const api = axios.create({
+  headers: { "Content-Type": "application/json" },
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = error.response?.data?.error || "Something went wrong";
+    return Promise.reject(new Error(message));
+  },
+);
 
 async function post<T extends ApiResponse>(url: string, body: Record<string, string>): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data: T = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || "Something went wrong");
-  }
-
+  const { data } = await api.post<T>(url, body);
   return data;
 }
 
