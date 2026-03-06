@@ -56,30 +56,10 @@ export default function ForgotPasswordPage() {
 
       {/* Buttons */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <button
-          onClick={handleSend}
-          disabled={loading}
-          style={{
-            width: "100%", paddingTop: 10, paddingBottom: 10, background: "#79B669",
-            borderRadius: 10, border: "none", color: "#FCFBFA", fontSize: 16,
-            fontFamily: "Inter", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1, textAlign: "center",
-          }}
-        >
+        <button onClick={handleSend} disabled={loading} className="btn-auth-primary">
           {loading ? "Sending..." : "Send"}
         </button>
-        <button
-          onClick={handleResend}
-          disabled={resending || !sent}
-          style={{
-            width: "100%", paddingTop: 10, paddingBottom: 10,
-            borderRadius: 10, outline: "1px #95C289 solid", outlineOffset: -1,
-            border: "none", background: "white", color: "#79B669", fontSize: 16,
-            fontFamily: "Inter", fontWeight: 600,
-            cursor: resending || !sent ? "not-allowed" : "pointer",
-            opacity: resending || !sent ? 0.5 : 1, textAlign: "center",
-          }}
-        >
+        <button onClick={handleResend} disabled={resending || !sent} className="btn-auth-secondary">
           {resending ? "Resending..." : "Resend Email"}
         </button>
       </div>

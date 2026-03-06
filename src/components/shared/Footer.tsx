@@ -37,7 +37,7 @@ const SOCIAL_LINKS = [
 
 export function Footer() {
   return (
-    <footer className="w-full bg-white shadow-[0px_-2px_4px_rgba(218,237,213,0.25)] border-t border-[#DAEDD5]">
+    <footer id="contact" className="w-full bg-white shadow-[0px_-2px_4px_rgba(218,237,213,0.25)] border-t border-[#DAEDD5]">
       {/* Top separator line */}
       <div className="w-full h-px bg-[#DAEDD5]" />
       <div className="max-w-[1200px] mx-auto pt-[60px] pb-5">

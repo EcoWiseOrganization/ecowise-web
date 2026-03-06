@@ -13,7 +13,7 @@ export function AuthImage({ src, alt, logoPosition = "bottom-right" }: AuthImage
       : { right: 40, bottom: 58 };
 
   return (
-    <div className="hidden lg:block" style={{ width: 710, position: "relative", flexShrink: 0 }}>
+    <div className="hidden lg:block animate-fade-slide-in-right" style={{ width: 710, position: "relative", flexShrink: 0 }}>
       <Image
         src={src}
         alt={alt}

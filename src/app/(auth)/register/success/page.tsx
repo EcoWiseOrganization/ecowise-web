@@ -90,40 +90,13 @@ export default function SuccessPage() {
             Account Registration Successful
           </div>
         </div>
-        <div
+        <button
           onClick={() => router.push("/login")}
-          style={{
-            alignSelf: "stretch",
-            paddingLeft: 20,
-            paddingRight: 20,
-            paddingTop: 10,
-            paddingBottom: 10,
-            background: "#79B669",
-            overflow: "hidden",
-            borderRadius: 10,
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 10,
-            display: "inline-flex",
-            cursor: "pointer",
-          }}
+          className="btn-auth-success"
+          style={{ alignSelf: "stretch" }}
         >
-          <div
-            style={{
-              textAlign: "center",
-              justifyContent: "center",
-              display: "flex",
-              flexDirection: "column",
-              color: "#FCFBFA",
-              fontSize: 16,
-              fontFamily: "Inter",
-              fontWeight: 600,
-              wordWrap: "break-word",
-            }}
-          >
-            Homepage
-          </div>
-        </div>
+          Homepage
+        </button>
       </div>
     </AuthLayout>
   );

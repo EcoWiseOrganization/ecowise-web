@@ -1,1 +1,170 @@
 @import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-slide-up {
+  animation: fade-slide-up 0.5s ease-out both;
+}
+
+.animate-fade-slide-in-left {
+  animation: fade-slide-in-left 0.4s ease-out both;
+}
+
+.animate-fade-slide-in-right {
+  animation: fade-slide-in-right 0.5s ease-out both;
+}
+
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+
+/* Auth Buttons */
+.btn-auth-primary {
+  width: 100%;
+  padding: 10px 0;
+  background: #79B669;
+  border-radius: 10px;
+  border: none;
+  color: #FCFBFA;
+  font-size: 16px;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.btn-auth-primary:hover {
+  background: #1F8505;
+  box-shadow: 0 4px 14px rgba(31, 133, 5, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-auth-primary:active {
+  background: #176d04;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-auth-primary:disabled {
+  background: #b8d4ad;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-auth-secondary {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #95C289;
+  background: white;
+  color: #79B669;
+  font-size: 16px;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.btn-auth-secondary:hover {
+  background: #f0f9ed;
+  border-color: #79B669;
+  color: #1F8505;
+  box-shadow: 0 4px 14px rgba(121, 182, 105, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-auth-secondary:active {
+  background: #e4f2df;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-auth-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-auth-success {
+  width: 100%;
+  padding: 10px 20px;
+  background: #79B669;
+  border-radius: 10px;
+  border: none;
+  color: #FCFBFA;
+  font-size: 16px;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.btn-auth-success:hover {
+  background: #1F8505;
+  box-shadow: 0 4px 14px rgba(31, 133, 5, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-auth-success:active {
+  background: #176d04;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Auth Links hover */
+.link-auth {
+  transition: color 0.2s;
+}
+
+.link-auth:hover {
+  color: #1F8505 !important;
+}

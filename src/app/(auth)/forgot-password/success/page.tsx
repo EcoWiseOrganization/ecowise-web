@@ -91,27 +91,8 @@ export default function ForgotPasswordSuccessPage() {
         </div>
         <button
           onClick={() => router.push("/login")}
-          style={{
-            alignSelf: "stretch",
-            paddingLeft: 20,
-            paddingRight: 20,
-            paddingTop: 10,
-            paddingBottom: 10,
-            background: "#79B669",
-            overflow: "hidden",
-            borderRadius: 10,
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 10,
-            display: "inline-flex",
-            cursor: "pointer",
-            border: "none",
-            color: "#FCFBFA",
-            fontSize: 16,
-            fontFamily: "Inter",
-            fontWeight: 600,
-            textAlign: "center",
-          }}
+          className="btn-auth-success"
+          style={{ alignSelf: "stretch" }}
         >
           Sign in
         </button>

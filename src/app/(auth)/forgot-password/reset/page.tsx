@@ -109,16 +109,7 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Reset Button */}
-      <button
-        onClick={handleReset}
-        disabled={loading}
-        style={{
-          width: "100%", paddingTop: 10, paddingBottom: 10, background: "#79B669",
-          borderRadius: 10, border: "none", color: "#FCFBFA", fontSize: 16,
-          fontFamily: "Inter", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.7 : 1, textAlign: "center",
-        }}
-      >
+      <button onClick={handleReset} disabled={loading} className="btn-auth-primary">
         {loading ? "Resetting..." : "Reset Password"}
       </button>
     </AuthLayout>

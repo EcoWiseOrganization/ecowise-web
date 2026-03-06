@@ -11,7 +11,10 @@ export function AuthLayout({ children, imageSrc, imageAlt, logoPosition = "botto
   return (
     <div style={{ width: "100%", height: "100vh", position: "relative", background: "white", overflow: "hidden", display: "flex" }}>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 387, display: "inline-flex", flexDirection: "column", gap: 46 }}>
+        <div
+          className="animate-fade-slide-in-left"
+          style={{ width: 387, display: "inline-flex", flexDirection: "column", gap: 46 }}
+        >
           {children}
         </div>
       </div>

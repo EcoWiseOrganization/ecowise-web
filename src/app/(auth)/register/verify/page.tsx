@@ -31,24 +31,7 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <button
-          onClick={handleConfirm}
-          disabled={loading}
-          style={{
-            width: "100%",
-            paddingTop: 10,
-            paddingBottom: 10,
-            background: loading ? "#b8d4ad" : "#79B669",
-            borderRadius: 10,
-            border: "none",
-            color: "#FCFBFA",
-            fontSize: 16,
-            fontFamily: "Inter",
-            fontWeight: 600,
-            cursor: loading ? "not-allowed" : "pointer",
-            textAlign: "center",
-          }}
-        >
+        <button onClick={handleConfirm} disabled={loading} className="btn-auth-primary">
           {loading ? "Verifying..." : "Confirm"}
         </button>
       </div>
