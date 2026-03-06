@@ -66,7 +66,7 @@ function LoginForm() {
             <label htmlFor="password" style={{ color: "#141514", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>
               Password
             </label>
-            <Link href="#" style={{ color: "#6E726E", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>
+            <Link href="/forgot-password" style={{ color: "#6E726E", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>
               Forgot password
             </Link>
           </div>
