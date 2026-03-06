@@ -6,7 +6,7 @@ import LanguageIcon from "@mui/icons-material/Language";
 import PersonIcon from "@mui/icons-material/Person";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { useAuth } from "@/hooks/useAuth";
-import { signOut } from "@/app/(auth)/login/actions";
+import { signOut } from "@/services/auth.actions";
 import { useState, useRef, useEffect } from "react";
 
 const NAV_LINKS = [

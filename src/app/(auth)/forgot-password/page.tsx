@@ -1,80 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
+import { useForgotPassword } from "@/hooks/useForgotPassword";
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [resending, setResending] = useState(false);
-
-  const handleSend = async () => {
-    if (!email) {
-      setError("Please enter your email address");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/forgot-password/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
-
-      sessionStorage.setItem("forgot_password_email", email);
-      setSent(true);
-      router.push("/forgot-password/verify");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (!email) {
-      setError("Please enter your email address");
-      return;
-    }
-
-    setError("");
-    setResending(true);
-
-    try {
-      const res = await fetch("/api/auth/forgot-password/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
-
-      setSent(true);
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setResending(false);
-    }
-  };
+  const { email, setEmail, error, loading, sent, resending, handleSend, handleResend } = useForgotPassword();
 
   return (
     <AuthLayout imageSrc="/img/login.png" imageAlt="EcoWise - Green landscape" logoPosition="top-right">

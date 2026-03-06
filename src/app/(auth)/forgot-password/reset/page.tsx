@@ -1,74 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
+import { useResetPassword } from "@/hooks/useResetPassword";
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [email, setEmail] = useState("");
-  const [resetToken, setResetToken] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const storedEmail = sessionStorage.getItem("forgot_password_email");
-    const storedToken = sessionStorage.getItem("reset_token");
-    if (!storedEmail || !storedToken) {
-      router.replace("/forgot-password");
-      return;
-    }
-    setEmail(storedEmail);
-    setResetToken(storedToken);
-  }, [router]);
-
-  const handleReset = async () => {
-    if (!password || !confirmPassword) {
-      setError("Please fill in all fields");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/forgot-password/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, resetToken }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
-
-      // Clean up session storage
-      sessionStorage.removeItem("forgot_password_email");
-      sessionStorage.removeItem("reset_token");
-      router.push("/forgot-password/success");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    password, setPassword,
+    confirmPassword, setConfirmPassword,
+    showPassword, setShowPassword,
+    showConfirm, setShowConfirm,
+    email, error, loading,
+    handleReset,
+  } = useResetPassword();
 
   if (!email) return null;
 
@@ -146,7 +91,8 @@ export default function ResetPasswordPage() {
                 fontSize: 10, fontFamily: "Inter", fontWeight: 500, color: "#141514",
                 boxSizing: "border-box",
               }}
-            />
+            >
+            </input>
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}

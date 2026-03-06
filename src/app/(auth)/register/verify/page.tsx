@@ -1,65 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { OtpInput } from "@/app/(auth)/_components/OtpInput";
+import { useVerifyOtp } from "@/hooks/useVerifyOtp";
 
 export default function VerifyPage() {
-  const router = useRouter();
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem("register_email");
-    if (!stored) {
-      router.replace("/register");
-      return;
-    }
-    setEmail(stored);
-  }, [router]);
-
-  const handleConfirm = async () => {
-    const code = otp.join("");
-    if (code.length !== 4) {
-      setError("Please enter the 4-digit code");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const name = sessionStorage.getItem("register_name") || "";
-      const password = sessionStorage.getItem("register_password") || "";
-
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: code, name, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Verification failed");
-        setLoading(false);
-        return;
-      }
-
-      // Clear session storage
-      sessionStorage.removeItem("register_name");
-      sessionStorage.removeItem("register_email");
-      sessionStorage.removeItem("register_password");
-
-      router.push("/register/success");
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
-    }
-  };
+  const { otp, setOtp, error, loading, email, handleConfirm } = useVerifyOtp();
 
   if (!email) return null;
 

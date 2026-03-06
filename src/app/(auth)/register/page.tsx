@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signInWithGoogle } from "@/app/(auth)/login/actions";
+import { signInWithGoogle } from "@/services/auth.actions";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
+import { useRegisterForm } from "@/hooks/useRegisterForm";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -45,67 +44,13 @@ const errorTextStyle: React.CSSProperties = {
 };
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [generalError, setGeneralError] = useState("");
-
-  const validate = (name: string, email: string, password: string, confirmPassword: string) => {
-    const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = "Name is required";
-    if (!email.trim()) errs.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Please enter a valid email";
-    if (!password) errs.password = "Password is required";
-    else if (password.length < 6) errs.password = "Password must be at least 6 characters";
-    if (!confirmPassword) errs.confirmPassword = "Please confirm your password";
-    else if (password !== confirmPassword) errs.confirmPassword = "Passwords do not match";
-    return errs;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const name = (form.get("name") as string) || "";
-    const email = (form.get("email") as string) || "";
-    const password = (form.get("password") as string) || "";
-    const confirmPassword = (form.get("confirmPassword") as string) || "";
-
-    const errs = validate(name, email, password, confirmPassword);
-    setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-
-    setLoading(true);
-    setGeneralError("");
-
-    try {
-      const res = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setGeneralError(data.error || "Something went wrong");
-        setLoading(false);
-        return;
-      }
-
-      // Store in sessionStorage for the verify page
-      sessionStorage.setItem("register_name", name);
-      sessionStorage.setItem("register_email", email);
-      sessionStorage.setItem("register_password", password);
-
-      router.push("/register/verify");
-    } catch {
-      setGeneralError("Something went wrong. Please try again.");
-      setLoading(false);
-    }
-  };
+  const {
+    showPassword, setShowPassword,
+    showConfirmPassword, setShowConfirmPassword,
+    agreed, setAgreed,
+    loading, errors, generalError,
+    handleSubmit,
+  } = useRegisterForm();
 
   return (
     <AuthLayout imageSrc="/img/register.jpg" imageAlt="EcoWise - Green leaves" logoPosition="bottom-right">

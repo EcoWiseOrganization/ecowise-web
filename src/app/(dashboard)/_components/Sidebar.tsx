@@ -11,7 +11,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { signOut } from "@/app/(auth)/login/actions";
+import { signOut } from "@/services/auth.actions";
 import { WORKSPACE } from "../_data/mock";
 
 const MENU_ITEMS = [

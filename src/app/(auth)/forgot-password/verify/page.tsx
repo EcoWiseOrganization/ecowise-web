@@ -1,58 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { OtpInput } from "@/app/(auth)/_components/OtpInput";
+import { useForgotPasswordVerify } from "@/hooks/useForgotPasswordVerify";
 
 export default function ForgotPasswordVerifyPage() {
-  const router = useRouter();
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const storedEmail = sessionStorage.getItem("forgot_password_email");
-    if (!storedEmail) {
-      router.replace("/forgot-password");
-      return;
-    }
-    setEmail(storedEmail);
-  }, [router]);
-
-  const handleConfirm = async () => {
-    const otpCode = otp.join("");
-    if (otpCode.length !== 4) {
-      setError("Please enter the 4-digit verification code");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/forgot-password/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpCode }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error);
-        return;
-      }
-
-      sessionStorage.setItem("reset_token", data.resetToken);
-      router.push("/forgot-password/reset");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { otp, setOtp, error, loading, email, handleConfirm } = useForgotPasswordVerify();
 
   if (!email) return null;
 
