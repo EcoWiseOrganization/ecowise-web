@@ -94,10 +94,10 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
             </p>
             <Link
               href="/register"
-              className={`w-full text-center px-5 py-[18px] rounded-xl text-lg font-medium no-underline shadow-[0px_2px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5] ${
+              className={`w-full text-center px-5 py-[18px] rounded-xl text-lg font-medium no-underline shadow-[0px_2px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5] transition-all duration-200 ${
                 plan.buttonVariant === "filled"
-                  ? "bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white"
-                  : "bg-white text-[#1F8505]"
+                  ? "bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
+                  : "bg-white text-[#1F8505] hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
               }`}
             >
               {plan.buttonText}

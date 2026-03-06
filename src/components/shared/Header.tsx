@@ -42,13 +42,13 @@ export function Header() {
           <div className="flex items-center gap-5">
             <Link
               href="/login"
-              className="px-5 py-2.5 rounded-xl border border-[#1F8505] text-[#1F8505] text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white transition-colors"
+              className="px-5 py-2.5 rounded-xl border border-[#1F8505] text-[#1F8505] text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
             >
               Sign in
             </Link>
             <Link
               href="/register"
-              className="px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-base font-medium no-underline hover:opacity-90 transition-opacity"
+              className="px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-base font-medium no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
             >
               Sign up
             </Link>

@@ -20,7 +20,7 @@ export function MobileAppSection() {
             <div className="flex items-start gap-6">
               <a
                 href="#"
-                className="flex items-center gap-3 p-4 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] rounded-2xl text-white no-underline"
+                className="flex items-center gap-3 p-4 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] rounded-2xl text-white no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
               >
                 <AppleIcon sx={{ fontSize: 32 }} />
                 <div className="flex flex-col">
@@ -30,7 +30,7 @@ export function MobileAppSection() {
               </a>
               <a
                 href="#"
-                className="flex items-center gap-3 p-4 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] rounded-2xl text-white no-underline"
+                className="flex items-center gap-3 p-4 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] rounded-2xl text-white no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
               >
                 <ShopIcon sx={{ fontSize: 32 }} />
                 <div className="flex flex-col">
