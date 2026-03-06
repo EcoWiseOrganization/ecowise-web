@@ -55,7 +55,7 @@ export function StepsSection() {
                 <span className="self-stretch text-center text-white text-[30px] font-bold leading-[56px]">
                   {step.number}
                 </span>
-              </div>
+              </div> 
 
               {/* Text */}
               <div className="self-stretch flex flex-col items-start gap-2.5">

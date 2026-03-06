@@ -12,7 +12,7 @@ export default function HomePage() {
   return (
     <div className="w-full relative bg-white overflow-hidden">
       <Header />
-      <main>
+      <main className="pt-[71px]">
         <HeroSection />
         <PartnersBar />
         <StatsBar />
