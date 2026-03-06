@@ -108,31 +108,6 @@ SMTP_USER=your_email
 SMTP_PASS=your_email_password
 ```
 
-### Database Setup
-
-Create the following tables in Supabase:
-
-```sql
--- OTP verifications for registration
-CREATE TABLE otp_verifications (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email TEXT NOT NULL,
-  otp TEXT NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Password reset tokens
-CREATE TABLE password_reset_tokens (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL,
-  email TEXT NOT NULL,
-  token TEXT NOT NULL UNIQUE,
-  expires_at TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
 ### Installation
 
 ```bash
@@ -154,6 +129,6 @@ npm run build
 npm start
 ```
 
-## Team
+## Author
 
-EcoWise - SP26 / EXE1201
+Nguyen Vu Dang Khanh x Nguyen Dang Khoi
