@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
+import { getDashboardPath } from "@/services/user.service";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -19,8 +20,12 @@ export async function login(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(user ? await getDashboardPath(user.id) : "/dashboard");
 }
 
 export async function signInWithGoogle() {
