@@ -30,7 +30,11 @@ export async function login(formData: FormData) {
 
 export async function signInWithGoogle() {
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const headersList = await headers();
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    headersList.get("origin") ||
+    `${headersList.get("x-forwarded-proto") ?? "https"}://${headersList.get("x-forwarded-host") ?? headersList.get("host")}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
