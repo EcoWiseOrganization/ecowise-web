@@ -38,30 +38,29 @@ const SOCIAL_LINKS = [
 export function Footer() {
   return (
     <footer id="contact" className="w-full bg-white shadow-[0px_-2px_4px_rgba(218,237,213,0.25)] border-t border-[#DAEDD5]">
-      {/* Top separator line */}
       <div className="w-full h-px bg-[#DAEDD5]" />
-      <div className="max-w-[1200px] mx-auto pt-[60px] pb-5">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-10 sm:pt-[60px] pb-5">
         {/* Top section */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-10 sm:gap-8">
           {/* Logo & Contact */}
-          <div className="w-[260px] flex flex-col gap-[68px] shrink-0">
+          <div className="w-full sm:w-[220px] lg:w-[260px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
             <Image
               src="/img/logo.png"
               alt="EcoWise Logo"
               width={260}
               height={58}
-              className="w-full h-auto"
+              className="w-[160px] sm:w-[200px] lg:w-[260px] h-auto"
             />
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2.5">
                 <PhoneIcon sx={{ fontSize: 20, color: "#79B669" }} />
-                <span className="text-[#79B669] text-base font-normal">
+                <span className="text-[#79B669] text-sm sm:text-base font-normal">
                   (+84) 000 000 000
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <EmailIcon sx={{ fontSize: 20, color: "#79B669" }} />
-                <span className="text-[#79B669] text-base font-normal">
+                <span className="text-[#79B669] text-sm sm:text-base font-normal break-all">
                   ecowise.official.vn@gmail.com
                 </span>
               </div>
@@ -69,21 +68,18 @@ export function Footer() {
           </div>
 
           {/* Link Columns */}
-          <div className="flex items-start gap-[100px]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-6 lg:gap-[100px] w-full sm:w-auto">
             {Object.entries(FOOTER_LINKS).map(([title, links]) => (
-              <div
-                key={title}
-                className={`${title === "About Us" ? "w-[203px]" : "w-[180px]"} flex flex-col gap-4`}
-              >
-                <h4 className="text-[#1F8505] text-base font-semibold leading-6">
+              <div key={title} className="flex flex-col gap-3 sm:gap-4">
+                <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6">
                   {title}
                 </h4>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5 sm:gap-2">
                   {links.map((link) => (
                     <Link
                       key={link.label}
                       href={link.href}
-                      className="text-[#79B669] text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors"
+                      className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -95,25 +91,29 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-[100px] flex flex-col items-center gap-5">
+        <div className="mt-10 sm:mt-[100px] flex flex-col items-center gap-4 sm:gap-5">
           <div className="w-full h-px bg-[#DAEDD5]" />
-          <div className="w-full flex items-center justify-between">
+
+          {/* Mobile: stacked; Desktop: single row */}
+          <div className="w-full flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3 sm:gap-4">
             <span className="text-[#79B669] text-xs font-normal leading-5">
               &copy; 2026 EcoWise. All rights reserved.
             </span>
-            <Link
-              href="#"
-              className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="#"
-              className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <Link
+                href="#"
+                className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
+              >
+                Terms of Service
+              </Link>
+              <Link
+                href="#"
+                className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+            <div className="flex items-center gap-4 sm:gap-5">
               {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
                 <Link
                   key={label}
@@ -121,11 +121,11 @@ export function Footer() {
                   aria-label={label}
                   className="text-[#79B669] flex hover:text-[#1F8505] transition-colors"
                 >
-                  <Icon sx={{ fontSize: 24 }} />
+                  <Icon sx={{ fontSize: 22 }} />
                 </Link>
               ))}
             </div>
-            <span className="text-[#79B669] text-xs font-normal leading-5">
+            <span className="text-[#79B669] text-xs font-normal leading-5 text-center sm:text-left">
               This page uses cookies. See cookies details{" "}
               <Link href="#" className="text-[#79B669] underline">
                 here

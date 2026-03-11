@@ -13,7 +13,7 @@ export default function HomePage() {
   return (
     <div className="w-full relative bg-white overflow-hidden">
       <Header />
-      <main className="pt-[71px]">
+      <main className="pt-[61px] sm:pt-[69px] lg:pt-[71px]">
         <ScrollReveal>
           <HeroSection />
         </ScrollReveal>

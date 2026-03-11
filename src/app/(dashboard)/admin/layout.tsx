@@ -31,8 +31,8 @@ export default async function AdminLayout({
         menuSections={ADMIN_MENU_SECTIONS}
         showWorkspace={false}
       />
-      <div className="ml-[222px]">
-        <main className="px-9 py-[30px]">{children}</main>
+      <div className="lg:ml-[222px]">
+        <main className="px-4 sm:px-6 lg:px-9 pt-16 lg:pt-0 py-5 lg:py-[30px]">{children}</main>
       </div>
     </>
   );
