@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import BusinessIcon from "@mui/icons-material/Business";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useTranslation } from "react-i18next";
-import type { Organization } from "@/types/database.types";
+import type { Organization } from "@/types/organization.types";
 import { CreateOrgForm } from "@/components/organizations/CreateOrgForm";
 
 interface OrganizationsViewProps {

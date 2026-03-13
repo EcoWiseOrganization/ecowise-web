@@ -8,8 +8,7 @@ import {
   EVENT_TYPE_OPTIONS,
   EVENT_STATUS_OPTIONS,
 } from "@/hooks/useCreateEvent";
-import type { CreateEventInput } from "@/services/eventService";
-import type { EventType, EventStatus } from "@/types/database.types";
+import type { CreateEventInput, EventType, EventStatus } from "@/types/event.types";
 import { useToast } from "@/components/ui/Toast";
 
 function FieldLabel({ htmlFor, children, required = false }: {
@@ -40,7 +39,7 @@ const selectCls = inputCls + " cursor-pointer appearance-none";
 interface CreateEventFormProps {
   orgId: string;
   userId: string;
-  onSuccess?: (event: import("@/types/database.types").Event) => void;
+  onSuccess?: (event: import("@/types/event.types").Event) => void;
   onCancel?: () => void;
 }
 

@@ -1,21 +1,8 @@
-export interface User {
-  id: string;
-  email: string;
-  full_name: string | null;
-  user_name: string | null;
-  is_admin: boolean;
-  status: string;
-  green_points: number;
-  created_at: string;
-}
-
-// ── Organization & Event types ──────────────────────────────────
+import type { User } from "./user.types";
 
 export type OrgType = "Enterprise" | "SMB" | "NGO" | "Startup";
 export type MemberRole = "Organization Admin" | "Standard Member";
 export type MemberStatus = "Active" | "Pending";
-export type EventType = "Conference" | "Festival" | "Webinar" | "Workshop" | "Other";
-export type EventStatus = "Active" | "Scheduled" | "Completed";
 
 export interface Organization {
   id: string;
@@ -45,15 +32,14 @@ export interface OrganizationMemberWithUser extends OrganizationMember {
   user: Pick<User, "id" | "full_name" | "user_name" | "email">;
 }
 
-export interface Event {
-  id: string;
-  org_id: string;
-  name: string;
-  event_type: EventType;
-  status: EventStatus;
-  start_date: string; // ISO date string "YYYY-MM-DD"
-  end_date: string;
-  created_at: string;
-  created_by: string;
+export interface CreateOrganizationInput {
+  legal_name: string;
+  tax_code: string;
+  org_type: OrgType;
 }
 
+export interface MemberAddResult {
+  email: string;
+  status: "created" | "existing_added" | "already_member" | "error";
+  error?: string;
+}

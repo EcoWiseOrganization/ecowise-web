@@ -10,7 +10,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { useTranslation } from "react-i18next";
 import { ROLE_ADMIN_ID } from "@/lib/roles";
-import type { Organization, OrganizationMemberWithUser, Event } from "@/types/database.types";
+import type { Organization, OrganizationMemberWithUser } from "@/types/organization.types";
+import type { Event } from "@/types/event.types";
 import { CreateEventForm } from "@/components/events/CreateEventForm";
 import { AddMembersForm } from "@/components/organizations/AddMembersForm";
 

@@ -1,5 +1,5 @@
 /**
- * organizationService.ts
+ * organization.service.ts
  * All Supabase calls related to Organizations and their Members.
  * Uses the browser (client-side) Supabase client — call only from
  * "use client" components or custom hooks.
@@ -11,16 +11,8 @@ import type {
   Organization,
   OrganizationMember,
   OrganizationMemberWithUser,
-  OrgType,
-} from "@/types/database.types";
-
-// ── Input DTOs ───────────────────────────────────────────────────
-
-export interface CreateOrganizationInput {
-  legal_name: string;
-  tax_code: string;
-  org_type: OrgType;
-}
+  CreateOrganizationInput,
+} from "@/types/organization.types";
 
 // ── Organization CRUD ────────────────────────────────────────────
 

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { createEventAction } from "@/app/actions/organization.actions";
-import type { CreateEventInput } from "@/services/eventService";
-import type { Event, EventType, EventStatus } from "@/types/database.types";
+import type { Event, EventType, EventStatus, CreateEventInput } from "@/types/event.types";
 
 // ── Validation ───────────────────────────────────────────────────
 

@@ -1,14 +1,19 @@
+"use client";
+
 import BarChartIcon from "@mui/icons-material/BarChart";
+import { useTranslation } from "react-i18next";
 import { INTENSITY_METRICS } from "../_data/mock";
 
 export function IntensityMetrics() {
+  const { t } = useTranslation();
+
   return (
     <div className="p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-2">
         <BarChartIcon sx={{ fontSize: 20, color: "#155A03" }} />
         <h2 className="text-[#145A03] text-base font-bold leading-6">
-          Intensity Metrics
+          {t("dashboard.intensityMetrics.title")}
         </h2>
       </div>
 

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import { RECENT_ENTRIES } from "../_data/mock";
 
 const STATUS_STYLES = {
@@ -6,15 +9,17 @@ const STATUS_STYLES = {
 };
 
 export function RecentEntries() {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden rounded-3xl border border-[#B8D6B0] flex flex-col">
       {/* Header */}
       <div className="px-6 py-6 border-b border-[#B8D6B0] flex items-center justify-between">
         <h2 className="text-[#145A03] text-base font-bold leading-6">
-          Recent Emission Entries
+          {t("dashboard.recentEntries.title")}
         </h2>
         <button className="text-[#155A03] text-xs font-bold leading-4 bg-transparent border-none cursor-pointer hover:underline">
-          View All
+          {t("dashboard.recentEntries.viewAll")}
         </button>
       </div>
 
@@ -41,7 +46,6 @@ export function RecentEntries() {
                 i > 0 ? "border-t border-[#B8D6B0]" : ""
               }`}
             >
-              {/* Asset */}
               <div className="px-6 py-4 flex flex-col justify-center">
                 <span className="text-[#145A03] text-sm font-bold leading-5 whitespace-pre-line">
                   {row.asset}
@@ -51,21 +55,18 @@ export function RecentEntries() {
                 </span>
               </div>
 
-              {/* Category */}
               <div className="px-6 py-4 flex items-center justify-center">
                 <span className="text-[#145A03] text-sm font-normal leading-5 font-[Manrope] whitespace-pre-line text-center">
                   {row.category}
                 </span>
               </div>
 
-              {/* Quantity */}
               <div className="px-6 py-4 flex items-center justify-center">
                 <span className="text-[#145A03] text-sm font-bold leading-5">
                   {row.quantity}
                 </span>
               </div>
 
-              {/* Status */}
               <div className="px-6 py-4 flex items-center justify-center">
                 <span
                   className={`px-2 py-0.5 ${styles.bg} rounded ${styles.text} text-[10px] font-bold leading-5`}

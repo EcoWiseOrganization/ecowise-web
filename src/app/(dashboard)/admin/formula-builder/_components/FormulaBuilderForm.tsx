@@ -4,6 +4,7 @@ import { useState } from "react";
 import FunctionsIcon from "@mui/icons-material/Functions";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
+import { useTranslation } from "react-i18next";
 import type {
   EmissionCategory,
   EmissionFactorWithCategory,
@@ -29,19 +30,6 @@ interface FormulaBuilderFormProps {
   onCancel: () => void;
 }
 
-/**
- * FormulaBuilderForm
- * Controlled form for creating a CalculationTemplate.
- *
- * Key design decisions:
- * 1. input_schema is managed as InputFieldSchema[] in state, serialised to
- *    JSONB only at submit time — avoids messy string↔JSON conversions.
- * 2. Formula validation is live: FormulaEngine.validate() runs on every
- *    keystroke (debounce not needed — it's purely synchronous).
- * 3. Variable cross-check: after validation, we compare variables extracted
- *    from the formula against the fields declared in input_schema to warn
- *    the admin about mismatches before saving.
- */
 export function FormulaBuilderForm({
   categories,
   factors,
@@ -49,6 +37,8 @@ export function FormulaBuilderForm({
   onSubmit,
   onCancel,
 }: FormulaBuilderFormProps) {
+  const { t } = useTranslation();
+
   // ── Form state ─────────────────────────────────────────────────────────
   const [categoryId, setCategoryId]   = useState("");
   const [defaultEfId, setDefaultEfId] = useState("");
@@ -61,23 +51,17 @@ export function FormulaBuilderForm({
   const [errors, setErrors]           = useState<Record<string, string>>({});
 
   // ── Formula validation state ────────────────────────────────────────────
-  // Live validation result — updated on every formula keystroke
   const formulaValidation = formula.trim()
     ? FormulaEngine.validate(formula)
     : null;
 
-  // Variables declared in input_schema
   const declaredVars = new Set(inputSchema.map((f) => f.field));
 
-  // Variables referenced in formula (excluding EF_TOTAL)
   const formulaVars  = formula.trim()
     ? new Set(FormulaEngine.getRequiredVariables(formula))
     : new Set<string>();
 
-  // Undeclared: used in formula but missing from input_schema
   const undeclaredVars = [...formulaVars].filter((v) => !declaredVars.has(v));
-
-  // Unused: declared in input_schema but not in formula
   const unusedVars = [...declaredVars].filter((v) => !formulaVars.has(v));
 
   // ── Filter factors by selected category ────────────────────────────────
@@ -88,9 +72,9 @@ export function FormulaBuilderForm({
   // ── Submission ──────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!categoryId)      errs.categoryId = "Select a category";
-    if (!name.trim())     errs.name = "Name is required";
-    if (!formula.trim())  errs.formula = "Formula is required";
+    if (!categoryId)      errs.categoryId = t("admin.ef.modal.required");
+    if (!name.trim())     errs.name = t("admin.ef.modal.required");
+    if (!formula.trim())  errs.formula = t("admin.ef.modal.required");
 
     const fv = FormulaEngine.validate(formula);
     if (!fv.valid) errs.formula = fv.error ?? "Invalid formula";
@@ -99,7 +83,6 @@ export function FormulaBuilderForm({
       errs.formula = `Formula uses undeclared variables: ${undeclaredVars.join(", ")}. Add them to Input Schema.`;
     }
 
-    // Validate all field names are valid identifiers
     inputSchema.forEach((f, i) => {
       if (!f.field.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
         errs[`field_${i}`] = `Field #${i + 1}: variable name must start with a letter/underscore`;
@@ -139,9 +122,9 @@ export function FormulaBuilderForm({
           <FunctionsIcon sx={{ fontSize: 22, color: "#1F8505" }} />
         </div>
         <div>
-          <h2 className="text-[#155A03] text-lg font-semibold">New Calculation Template</h2>
+          <h2 className="text-[#155A03] text-lg font-semibold">{t("admin.formula.form.title")}</h2>
           <p className="text-[#AAAAAA] text-xs">
-            Define the input fields and formula. Use <code className="bg-[#f0f9ed] px-1 rounded text-[#1F8505]">EF_TOTAL</code> to reference the emission factor.
+            {t("admin.formula.form.subtitle")}
           </p>
         </div>
       </div>
@@ -149,21 +132,21 @@ export function FormulaBuilderForm({
       {/* ── Section 1: Basic Info ── */}
       <fieldset className="flex flex-col gap-4">
         <legend className="text-xs font-bold text-[#1F8505] uppercase tracking-wide mb-1">
-          1. Basic Information
+          {t("admin.formula.form.section1")}
         </legend>
 
         <div className="grid grid-cols-2 gap-4">
           {/* Category */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[#141514] text-sm font-medium">
-              Category <span className="text-red-500">*</span>
+              {t("admin.formula.form.category")} <span className="text-red-500">*</span>
             </label>
             <select
               value={categoryId}
               onChange={(e) => { setCategoryId(e.target.value); setDefaultEfId(""); }}
               className={`${inputCls} cursor-pointer appearance-none`}
             >
-              <option value="" disabled>— Select —</option>
+              <option value="" disabled>{t("admin.formula.form.selectCategory")}</option>
               {["Scope 1", "Scope 2", "Scope 3"].map((scope) => (
                 <optgroup key={scope} label={scope}>
                   {categories.filter((c) => c.scope === scope).map((c) => (
@@ -177,7 +160,7 @@ export function FormulaBuilderForm({
 
           {/* Calculation Method */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[#141514] text-sm font-medium">Method</label>
+            <label className="text-[#141514] text-sm font-medium">{t("admin.formula.form.method")}</label>
             <select value={method} onChange={(e) => setMethod(e.target.value as CalculationMethod)} className={`${inputCls} cursor-pointer appearance-none`}>
               {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
@@ -187,7 +170,7 @@ export function FormulaBuilderForm({
         {/* Template Name */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[#141514] text-sm font-medium">
-            Template Name <span className="text-red-500">*</span>
+            {t("admin.formula.form.templateName")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -202,7 +185,7 @@ export function FormulaBuilderForm({
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[#141514] text-sm font-medium">Description</label>
+          <label className="text-[#141514] text-sm font-medium">{t("admin.formula.form.description")}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -215,9 +198,9 @@ export function FormulaBuilderForm({
         {/* Default EF + Result Unit */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[#141514] text-sm font-medium">Default Emission Factor</label>
+            <label className="text-[#141514] text-sm font-medium">{t("admin.formula.form.defaultEF")}</label>
             <select value={defaultEfId} onChange={(e) => setDefaultEfId(e.target.value)} className={`${inputCls} cursor-pointer appearance-none`}>
-              <option value="">— User selects at data entry —</option>
+              <option value="">{t("admin.formula.form.userSelectsEF")}</option>
               {availableFactors.map((ef) => (
                 <option key={ef.id} value={ef.id}>
                   {ef.name} ({ef.co2e_total} {ef.unit})
@@ -226,7 +209,7 @@ export function FormulaBuilderForm({
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[#141514] text-sm font-medium">Result Unit</label>
+            <label className="text-[#141514] text-sm font-medium">{t("admin.formula.form.resultUnit")}</label>
             <input
               type="text"
               value={resultUnit}
@@ -242,10 +225,10 @@ export function FormulaBuilderForm({
       <fieldset className="flex flex-col gap-4">
         <div>
           <legend className="text-xs font-bold text-[#1F8505] uppercase tracking-wide">
-            2. Input Schema
+            {t("admin.formula.form.section2")}
           </legend>
           <p className="text-[#AAAAAA] text-xs mt-0.5">
-            Define the data fields users will fill in. Variable names must match what you use in the formula below.
+            {t("admin.formula.form.section2Hint")}
           </p>
         </div>
         <InputSchemaBuilder fields={inputSchema} onChange={setInputSchema} />
@@ -255,18 +238,16 @@ export function FormulaBuilderForm({
       <fieldset className="flex flex-col gap-3">
         <div>
           <legend className="text-xs font-bold text-[#1F8505] uppercase tracking-wide">
-            3. Formula Editor
+            {t("admin.formula.form.section3")}
           </legend>
           <p className="text-[#AAAAAA] text-xs mt-0.5">
-            Write a mathematical expression. Available variables: declared fields above +{" "}
-            <code className="bg-[#f0f9ed] px-1 rounded text-[#1F8505]">EF_TOTAL</code>.
-            Supported: <code className="text-xs">+ - * / ( ) sqrt() abs() pow() round()</code>
+            {t("admin.formula.form.section3Hint")}
           </p>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-[#141514] text-sm font-medium">
-            Formula <span className="text-red-500">*</span>
+            {t("admin.formula.form.formulaLabel")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -290,7 +271,7 @@ export function FormulaBuilderForm({
               }
               <span>
                 {formulaValidation?.valid
-                  ? "Formula syntax valid ✓"
+                  ? t("admin.formula.form.formulaValid")
                   : formulaValidation && !formulaValidation.valid
                     ? formulaValidation.error
                     : ""}
@@ -304,7 +285,7 @@ export function FormulaBuilderForm({
         {/* Variable cross-check panel */}
         {(formulaVars.size > 0 || declaredVars.size > 0) && (
           <div className="bg-[#f9fdf7] border border-[#DAEDD5] rounded-xl p-3 text-xs flex flex-col gap-1.5">
-            <p className="font-semibold text-[#155A03]">Variable cross-check</p>
+            <p className="font-semibold text-[#155A03]">{t("admin.formula.form.varCrossCheck")}</p>
             <div className="flex flex-wrap gap-1.5">
               {[...formulaVars].map((v) => (
                 <span
@@ -323,7 +304,7 @@ export function FormulaBuilderForm({
             </div>
             {unusedVars.length > 0 && (
               <p className="text-amber-600">
-                ⚠ Declared but not in formula: {unusedVars.join(", ")}
+                {t("admin.formula.form.undeclaredWarn", { vars: unusedVars.join(", ") })}
               </p>
             )}
           </div>
@@ -338,14 +319,14 @@ export function FormulaBuilderForm({
           disabled={loading}
           className="flex-1 px-5 py-2.5 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 cursor-pointer"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="submit"
           disabled={loading || (formulaValidation !== null && !formulaValidation.valid)}
           className="flex-1 px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          {loading ? "Saving…" : "Save Template"}
+          {loading ? t("admin.formula.form.saving") : t("admin.formula.form.saveTemplate")}
         </button>
       </div>
     </form>

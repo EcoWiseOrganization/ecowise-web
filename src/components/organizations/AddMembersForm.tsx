@@ -6,12 +6,9 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 import { useTranslation } from "react-i18next";
-import {
-  addOrgMembersAction,
-  type MemberAddResult,
-} from "@/app/actions/organization.actions";
+import { addOrgMembersAction } from "@/app/actions/organization.actions";
 import { ROLE_MEMBER_ID } from "@/lib/roles";
-import type { OrganizationMemberWithUser } from "@/types/database.types";
+import type { OrganizationMemberWithUser, MemberAddResult } from "@/types/organization.types";
 
 interface AddMembersFormProps {
   orgId: string;

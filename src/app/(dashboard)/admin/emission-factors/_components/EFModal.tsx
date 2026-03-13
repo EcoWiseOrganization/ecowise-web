@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ScienceIcon from "@mui/icons-material/Science";
+import { useTranslation } from "react-i18next";
 import type {
   EmissionCategory,
   EmissionFactorWithCategory,
@@ -54,6 +55,7 @@ const EMPTY_FORM: FormState = {
 };
 
 export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }: EFModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [autoCalc, setAutoCalc] = useState(true);
@@ -95,11 +97,11 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
 
   const validate = (): boolean => {
     const errs: typeof errors = {};
-    if (!form.category_id) errs.category_id = "Required";
-    if (!form.name.trim()) errs.name = "Required";
-    if (!form.unit.trim()) errs.unit = "Required (e.g. kgCO2e/kWh)";
+    if (!form.category_id) errs.category_id = t("admin.ef.modal.required");
+    if (!form.name.trim()) errs.name = t("admin.ef.modal.required");
+    if (!form.unit.trim()) errs.unit = t("admin.ef.modal.unitHint");
     const total = parseFloat(form.co2e_total);
-    if (isNaN(total) || total < 0) errs.co2e_total = "Must be ≥ 0";
+    if (isNaN(total) || total < 0) errs.co2e_total = t("admin.ef.modal.mustBePositive");
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -138,19 +140,19 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
             </div>
             <div>
               <h2 className="text-[#155A03] text-lg font-semibold">
-                {editTarget ? "Edit Emission Factor" : "New Emission Factor"}
+                {editTarget ? t("admin.ef.modal.titleEdit") : t("admin.ef.modal.titleNew")}
               </h2>
-              <p className="text-[#AAAAAA] text-xs">Fields marked * are required.</p>
+              <p className="text-[#AAAAAA] text-xs">{t("admin.ef.modal.requiredHint")}</p>
             </div>
           </div>
 
-          {/* Category + Scope */}
+          {/* Category */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[#141514] text-sm font-medium">
-              Category <span className="text-red-500">*</span>
+              {t("admin.ef.modal.category")} <span className="text-red-500">*</span>
             </label>
             <select value={form.category_id} onChange={set("category_id")} className={`${inputCls} cursor-pointer appearance-none`}>
-              <option value="" disabled>— Select category —</option>
+              <option value="" disabled>{t("admin.ef.modal.selectCategory")}</option>
               {["Scope 1", "Scope 2", "Scope 3"].map((scope) => (
                 <optgroup key={scope} label={scope}>
                   {categories
@@ -167,7 +169,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
           {/* Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[#141514] text-sm font-medium">
-              Name <span className="text-red-500">*</span>
+              {t("admin.ef.modal.name")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -183,7 +185,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
           {/* Unit */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[#141514] text-sm font-medium">
-              Unit <span className="text-red-500">*</span>
+              {t("admin.ef.modal.unit")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -199,7 +201,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
           {/* GHG Component breakdown */}
           <div className="bg-[#f9fdf7] border border-[#DAEDD5] rounded-xl p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <p className="text-[#155A03] text-sm font-semibold">GHG Component Values</p>
+              <p className="text-[#155A03] text-sm font-semibold">{t("admin.ef.modal.ghgValues")}</p>
               <label className="flex items-center gap-1.5 text-xs text-[#AAAAAA] cursor-pointer">
                 <input
                   type="checkbox"
@@ -207,11 +209,11 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
                   onChange={(e) => setAutoCalc(e.target.checked)}
                   className="accent-[#1F8505]"
                 />
-                Auto-calculate CO₂e total
+                {t("admin.ef.modal.autoCalc")}
               </label>
             </div>
             <p className="text-[#AAAAAA] text-xs -mt-1">
-              GWP₁₀₀ (IPCC AR6): CH₄ = {GWP_CH4}, N₂O = {GWP_N2O}
+              {t("admin.ef.modal.gwpNote", { ch4: GWP_CH4, n2o: GWP_N2O })}
             </p>
             <div className="grid grid-cols-3 gap-3">
               {(["co2_value", "ch4_value", "n2o_value"] as const).map((field) => (
@@ -231,10 +233,10 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
               ))}
             </div>
 
-            {/* co2e_total — the key value used in formulas */}
+            {/* co2e_total */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-[#155A03]">
-                CO₂e Total (EF_TOTAL) <span className="text-red-500">*</span>
+                {t("admin.ef.modal.co2eTotal")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -254,7 +256,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
           {/* Source + Year */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[#141514] text-sm font-medium">Source</label>
+              <label className="text-[#141514] text-sm font-medium">{t("admin.ef.modal.source")}</label>
               <select value={form.source_reference} onChange={set("source_reference")} className={`${inputCls} cursor-pointer appearance-none`}>
                 {EF_SOURCES.map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -262,7 +264,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[#141514] text-sm font-medium">Year Valid</label>
+              <label className="text-[#141514] text-sm font-medium">{t("admin.ef.modal.yearValid")}</label>
               <input
                 type="number"
                 placeholder="2022"
@@ -277,7 +279,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[#141514] text-sm font-medium">Notes / Reference</label>
+            <label className="text-[#141514] text-sm font-medium">{t("admin.ef.modal.notes")}</label>
             <textarea
               value={form.notes}
               onChange={set("notes")}
@@ -295,14 +297,18 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
               disabled={loading}
               className="flex-1 px-5 py-2.5 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              {t("admin.ef.modal.cancel")}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
-              {loading ? "Saving…" : editTarget ? "Save Changes" : "Create Factor"}
+              {loading
+                ? t("admin.ef.modal.saving")
+                : editTarget
+                  ? t("admin.ef.modal.saveChanges")
+                  : t("admin.ef.modal.createFactor")}
             </button>
           </div>
         </form>

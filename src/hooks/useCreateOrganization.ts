@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { createOrganizationAction } from "@/app/actions/organization.actions";
-import type { CreateOrganizationInput } from "@/services/organizationService";
-import type { Organization, OrgType } from "@/types/database.types";
+import type { Organization, OrgType, CreateOrganizationInput } from "@/types/organization.types";
 
 // ── Validation ───────────────────────────────────────────────────
 

@@ -8,10 +8,10 @@ import type {
   Organization,
   OrganizationMember,
   OrganizationMemberWithUser,
-  Event,
-} from "@/types/database.types";
-import type { CreateOrganizationInput } from "@/services/organizationService";
-import type { CreateEventInput } from "@/services/eventService";
+  CreateOrganizationInput,
+  MemberAddResult,
+} from "@/types/organization.types";
+import type { Event, CreateEventInput } from "@/types/event.types";
 
 // ── Server-side reads ─────────────────────────────────────────────
 
@@ -168,12 +168,6 @@ export async function createEventAction(
 }
 
 // ── Add org members ───────────────────────────────────────────────
-
-export interface MemberAddResult {
-  email: string;
-  status: "created" | "existing_added" | "already_member" | "error";
-  error?: string;
-}
 
 export async function addOrgMembersAction(
   emails: string[],

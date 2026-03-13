@@ -2,7 +2,7 @@
 
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CategoryIcon from "@mui/icons-material/Category";
-import type { Event } from "@/types/database.types";
+import type { Event } from "@/types/event.types";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-[#f0f9ed] text-[#1F8505] border-[#DAEDD5]",

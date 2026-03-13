@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { User } from "@/types/database.types";
+import type { User } from "@/types/user.types";
 
 export async function getUserProfile(userId: string) {
   const supabase = await createClient();

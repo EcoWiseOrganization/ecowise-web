@@ -7,8 +7,7 @@ import {
   useCreateOrganization,
   ORG_TYPE_OPTIONS,
 } from "@/hooks/useCreateOrganization";
-import type { CreateOrganizationInput } from "@/services/organizationService";
-import type { OrgType } from "@/types/database.types";
+import type { CreateOrganizationInput, OrgType } from "@/types/organization.types";
 import { useToast } from "@/components/ui/Toast";
 
 function FieldLabel({ htmlFor, children, required = false }: {
@@ -36,7 +35,7 @@ const inputCls =
 
 interface CreateOrgFormProps {
   userId: string;
-  onSuccess?: (org: import("@/types/database.types").Organization) => void;
+  onSuccess?: (org: import("@/types/organization.types").Organization) => void;
   onCancel?: () => void;
 }
 

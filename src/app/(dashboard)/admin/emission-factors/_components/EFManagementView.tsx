@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import { useTranslation } from "react-i18next";
 import type {
   EmissionCategory,
   EmissionFactorWithCategory,
@@ -9,6 +10,7 @@ import type {
 } from "@/types/sustainability";
 import { EFTable } from "./EFTable";
 import { EFModal } from "./EFModal";
+import { ScopeFilterTabs } from "../../_components/ScopeFilterTabs";
 import {
   createEmissionFactorAction,
   updateEmissionFactorAction,
@@ -22,6 +24,7 @@ interface EFManagementViewProps {
 }
 
 export function EFManagementView({ initialFactors, categories }: EFManagementViewProps) {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [factors, setFactors] = useState(initialFactors);
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,7 +49,6 @@ export function EFManagementView({ initialFactors, categories }: EFManagementVie
       return;
     }
 
-    // Optimistic update: find the matching category to build the joined object
     const category = categories.find((c) => c.id === data.category_id);
     const newRow: EmissionFactorWithCategory = {
       ...data,
@@ -95,39 +97,35 @@ export function EFManagementView({ initialFactors, categories }: EFManagementVie
     showToast(`"${name}" archived`, "success");
   };
 
+  const scopeCounts = {
+    all:       factors.length,
+    "Scope 1": factors.filter((f) => f.category?.scope === "Scope 1").length,
+    "Scope 2": factors.filter((f) => f.category?.scope === "Scope 2").length,
+    "Scope 3": factors.filter((f) => f.category?.scope === "Scope 3").length,
+  };
+
   return (
     <>
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        {/* Scope filter tabs */}
-        <div className="flex gap-2">
-          {["all", "Scope 1", "Scope 2", "Scope 3"].map((s) => (
-            <button
-              key={s}
-              onClick={() => setScopeFilter(s)}
-              className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all cursor-pointer border ${
-                scopeFilter === s
-                  ? "bg-[#1F8505] text-white border-[#1F8505]"
-                  : "bg-white text-[#3B3D3B] border-[#DAEDD5] hover:border-[#79B669]"
-              }`}
-            >
-              {s === "all" ? "All Scopes" : s}
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <ScopeFilterTabs
+          value={scopeFilter}
+          onChange={setScopeFilter}
+          counts={scopeCounts}
+        />
 
         <button
           onClick={() => { setEditTarget(null); setModalOpen(true); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all cursor-pointer"
         >
           <AddIcon sx={{ fontSize: 16 }} />
-          New Emission Factor
+          {t("admin.ef.newFactor")}
         </button>
       </div>
 
       {/* Count */}
       <p className="text-[#AAAAAA] text-sm -mt-3">
-        {displayed.length} emission factor{displayed.length !== 1 ? "s" : ""}
+        {t("admin.ef.count", { count: displayed.length })}
       </p>
 
       {/* Data grid */}

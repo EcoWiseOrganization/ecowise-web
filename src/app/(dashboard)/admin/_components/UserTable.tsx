@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import type { User } from "@/types/database.types";
+import type { User } from "@/types/user.types";
 
 interface UserTableProps {
   users: User[];
