@@ -2,15 +2,25 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-
+  // Determine the canonical public URL for the redirect target.
+  // Priority:
+  //   1. NEXT_PUBLIC_SITE_URL  (set manually in env — most reliable)
+  //   2. x-forwarded-host header (set by Vercel / reverse proxies)
+  //   3. Fallback to request origin
+  // NOTE: Do NOT use VERCEL_URL — it resolves to the deployment-specific
+  // *.vercel.app URL which may differ from your custom domain.
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
-    requestUrl.origin;
+    (request.headers.get("x-forwarded-host")
+      ? `https://${request.headers.get("x-forwarded-host")}`
+      : null) ??
+    new URL(request.url).origin;
 
-  // Collect cookies that Supabase wants to set (PKCE code_verifier, etc.)
-  const cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[] = [];
+  const cookiesToSet: {
+    name: string;
+    value: string;
+    options: Record<string, unknown>;
+  }[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,10 +51,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Include PKCE cookies in the redirect response so they survive the round-trip
+  // Redirect to Google — include any PKCE code_verifier cookies Supabase set,
+  // so the browser carries them through the OAuth round-trip back to /callback.
   const response = NextResponse.redirect(data.url);
   cookiesToSet.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
+    response.cookies.set(
+      name,
+      value,
+      options as Parameters<typeof response.cookies.set>[2]
+    );
   });
 
   return response;
