@@ -1,27 +1,20 @@
 "use server";
 
-/**
- * organization.actions.ts
- * Server Actions for Organization & Event mutations AND server-side reads.
- * Uses service client so RLS never blocks server-side operations.
- */
-
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { ROLE_ADMIN_ID, ROLE_MEMBER_ID } from "@/lib/roles";
 import type {
   Organization,
   OrganizationMember,
   OrganizationMemberWithUser,
   Event,
-  EventAssignment,
-  EventAssignmentWithUser,
 } from "@/types/database.types";
 import type { CreateOrganizationInput } from "@/services/organizationService";
-import type { CreateEventInput, AssignEmployeeInput } from "@/services/eventService";
+import type { CreateEventInput } from "@/services/eventService";
 
 // ── Server-side reads ─────────────────────────────────────────────
 
-/** Returns organizations where the current user is an Active member */
 export async function getMyOrganizationsServer(): Promise<Organization[]> {
   const authClient = await createClient();
   const { data: { user } } = await authClient.auth.getUser();
@@ -29,22 +22,21 @@ export async function getMyOrganizationsServer(): Promise<Organization[]> {
 
   const db = createServiceClient();
   const { data } = await db
-    .from("organizations")
-    .select("*, organization_members!inner(user_id, status)")
-    .eq("organization_members.user_id", user.id)
-    .eq("organization_members.status", "Active")
+    .from("Organization")
+    .select("*, OrganizationMembers!inner(user_id, status)")
+    .eq("OrganizationMembers.user_id", user.id)
+    .eq("OrganizationMembers.status", "Active")
     .order("created_at", { ascending: false });
 
-  // Strip the joined organization_members from the result shape
-  return ((data ?? []) as unknown as (Organization & { organization_members: unknown[] })[]).map(
-    ({ organization_members: _m, ...org }) => org as Organization
+  return ((data ?? []) as unknown as (Organization & { OrganizationMembers: unknown[] })[]).map(
+    ({ OrganizationMembers: _m, ...org }) => org as Organization
   );
 }
 
 export async function getOrganizationByIdServer(orgId: string): Promise<Organization | null> {
   const db = createServiceClient();
   const { data, error } = await db
-    .from("organizations")
+    .from("Organization")
     .select("*")
     .eq("id", orgId)
     .single();
@@ -55,8 +47,8 @@ export async function getOrganizationByIdServer(orgId: string): Promise<Organiza
 export async function getOrganizationMembersServer(orgId: string): Promise<OrganizationMemberWithUser[]> {
   const db = createServiceClient();
   const { data } = await db
-    .from("organization_members")
-    .select(`id, org_id, user_id, role, status, created_at, user:User ( id, full_name, user_name, email )`)
+    .from("OrganizationMembers")
+    .select(`id, org_id, user_id, role_id, status, created_at, user:User ( id, full_name, user_name, email )`)
     .eq("org_id", orgId)
     .eq("status", "Active")
     .order("created_at", { ascending: true });
@@ -66,7 +58,7 @@ export async function getOrganizationMembersServer(orgId: string): Promise<Organ
 export async function getMyMembershipServer(orgId: string, userId: string): Promise<OrganizationMember | null> {
   const db = createServiceClient();
   const { data, error } = await db
-    .from("organization_members")
+    .from("OrganizationMembers")
     .select("*")
     .eq("org_id", orgId)
     .eq("user_id", userId)
@@ -78,7 +70,7 @@ export async function getMyMembershipServer(orgId: string, userId: string): Prom
 export async function getEventsByOrgServer(orgId: string): Promise<Event[]> {
   const db = createServiceClient();
   const { data } = await db
-    .from("events")
+    .from("Events")
     .select("*")
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
@@ -88,7 +80,7 @@ export async function getEventsByOrgServer(orgId: string): Promise<Event[]> {
 export async function getEventByIdServer(eventId: string): Promise<Event | null> {
   const db = createServiceClient();
   const { data, error } = await db
-    .from("events")
+    .from("Events")
     .select("*")
     .eq("id", eventId)
     .single();
@@ -96,35 +88,22 @@ export async function getEventByIdServer(eventId: string): Promise<Event | null>
   return data as Event;
 }
 
-export async function getEventAssignmentsServer(eventId: string): Promise<EventAssignmentWithUser[]> {
-  const db = createServiceClient();
-  const { data } = await db
-    .from("event_assignments")
-    .select(`id, event_id, user_id, assigned_by, created_at, user:User ( id, full_name, user_name, email )`)
-    .eq("event_id", eventId)
-    .order("created_at", { ascending: true });
-  return (data ?? []) as unknown as EventAssignmentWithUser[];
-}
-
-// ── Organization ──────────────────────────────────────────────────
+// ── Mutations ─────────────────────────────────────────────────────
 
 export async function createOrganizationAction(
   input: CreateOrganizationInput
 ): Promise<{ data: Organization | null; error: string | null }> {
-  // 1. Verify auth with user client
   const authClient = await createClient();
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return { data: null, error: "Not authenticated." };
 
-  // 2. Perform writes with service client (bypasses RLS)
   const db = createServiceClient();
 
   const { data: org, error: orgError } = await db
-    .from("organizations")
+    .from("Organization")
     .insert({
-      name: input.name.trim(),
+      legal_name: input.legal_name.trim(),
       tax_code: input.tax_code.trim(),
-      industry: input.industry,
       org_type: input.org_type,
       created_by: user.id,
     })
@@ -138,14 +117,14 @@ export async function createOrganizationAction(
     return { data: null, error: orgError.message };
   }
 
-  // 3. Add creator as Organization Admin
   const { error: memberError } = await db
-    .from("organization_members")
+    .from("OrganizationMembers")
     .insert({
       org_id: org.id,
       user_id: user.id,
-      role: "Organization Admin",
+      role_id: ROLE_ADMIN_ID,
       status: "Active",
+      created_by: user.id,
     });
 
   if (memberError) {
@@ -154,8 +133,6 @@ export async function createOrganizationAction(
 
   return { data: org as Organization, error: null };
 }
-
-// ── Event ─────────────────────────────────────────────────────────
 
 export async function createEventAction(
   input: CreateEventInput
@@ -167,7 +144,7 @@ export async function createEventAction(
   const db = createServiceClient();
 
   const { data, error } = await db
-    .from("events")
+    .from("Events")
     .insert({
       org_id: input.org_id,
       name: input.name.trim(),
@@ -190,51 +167,116 @@ export async function createEventAction(
   return { data: data as Event, error: null };
 }
 
-// ── Event Assignment ──────────────────────────────────────────────
+// ── Add org members ───────────────────────────────────────────────
 
-export async function assignEmployeeAction(
-  input: AssignEmployeeInput
-): Promise<{ data: EventAssignment | null; error: string | null }> {
-  const authClient = await createClient();
-  const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return { data: null, error: "Not authenticated." };
-
-  const db = createServiceClient();
-
-  const { data, error } = await db
-    .from("event_assignments")
-    .insert({
-      event_id: input.event_id,
-      user_id: input.user_id,
-      assigned_by: user.id,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.code === "23505") {
-      return { data: null, error: "This employee is already assigned to the event." };
-    }
-    return { data: null, error: error.message };
-  }
-
-  return { data: data as EventAssignment, error: null };
+export interface MemberAddResult {
+  email: string;
+  status: "created" | "existing_added" | "already_member" | "error";
+  error?: string;
 }
 
-export async function removeEventAssignmentAction(
-  assignmentId: string
-): Promise<{ error: string | null }> {
+export async function addOrgMembersAction(
+  emails: string[],
+  orgId: string
+): Promise<{ results: MemberAddResult[]; error: string | null }> {
   const authClient = await createClient();
-  const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return { error: "Not authenticated." };
+  const { data: { user: caller } } = await authClient.auth.getUser();
+  if (!caller) return { results: [], error: "Not authenticated." };
 
   const db = createServiceClient();
+  const { data: callerMembership } = await db
+    .from("OrganizationMembers")
+    .select("role_id")
+    .eq("org_id", orgId)
+    .eq("user_id", caller.id)
+    .single();
 
-  const { error } = await db
-    .from("event_assignments")
-    .delete()
-    .eq("id", assignmentId);
+  if (callerMembership?.role_id !== ROLE_ADMIN_ID) {
+    return { results: [], error: "Only Organization Admins can add members." };
+  }
 
-  if (error) return { error: error.message };
-  return { error: null };
+  const admin = createAdminClient();
+  const results: MemberAddResult[] = [];
+
+  for (const rawEmail of emails) {
+    const email = rawEmail.trim().toLowerCase();
+    if (!email) continue;
+
+    try {
+      const { data: existingProfile } = await db
+        .from("User")
+        .select("id")
+        .eq("email", email)
+        .single();
+
+      let userId: string;
+      let isNewUser = false;
+
+      if (existingProfile) {
+        userId = existingProfile.id;
+      } else {
+        const { data: authData, error: authError } = await admin.auth.admin.createUser({
+          email,
+          password: "123456",
+          email_confirm: true,
+        });
+
+        if (authError) {
+          results.push({ email, status: "error", error: authError.message });
+          continue;
+        }
+
+        userId = authData.user.id;
+        isNewUser = true;
+
+        const userName = email.split("@")[0];
+        await db.from("User").upsert({
+          id: userId,
+          email,
+          user_name: userName,
+          full_name: userName,
+          is_admin: false,
+          status: "active",
+          green_points: 0,
+        }, { onConflict: "id" });
+      }
+
+      const { data: existingMembership } = await db
+        .from("OrganizationMembers")
+        .select("id")
+        .eq("org_id", orgId)
+        .eq("user_id", userId)
+        .single();
+
+      if (existingMembership) {
+        results.push({ email, status: "already_member" });
+        continue;
+      }
+
+      const { error: memberError } = await db
+        .from("OrganizationMembers")
+        .insert({
+          org_id: orgId,
+          user_id: userId,
+          role_id: ROLE_MEMBER_ID,
+          status: "Active",
+          created_by: caller.id,
+        });
+
+      if (memberError) {
+        results.push({ email, status: "error", error: memberError.message });
+        continue;
+      }
+
+      results.push({ email, status: isNewUser ? "created" : "existing_added" });
+    } catch (err) {
+      results.push({
+        email,
+        status: "error",
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  }
+
+  return { results, error: null };
 }

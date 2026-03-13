@@ -1,23 +1,14 @@
 "use client";
 
-/**
- * CreateOrgForm.tsx
- * Form for creating a new organization.
- * Validates required fields (MSG01) and calls useCreateOrganization hook.
- */
-
 import { useState } from "react";
 import BusinessIcon from "@mui/icons-material/Business";
 import {
   useCreateOrganization,
-  INDUSTRY_OPTIONS,
   ORG_TYPE_OPTIONS,
 } from "@/hooks/useCreateOrganization";
 import type { CreateOrganizationInput } from "@/services/organizationService";
 import type { OrgType } from "@/types/database.types";
 import { useToast } from "@/components/ui/Toast";
-
-// ── Shared sub-components ────────────────────────────────────────
 
 function FieldLabel({ htmlFor, children, required = false }: {
   htmlFor: string;
@@ -25,10 +16,7 @@ function FieldLabel({ htmlFor, children, required = false }: {
   required?: boolean;
 }) {
   return (
-    <label
-      htmlFor={htmlFor}
-      className="text-[#141514] text-sm font-medium leading-5"
-    >
+    <label htmlFor={htmlFor} className="text-[#141514] text-sm font-medium leading-5">
       {children}
       {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
@@ -45,20 +33,11 @@ const inputCls =
   "text-sm placeholder:text-[#AAAAAA] focus:outline-none focus:border-[#79B669] " +
   "focus:ring-2 focus:ring-[#79B669]/20 transition-colors";
 
-const selectCls = inputCls + " cursor-pointer appearance-none";
-
-// ── Props ────────────────────────────────────────────────────────
-
 interface CreateOrgFormProps {
-  /** auth.uid() of the currently logged-in user */
   userId: string;
-  /** Called after successful creation with the new org */
   onSuccess?: (org: import("@/types/database.types").Organization) => void;
-  /** Called when the user clicks Cancel */
   onCancel?: () => void;
 }
-
-// ── Component ────────────────────────────────────────────────────
 
 export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProps) {
   const { showToast } = useToast();
@@ -66,14 +45,13 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
     useCreateOrganization();
 
   const [values, setValues] = useState<CreateOrganizationInput>({
-    name: "",
+    legal_name: "",
     tax_code: "",
-    industry: "",
     org_type: "" as OrgType,
   });
 
   const set = (field: keyof CreateOrganizationInput) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setValues((prev) => ({ ...prev, [field]: e.target.value }));
       clearErrors();
     };
@@ -81,7 +59,7 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit(values, userId, (org) => {
-      showToast(`Organization "${org.name}" created successfully.`, "success");
+      showToast(`Organization "${org.legal_name}" created successfully.`, "success");
       onSuccess?.(org);
     });
   };
@@ -103,7 +81,6 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         </div>
       </div>
 
-      {/* General error banner */}
       {generalError && (
         <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
           {generalError}
@@ -112,26 +89,22 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
 
       {/* Registered Legal Name */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="org-name" required>
-          Registered Legal Name
-        </FieldLabel>
+        <FieldLabel htmlFor="org-name" required>Registered Legal Name</FieldLabel>
         <input
           id="org-name"
           type="text"
           placeholder="e.g. EcoWise Technology Co., Ltd."
-          value={values.name}
-          onChange={set("name")}
+          value={values.legal_name}
+          onChange={set("legal_name")}
           className={inputCls}
           maxLength={200}
         />
-        <FieldError message={errors.name} />
+        <FieldError message={errors.legal_name} />
       </div>
 
       {/* Tax / Registration Code */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="tax-code" required>
-          Tax or Registration Code
-        </FieldLabel>
+        <FieldLabel htmlFor="tax-code" required>Tax or Registration Code</FieldLabel>
         <input
           id="tax-code"
           type="text"
@@ -144,40 +117,9 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         <FieldError message={errors.tax_code} />
       </div>
 
-      {/* Industry Sector */}
-      <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="industry" required>
-          Primary Industry Sector
-        </FieldLabel>
-        <div className="relative">
-          <select
-            id="industry"
-            value={values.industry}
-            onChange={set("industry")}
-            className={selectCls}
-          >
-            <option value="" disabled>
-              — Select industry —
-            </option>
-            {INDUSTRY_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-          {/* Custom chevron */}
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#79B669]">
-            ▾
-          </span>
-        </div>
-        <FieldError message={errors.industry} />
-      </div>
-
       {/* Organization Type */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="org-type" required>
-          Organization Type
-        </FieldLabel>
+        <FieldLabel htmlFor="org-type" required>Organization Type</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
           {ORG_TYPE_OPTIONS.map(({ value, label }) => {
             const active = values.org_type === value;

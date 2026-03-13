@@ -9,20 +9,20 @@ import type { MenuSection } from "../../_components/Sidebar";
 
 export const USER_MENU_SECTIONS: MenuSection[] = [
   {
-    title: "Menu",
+    title: "sidebar.menu",
     items: [
-      { label: "Overview", href: "/dashboard", icon: DashboardIcon },
-      { label: "Reports", href: "/dashboard/reports", icon: AssessmentIcon },
-      { label: "Asset Inventory", href: "/dashboard/assets", icon: InventoryIcon },
-      { label: "Target Tracking", href: "/dashboard/targets", icon: TrackChangesIcon },
-      { label: "Organizations", href: "/dashboard/organization", icon: BusinessIcon },
+      { label: "menu.overview", href: "/dashboard", icon: DashboardIcon },
+      { label: "menu.reports", href: "/dashboard/reports", icon: AssessmentIcon },
+      { label: "menu.assets", href: "/dashboard/assets", icon: InventoryIcon },
+      { label: "menu.targets", href: "/dashboard/targets", icon: TrackChangesIcon },
+      { label: "menu.organizations", href: "/dashboard/organization", icon: BusinessIcon },
     ],
   },
   {
-    title: "General",
+    title: "sidebar.general",
     items: [
-      { label: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
-      { label: "Help Desk", href: "/dashboard/help", icon: HelpOutlineIcon },
+      { label: "menu.settings", href: "/dashboard/settings", icon: SettingsIcon },
+      { label: "menu.help", href: "/dashboard/help", icon: HelpOutlineIcon },
     ],
   },
 ];

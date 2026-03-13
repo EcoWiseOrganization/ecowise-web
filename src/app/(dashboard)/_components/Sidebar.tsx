@@ -11,6 +11,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { signOut } from "@/services/auth.actions";
 import { WORKSPACE } from "../_data/mock";
 import type { SvgIconComponent } from "@mui/icons-material";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 export interface MenuItem {
   label: string;
@@ -43,6 +45,8 @@ function SidebarContent({
   pathname,
   onClose,
 }: SidebarProps & { pathname: string; onClose?: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -78,7 +82,7 @@ function SidebarContent({
       {showWorkspace && (
         <div className="px-[19px] pt-6 flex flex-col gap-3">
           <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
-            Workspace
+            {t("sidebar.workspace")}
           </h3>
           <div className="p-2.5 border border-[#DAEDD5] rounded-lg shadow-[0px_4px_4px_rgba(218,237,213,0.25)] flex items-center justify-between">
             <div className="flex flex-col gap-1">
@@ -98,7 +102,7 @@ function SidebarContent({
       {menuSections.map((section) => (
         <div key={section.title} className="px-[19px] pt-6 flex flex-col gap-3">
           <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
-            {section.title}
+            {t(section.title, { defaultValue: section.title })}
           </h3>
           <nav className="flex flex-col gap-0.5">
             {section.items.map(({ label, href, icon: Icon }) => {
@@ -115,7 +119,9 @@ function SidebarContent({
                   }`}
                 >
                   <Icon sx={{ fontSize: 18, color: active ? "#1F8505" : "#79B669" }} />
-                  <span className="text-sm leading-6">{label}</span>
+                  <span className="text-sm leading-6">
+                    {t(label, { defaultValue: label })}
+                  </span>
                 </Link>
               );
             })}
@@ -123,15 +129,18 @@ function SidebarContent({
         </div>
       ))}
 
-      {/* Log Out */}
-      <div className="px-[19px] pt-4 mt-auto pb-6">
+      {/* Language Switcher + Log Out */}
+      <div className="px-[19px] pt-4 mt-auto pb-6 flex flex-col gap-2">
+        <div className="px-3 py-2">
+          <LanguageSwitcher />
+        </div>
         <form action={signOut}>
           <button
             type="submit"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors bg-transparent border-none cursor-pointer"
           >
             <LogoutIcon sx={{ fontSize: 20, color: "#EF4444" }} />
-            <span className="text-sm leading-6">Log Out</span>
+            <span className="text-sm leading-6">{t("sidebar.logout")}</span>
           </button>
         </form>
       </div>

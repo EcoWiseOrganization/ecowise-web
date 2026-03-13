@@ -164,4 +164,38 @@ export const vi = {
   // Common
   "common.language.en": "English",
   "common.language.vi": "Tiếng Việt",
+
+  // Sidebar
+  "sidebar.workspace": "Không Gian Làm Việc",
+  "sidebar.menu": "Menu",
+  "sidebar.general": "Tổng Quát",
+  "sidebar.logout": "Đăng Xuất",
+
+  // Menu items
+  "menu.overview": "Tổng Quan",
+  "menu.reports": "Báo Cáo",
+  "menu.assets": "Quản Lý Tài Sản",
+  "menu.targets": "Theo Dõi Mục Tiêu",
+  "menu.organizations": "Tổ Chức",
+  "menu.settings": "Cài Đặt",
+  "menu.help": "Hỗ Trợ",
+
+  // Organization pages
+  "org.title": "Tổ Chức",
+  "org.new": "Tạo Tổ Chức",
+  "org.empty": "Chưa có tổ chức nào",
+  "org.emptyHint": "Tạo tổ chức đầu tiên của bạn để bắt đầu.",
+  "org.members": "Thành Viên",
+  "org.events": "Sự Kiện",
+  "org.addMembers": "Thêm Thành Viên",
+  "org.newEvent": "Tạo Sự Kiện",
+  "org.noMembers": "Chưa có thành viên nào.",
+  "org.noEvents": "Chưa có sự kiện nào",
+  "org.noEventsHint": "Tạo sự kiện đầu tiên cho tổ chức này.",
+
+  // Event pages
+  "event.type": "Loại",
+  "event.status.active": "Đang Hoạt Động",
+  "event.status.scheduled": "Đã Lên Lịch",
+  "event.status.completed": "Hoàn Thành",
 };

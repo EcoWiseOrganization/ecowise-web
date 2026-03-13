@@ -8,24 +8,19 @@ import type { Organization, OrgType } from "@/types/database.types";
 // ── Validation ───────────────────────────────────────────────────
 
 export interface OrgFormErrors {
-  name?: string;
+  legal_name?: string;
   tax_code?: string;
-  industry?: string;
   org_type?: string;
 }
 
 function validate(values: CreateOrganizationInput): OrgFormErrors {
   const errors: OrgFormErrors = {};
 
-  // MSG01: required field validation
-  if (!values.name.trim()) {
-    errors.name = "MSG01: Registered Legal Name is required.";
+  if (!values.legal_name.trim()) {
+    errors.legal_name = "MSG01: Registered Legal Name is required.";
   }
   if (!values.tax_code.trim()) {
     errors.tax_code = "MSG01: Tax or Registration Code is required.";
-  }
-  if (!values.industry) {
-    errors.industry = "MSG01: Please select an industry sector.";
   }
   if (!values.org_type) {
     errors.org_type = "MSG01: Please select an organization type.";
@@ -63,7 +58,6 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
     _userId: string,
     onSuccess?: (org: Organization) => void
   ) => {
-    // 1. Client-side validation
     const validationErrors = validate(values);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -74,7 +68,6 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
     setErrors({});
     setGeneralError("");
 
-    // 2. Call Server Action — auth.uid() is always set server-side
     const { data: org, error: actionError } = await createOrganizationAction(values);
 
     if (actionError || !org) {
@@ -83,7 +76,6 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
       return;
     }
 
-    // 3. Notify caller (typically shows toast + closes modal)
     onSuccess?.(org);
     setLoading(false);
   };
@@ -92,19 +84,6 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
 }
 
 // ── Constants used by the form UI ────────────────────────────────
-
-export const INDUSTRY_OPTIONS = [
-  "Logistics & Transportation",
-  "Technology & Software",
-  "Manufacturing",
-  "Finance & Banking",
-  "Healthcare",
-  "Energy & Utilities",
-  "Retail & E-commerce",
-  "Construction & Real Estate",
-  "Agriculture",
-  "Other",
-] as const;
 
 export const ORG_TYPE_OPTIONS: { value: OrgType; label: string }[] = [
   { value: "Enterprise", label: "Enterprise" },

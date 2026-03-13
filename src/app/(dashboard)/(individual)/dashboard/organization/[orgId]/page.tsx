@@ -16,7 +16,7 @@ interface OrgDetailPageProps {
 export async function generateMetadata({ params }: OrgDetailPageProps) {
   const { orgId } = await params;
   const org = await getOrganizationByIdServer(orgId);
-  return { title: org ? `${org.name} – EcoWise` : "Organization – EcoWise" };
+  return { title: org ? `${org.legal_name} – EcoWise` : "Organization – EcoWise" };
 }
 
 export default async function OrgDetailPage({ params }: OrgDetailPageProps) {
@@ -34,22 +34,22 @@ export default async function OrgDetailPage({ params }: OrgDetailPageProps) {
 
   if (!org) notFound();
 
-  const isAdmin = membership?.role === "Organization Admin";
+  const { ROLE_ADMIN_ID } = await import("@/lib/roles");
+  const isAdmin = membership?.role_id === ROLE_ADMIN_ID;
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-[#AAAAAA]">
         <Link href="/dashboard/organization" className="hover:text-[#1F8505] transition-colors">
           Organizations
         </Link>
         <span>/</span>
-        <span className="text-[#141514] font-medium">{org.name}</span>
+        <span className="text-[#141514] font-medium">{org.legal_name}</span>
       </nav>
 
       <OrgDetailView
         org={org}
-        members={members}
+        initialMembers={members}
         initialEvents={events}
         userId={user.id}
         isAdmin={isAdmin}

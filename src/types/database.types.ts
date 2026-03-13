@@ -19,21 +19,25 @@ export type EventStatus = "Active" | "Scheduled" | "Completed";
 
 export interface Organization {
   id: string;
-  name: string;
-  tax_code: string;
-  industry: string;
-  org_type: OrgType;
+  legal_name: string | null;
+  tax_code: string | null;
+  org_type: OrgType | null;
+  owner_id: string | null;
+  address: string | null;
+  contact_email: string | null;
+  logo_url: string | null;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
 }
 
 export interface OrganizationMember {
   id: string;
-  org_id: string;
-  user_id: string;
-  role: MemberRole;
-  status: MemberStatus;
-  created_at: string;
+  org_id: string | null;
+  user_id: string | null;
+  role_id: string | null;
+  status: MemberStatus | null;
+  created_at: string | null;
+  created_by: string | null;
 }
 
 /** OrganizationMember joined with public.User data (for display in lists) */
@@ -53,15 +57,3 @@ export interface Event {
   created_by: string;
 }
 
-export interface EventAssignment {
-  id: string;
-  event_id: string;
-  user_id: string;
-  assigned_by: string;
-  created_at: string;
-}
-
-/** EventAssignment joined with public.User data */
-export interface EventAssignmentWithUser extends EventAssignment {
-  user: Pick<User, "id" | "full_name" | "user_name" | "email">;
-}

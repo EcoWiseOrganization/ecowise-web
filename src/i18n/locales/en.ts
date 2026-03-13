@@ -163,4 +163,38 @@ export const en = {
   // Common
   "common.language.en": "English",
   "common.language.vi": "Tiếng Việt",
+
+  // Sidebar
+  "sidebar.workspace": "Workspace",
+  "sidebar.menu": "Menu",
+  "sidebar.general": "General",
+  "sidebar.logout": "Log Out",
+
+  // Menu items
+  "menu.overview": "Overview",
+  "menu.reports": "Reports",
+  "menu.assets": "Asset Inventory",
+  "menu.targets": "Target Tracking",
+  "menu.organizations": "Organizations",
+  "menu.settings": "Settings",
+  "menu.help": "Help Desk",
+
+  // Organization pages
+  "org.title": "Organizations",
+  "org.new": "New Organization",
+  "org.empty": "No organizations yet",
+  "org.emptyHint": "Create your first organization to get started.",
+  "org.members": "Members",
+  "org.events": "Events",
+  "org.addMembers": "Add Members",
+  "org.newEvent": "New Event",
+  "org.noMembers": "No members yet.",
+  "org.noEvents": "No events yet",
+  "org.noEventsHint": "Create the first event for this organization.",
+
+  // Event pages
+  "event.type": "Type",
+  "event.status.active": "Active",
+  "event.status.scheduled": "Scheduled",
+  "event.status.completed": "Completed",
 };

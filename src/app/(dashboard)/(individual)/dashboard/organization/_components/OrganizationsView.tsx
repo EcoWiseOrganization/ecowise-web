@@ -72,9 +72,9 @@ export function OrganizationsView({ initialOrgs, userId }: OrganizationsViewProp
                 <BusinessIcon sx={{ fontSize: 20, color: "#1F8505" }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[#141514] text-sm font-semibold truncate">{org.name}</p>
+                <p className="text-[#141514] text-sm font-semibold truncate">{org.legal_name}</p>
                 <p className="text-[#AAAAAA] text-xs truncate mt-0.5">
-                  {org.org_type} · {org.industry}
+                  {org.org_type}
                 </p>
               </div>
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#f0f9ed] text-[#1F8505] border border-[#DAEDD5] shrink-0">
