@@ -103,7 +103,7 @@ export function FormulaBuilderForm({
     const input: CreateCalculationTemplateInput = {
       category_id:        categoryId,
       name:               name.trim(),
-      description:        description.trim() || undefined,
+      description:        description.trim() || null,
       input_schema:       inputSchema,
       formula_string:     formula.trim(),
       calculation_method: method,
