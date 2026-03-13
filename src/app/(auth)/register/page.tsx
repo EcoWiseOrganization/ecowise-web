@@ -6,6 +6,7 @@ import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
+import { useTranslation } from "react-i18next";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -44,6 +45,7 @@ const errorTextStyle: React.CSSProperties = {
 };
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const {
     showPassword, setShowPassword,
     showConfirmPassword, setShowConfirmPassword,
@@ -57,10 +59,10 @@ export default function RegisterPage() {
       {/* Header */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ color: "#1F8505", fontSize: 36, fontFamily: "Inter", fontWeight: 600, wordWrap: "break-word" }}>
-          Get Started Now
+          {t("register.title")}
         </div>
         <div style={{ color: "#3B3D3B", fontSize: 16, fontFamily: "Inter", fontWeight: 400, wordWrap: "break-word" }}>
-          Quickly sign up to use our services
+          {t("register.subtitle")}
         </div>
       </div>
 
@@ -75,27 +77,27 @@ export default function RegisterPage() {
       <form style={{ display: "flex", flexDirection: "column", gap: 20 }} onSubmit={handleSubmit}>
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="name" style={labelStyle}>Name</label>
-          <input id="name" name="name" type="text" placeholder="Enter your name" style={inputStyleNoIcon} />
+          <label htmlFor="name" style={labelStyle}>{t("register.nameLabel")}</label>
+          <input id="name" name="name" type="text" placeholder={t("register.namePlaceholder")} style={inputStyleNoIcon} />
           {errors.name && <span style={errorTextStyle}>{errors.name}</span>}
         </div>
 
         {/* Email */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="email" style={labelStyle}>Email</label>
-          <input id="email" name="email" type="email" placeholder="Enter your email" style={inputStyleNoIcon} />
+          <label htmlFor="email" style={labelStyle}>{t("register.emailLabel")}</label>
+          <input id="email" name="email" type="email" placeholder={t("register.emailPlaceholder")} style={inputStyleNoIcon} />
           {errors.email && <span style={errorTextStyle}>{errors.email}</span>}
         </div>
 
         {/* Password */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="password" style={labelStyle}>Password</label>
+          <label htmlFor="password" style={labelStyle}>{t("register.passwordLabel")}</label>
           <div style={{ position: "relative" }}>
             <input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder={t("register.passwordPlaceholder")}
               style={inputStyle}
             />
             <button
@@ -114,13 +116,13 @@ export default function RegisterPage() {
 
         {/* Confirm Password */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="confirmPassword" style={labelStyle}>Confirm Password</label>
+          <label htmlFor="confirmPassword" style={labelStyle}>{t("register.confirmPasswordLabel")}</label>
           <div style={{ position: "relative" }}>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter your password"
+              placeholder={t("register.confirmPasswordPlaceholder")}
               style={inputStyle}
             />
             <button
@@ -155,15 +157,15 @@ export default function RegisterPage() {
           </div>
           <input id="terms" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ display: "none" }} />
           <label htmlFor="terms" style={{ cursor: "pointer" }}>
-            <span style={{ color: "#141514", fontSize: 10, fontFamily: "Inter", fontWeight: 500 }}>I agree to the </span>
-            <span style={{ color: "#141514", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "underline" }}>terms & policy</span>
+            <span style={{ color: "#141514", fontSize: 10, fontFamily: "Inter", fontWeight: 500 }}>{t("register.agreeTerms")}</span>
+            <span style={{ color: "#141514", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "underline" }}>{t("register.termsLink")}</span>
           </label>
         </div>
 
         {/* Sign Up Button */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
           <button type="submit" disabled={!agreed || loading} className="btn-auth-primary">
-            {loading ? "Sending code..." : "Sign up"}
+            {loading ? t("register.sendingCode") : t("register.signUp")}
           </button>
         </div>
       </form>
@@ -172,7 +174,7 @@ export default function RegisterPage() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: -22 }}>
         <div style={{ width: "100%", position: "relative", display: "flex", alignItems: "center" }}>
           <div style={{ flex: 1, height: 0, outline: "1px #CECFCD solid", outlineOffset: -0.5 }} />
-          <span style={{ paddingLeft: 6, paddingRight: 6, background: "white", color: "#3B3D3B", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>Or</span>
+          <span style={{ paddingLeft: 6, paddingRight: 6, background: "white", color: "#3B3D3B", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>{t("register.or")}</span>
           <div style={{ flex: 1, height: 0, outline: "1px #CECFCD solid", outlineOffset: -0.5 }} />
         </div>
 
@@ -184,13 +186,13 @@ export default function RegisterPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Sign in with Google
+            {t("register.signInWithGoogle")}
           </button>
         </form>
 
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: "#AAAAAA", fontSize: 16, fontFamily: "Inter", fontWeight: 500 }}>Have an account?</span>
-          <Link href="/login" className="link-auth" style={{ color: "#1F8505", fontSize: 16, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>Sign in</Link>
+          <span style={{ color: "#AAAAAA", fontSize: 16, fontFamily: "Inter", fontWeight: 500 }}>{t("register.hasAccount")}</span>
+          <Link href="/login" className="link-auth" style={{ color: "#1F8505", fontSize: 16, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>{t("register.signIn")}</Link>
         </div>
       </div>
     </AuthLayout>

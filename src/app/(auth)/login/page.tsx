@@ -7,8 +7,10 @@ import { login } from "@/services/auth.actions";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
+import { useTranslation } from "react-i18next";
 
 function LoginForm() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -20,10 +22,10 @@ function LoginForm() {
       {/* Header */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ color: "#1F8505", fontSize: 36, fontFamily: "Inter", fontWeight: 600, wordWrap: "break-word" }}>
-          Welcome back!
+          {t("login.welcome")}
         </div>
         <div style={{ color: "#3B3D3B", fontSize: 16, fontFamily: "Inter", fontWeight: 400, wordWrap: "break-word" }}>
-          Enter your information to access your account
+          {t("login.subtitle")}
         </div>
       </div>
 
@@ -44,14 +46,14 @@ function LoginForm() {
         {/* Email */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <label htmlFor="email" style={{ color: "#141514", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>
-            Email / Phone Number
+            {t("login.emailLabel")}
           </label>
           <input
             id="email"
             name="email"
             type="email"
             required
-            placeholder="Enter your registered email or phone number"
+            placeholder={t("login.emailPlaceholder")}
             style={{
               height: 32, paddingTop: 10, paddingBottom: 10, paddingLeft: 10,
               borderRadius: 8, outline: "1px #C8C8C8 solid", outlineOffset: -1,
@@ -64,10 +66,10 @@ function LoginForm() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <label htmlFor="password" style={{ color: "#141514", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>
-              Password
+              {t("login.passwordLabel")}
             </label>
             <Link href="/forgot-password" style={{ color: "#6E726E", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>
-              Forgot password
+              {t("login.forgotPassword")}
             </Link>
           </div>
           <div style={{ position: "relative" }}>
@@ -76,7 +78,7 @@ function LoginForm() {
               name="password"
               type={showPassword ? "text" : "password"}
               required
-              placeholder="Enter your password"
+              placeholder={t("login.passwordPlaceholder")}
               style={{
                 width: "100%", height: 32, paddingTop: 10, paddingBottom: 10,
                 paddingLeft: 10, paddingRight: 36, borderRadius: 8,
@@ -100,7 +102,7 @@ function LoginForm() {
         {/* Sign In Button */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 26 }}>
           <button type="submit" className="btn-auth-primary">
-            Sign in
+            {t("login.signIn")}
           </button>
         </div>
       </form>
@@ -109,7 +111,7 @@ function LoginForm() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, marginTop: -22 }}>
         <div style={{ width: "100%", position: "relative", display: "flex", alignItems: "center" }}>
           <div style={{ flex: 1, height: 0, outline: "1px #CECFCD solid", outlineOffset: -0.5 }} />
-          <span style={{ paddingLeft: 6, paddingRight: 6, background: "white", color: "#3B3D3B", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>Or</span>
+          <span style={{ paddingLeft: 6, paddingRight: 6, background: "white", color: "#3B3D3B", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>{t("login.or")}</span>
           <div style={{ flex: 1, height: 0, outline: "1px #CECFCD solid", outlineOffset: -0.5 }} />
         </div>
 
@@ -120,12 +122,12 @@ function LoginForm() {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
-          Sign in with Google
+          {t("login.signInWithGoogle")}
         </a>
 
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: "#AAAAAA", fontSize: 16, fontFamily: "Inter", fontWeight: 500 }}>Don&apos;t have an account?</span>
-          <Link href="/register" className="link-auth" style={{ color: "#1F8505", fontSize: 16, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>Sign up</Link>
+          <span style={{ color: "#AAAAAA", fontSize: 16, fontFamily: "Inter", fontWeight: 500 }}>{t("login.noAccount")}</span>
+          <Link href="/register" className="link-auth" style={{ color: "#1F8505", fontSize: 16, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>{t("login.signUp")}</Link>
         </div>
       </div>
     </AuthLayout>

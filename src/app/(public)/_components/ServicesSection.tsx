@@ -1,37 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import DescriptionIcon from "@mui/icons-material/Description";
-
-const SERVICES_TOP = [
-  {
-    title: "Emission Management by Scope",
-    description:
-      "Calculate emissions by Scope 1, 2, 3. Compliant with the GHG Protocol and ISO 14064.",
-  },
-];
-
-const SERVICES_GRID = [
-  {
-    title: "Net Zero 2050 Roadmap",
-    description:
-      "Build a tailored reduction strategy. Align with international commitments.",
-  },
-  {
-    title: "Analytics & Optimization",
-    description:
-      "Visual dashboards and in-depth analysis. Identify reduction opportunities.",
-  },
-  {
-    title: "Carbon Reporting",
-    description:
-      "Generate ESG reports. Export data compliant with Vietnamese and global standards.",
-  },
-  {
-    title: "Verification & Compliance",
-    description:
-      "Data is verified and compliant with Vietnamese regulations and international standards (GRI, TCFD, CDP).",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 function ServiceCard({
   title,
@@ -58,6 +30,34 @@ function ServiceCard({
 }
 
 export function ServicesSection() {
+  const { t } = useTranslation();
+
+  const SERVICES_TOP = [
+    {
+      titleKey: "services.emissionManagement.title",
+      descriptionKey: "services.emissionManagement.description",
+    },
+  ];
+
+  const SERVICES_GRID = [
+    {
+      titleKey: "services.netZero.title",
+      descriptionKey: "services.netZero.description",
+    },
+    {
+      titleKey: "services.analytics.title",
+      descriptionKey: "services.analytics.description",
+    },
+    {
+      titleKey: "services.carbonReporting.title",
+      descriptionKey: "services.carbonReporting.description",
+    },
+    {
+      titleKey: "services.verification.title",
+      descriptionKey: "services.verification.description",
+    },
+  ];
+
   return (
     <section id="services" className="relative overflow-hidden bg-[#1F3818]">
       <Image
@@ -76,18 +76,17 @@ export function ServicesSection() {
             <div className="w-full lg:w-[529px] flex flex-col gap-8 lg:gap-10 lg:shrink-0">
               <div className="flex flex-col gap-2.5">
                 <h2 className="text-white text-[32px] sm:text-[40px] lg:text-[48px] font-bold leading-tight lg:leading-[56px]">
-                  Comprehensive solutions for carbon footprint management
+                  {t("services.title")}
                 </h2>
                 <p className="text-[#E5E5E5] text-base sm:text-lg font-normal leading-6">
-                  EcoWise provides a full suite of tools to help businesses
-                  measure, analyze, and reduce carbon emissions efficiently
+                  {t("services.subtitle")}
                 </p>
               </div>
               <Link
                 href="#services"
                 className="self-start px-5 py-2.5 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] overflow-hidden rounded-xl text-white text-base sm:text-xl font-medium no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
               >
-                Explore our services
+                {t("services.explore")}
               </Link>
             </div>
 
@@ -108,13 +107,21 @@ export function ServicesSection() {
             {/* First card — half width on desktop, full on mobile */}
             <div className="w-full lg:w-[calc(50%-8px)]">
               {SERVICES_TOP.map((service) => (
-                <ServiceCard key={service.title} {...service} />
+                <ServiceCard
+                  key={service.titleKey}
+                  title={t(service.titleKey)}
+                  description={t(service.descriptionKey)}
+                />
               ))}
             </div>
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {SERVICES_GRID.map((service) => (
-                <ServiceCard key={service.title} {...service} />
+                <ServiceCard
+                  key={service.titleKey}
+                  title={t(service.titleKey)}
+                  description={t(service.descriptionKey)}
+                />
               ))}
             </div>
           </div>

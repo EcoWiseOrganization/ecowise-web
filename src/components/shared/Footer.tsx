@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -6,27 +8,7 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-
-const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
-  "About Us": [
-    { label: "Company Overview", href: "#" },
-    { label: "Mission & Vision", href: "#" },
-    { label: "Sustainability Commitment", href: "#" },
-    { label: "Partners", href: "#" },
-  ],
-  Services: [
-    { label: "Carbon Measurement", href: "#" },
-    { label: "Emission Analysis", href: "#" },
-    { label: "Carbon Reporting", href: "#" },
-    { label: "Net Zero Consulting", href: "#" },
-  ],
-  Products: [
-    { label: "Website Platform", href: "#" },
-    { label: "Mobile App", href: "#" },
-    { label: "Enterprise Dashboard", href: "#" },
-    { label: "API Integration", href: "#" },
-  ],
-};
+import { useTranslation } from "react-i18next";
 
 const SOCIAL_LINKS = [
   { icon: FacebookIcon, href: "#", label: "Facebook" },
@@ -36,6 +18,29 @@ const SOCIAL_LINKS = [
 ];
 
 export function Footer() {
+  const { t } = useTranslation();
+
+  const FOOTER_LINKS: Record<string, { labelKey: string; href: string }[]> = {
+    [t("footer.aboutUs")]: [
+      { labelKey: "footer.companyOverview", href: "#" },
+      { labelKey: "footer.missionVision", href: "#" },
+      { labelKey: "footer.sustainabilityCommitment", href: "#" },
+      { labelKey: "footer.partners", href: "#" },
+    ],
+    [t("footer.services")]: [
+      { labelKey: "footer.carbonMeasurement", href: "#" },
+      { labelKey: "footer.emissionAnalysis", href: "#" },
+      { labelKey: "footer.carbonReporting", href: "#" },
+      { labelKey: "footer.netZeroConsulting", href: "#" },
+    ],
+    [t("footer.products")]: [
+      { labelKey: "footer.websitePlatform", href: "#" },
+      { labelKey: "footer.mobileApp", href: "#" },
+      { labelKey: "footer.enterpriseDashboard", href: "#" },
+      { labelKey: "footer.apiIntegration", href: "#" },
+    ],
+  };
+
   return (
     <footer id="contact" className="w-full bg-white shadow-[0px_-2px_4px_rgba(218,237,213,0.25)] border-t border-[#DAEDD5]">
       <div className="w-full h-px bg-[#DAEDD5]" />
@@ -77,11 +82,11 @@ export function Footer() {
                 <div className="flex flex-col gap-1.5 sm:gap-2">
                   {links.map((link) => (
                     <Link
-                      key={link.label}
+                      key={link.labelKey}
                       href={link.href}
                       className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   ))}
                 </div>
@@ -94,23 +99,22 @@ export function Footer() {
         <div className="mt-10 sm:mt-[100px] flex flex-col items-center gap-4 sm:gap-5">
           <div className="w-full h-px bg-[#DAEDD5]" />
 
-          {/* Mobile: stacked; Desktop: single row */}
           <div className="w-full flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3 sm:gap-4">
             <span className="text-[#79B669] text-xs font-normal leading-5">
-              &copy; 2026 EcoWise. All rights reserved.
+              {t("footer.copyright")}
             </span>
             <div className="flex items-center gap-4 sm:gap-6">
               <Link
                 href="#"
                 className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
               >
-                Terms of Service
+                {t("footer.termsOfService")}
               </Link>
               <Link
                 href="#"
                 className="text-[#79B669] text-xs font-normal leading-5 no-underline hover:text-[#1F8505] transition-colors"
               >
-                Privacy Policy
+                {t("footer.privacyPolicy")}
               </Link>
             </div>
             <div className="flex items-center gap-4 sm:gap-5">
@@ -126,9 +130,9 @@ export function Footer() {
               ))}
             </div>
             <span className="text-[#79B669] text-xs font-normal leading-5 text-center sm:text-left">
-              This page uses cookies. See cookies details{" "}
+              {t("footer.cookies")}{" "}
               <Link href="#" className="text-[#79B669] underline">
-                here
+                {t("footer.cookiesLink")}
               </Link>
               .
             </span>

@@ -1,65 +1,67 @@
+"use client";
+
 import Link from "next/link";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { useTranslation } from "react-i18next";
 
-interface PricingPlan {
-  name: string;
+interface PricingPlanConfig {
+  nameKey: string;
   price: string;
-  period?: string;
-  description: string;
-  buttonText: string;
+  periodKey?: string;
+  descriptionKey: string;
+  buttonKey: string;
   buttonVariant: "outline" | "filled";
-  features: string[];
+  featureKeys: string[];
   highlighted?: boolean;
 }
 
-const PLANS: PricingPlan[] = [
+const PLANS_CONFIG: PricingPlanConfig[] = [
   {
-    name: "Eco-Individual Free",
+    nameKey: "pricing.plan1.name",
     price: "$0",
-    description: "Perfect for beginners tracking daily emissions.",
-    buttonText: "Try for Free",
+    descriptionKey: "pricing.plan1.description",
+    buttonKey: "pricing.plan1.button",
     buttonVariant: "outline",
-    features: [
-      "Manual emission log",
-      "Basic travel tracking",
-      "Community challenges",
-      "Leaderboard comparison",
+    featureKeys: [
+      "pricing.plan1.feature1",
+      "pricing.plan1.feature2",
+      "pricing.plan1.feature3",
+      "pricing.plan1.feature4",
     ],
   },
   {
-    name: "Eco-Professional",
+    nameKey: "pricing.plan2.name",
     price: "$000",
-    period: "/ Quarter",
-    description:
-      "Best for growing businesses needing automation and ESG reporting.",
-    buttonText: "Start Professional Plan",
+    periodKey: "pricing.quarter",
+    descriptionKey: "pricing.plan2.description",
+    buttonKey: "pricing.plan2.button",
     buttonVariant: "filled",
-    features: [
-      "Bulk data upload (Excel/CSV)",
-      "Travel emission tracking",
-      "Real-time dashboard (<500n)",
-      "Standard ESG export reports",
+    featureKeys: [
+      "pricing.plan2.feature1",
+      "pricing.plan2.feature2",
+      "pricing.plan2.feature3",
+      "pricing.plan2.feature4",
     ],
     highlighted: true,
   },
   {
-    name: "Eco-Starter",
+    nameKey: "pricing.plan3.name",
     price: "$00",
-    period: "/ Quarter",
-    description:
-      "Best for growing businesses needing automation and ESG reporting.",
-    buttonText: "Get Started",
+    periodKey: "pricing.quarter",
+    descriptionKey: "pricing.plan3.description",
+    buttonKey: "pricing.plan3.button",
     buttonVariant: "outline",
-    features: [
-      "Scope 1 & 2 emission calculation",
-      "Vietnamese emission factors",
-      "Basic emission dashboard",
-      "Small event tracking (<100n)",
+    featureKeys: [
+      "pricing.plan3.feature1",
+      "pricing.plan3.feature2",
+      "pricing.plan3.feature3",
+      "pricing.plan3.feature4",
     ],
   },
 ];
 
-function PricingCard({ plan }: { plan: PricingPlan }) {
+function PricingCard({ plan }: { plan: PricingPlanConfig }) {
+  const { t } = useTranslation();
   const isHighlighted = plan.highlighted;
 
   return (
@@ -75,22 +77,22 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
         <div className="flex flex-col gap-8 sm:gap-[42px]">
           <div className="flex flex-col gap-8 sm:gap-12">
             <h3 className="text-[#1F8505] text-xl sm:text-2xl font-medium leading-[27.6px]">
-              {plan.name}
+              {t(plan.nameKey)}
             </h3>
             <div className="flex items-end gap-2">
               <span className="text-[#1F8505] text-[48px] sm:text-[60px] font-semibold leading-none">
                 {plan.price}
               </span>
-              {plan.period && (
+              {plan.periodKey && (
                 <span className="text-[#6E726E] text-base font-normal leading-[18.4px] mb-2">
-                  {plan.period}
+                  {t(plan.periodKey)}
                 </span>
               )}
             </div>
           </div>
           <div className="flex flex-col gap-8 sm:gap-[42px]">
             <p className="text-[#6E726E] text-base font-normal leading-6">
-              {plan.description}
+              {t(plan.descriptionKey)}
             </p>
             <Link
               href="/register"
@@ -100,7 +102,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                   : "bg-white text-[#1F8505] hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
               }`}
             >
-              {plan.buttonText}
+              {t(plan.buttonKey)}
             </Link>
           </div>
         </div>
@@ -109,14 +111,14 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
       {/* Features Section */}
       <div className="w-full px-6 sm:px-[33px] pt-6 sm:pt-8 pb-7 sm:pb-9 overflow-hidden rounded-b-3xl border-t border-[#DAEDD5] flex flex-col items-start gap-7 sm:gap-9">
         <h4 className="text-[#1F8505] text-lg font-medium leading-[20.7px]">
-          Features:
+          {t("pricing.features")}
         </h4>
         <div className="self-stretch flex flex-col items-start gap-5 sm:gap-7">
-          {plan.features.map((feature) => (
-            <div key={feature} className="self-stretch inline-flex items-center gap-2">
+          {plan.featureKeys.map((featureKey) => (
+            <div key={featureKey} className="self-stretch inline-flex items-center gap-2">
               <CheckCircleIcon sx={{ fontSize: 20, color: "#1F8505" }} />
               <span className="flex-1 text-[#6E726E] text-sm sm:text-base font-normal leading-[18.4px]">
-                {feature}
+                {t(featureKey)}
               </span>
             </div>
           ))}
@@ -127,15 +129,17 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 }
 
 export function PricingSection() {
+  const { t } = useTranslation();
+
   return (
     <section id="products" className="w-full max-w-[1201px] mx-auto py-16 sm:py-20 px-4 sm:px-6 lg:px-0">
       <div className="flex flex-col items-center gap-10 sm:gap-[60px]">
         <h2 className="w-full max-w-[621px] text-center text-[#155A03] text-[32px] sm:text-[40px] lg:text-[48px] font-bold leading-tight lg:leading-[56px]">
-          Choose The Right Plan For Your Carbon Journey
+          {t("pricing.title")}
         </h2>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {PLANS.map((plan) => (
-            <PricingCard key={plan.name} plan={plan} />
+          {PLANS_CONFIG.map((plan) => (
+            <PricingCard key={plan.nameKey} plan={plan} />
           ))}
         </div>
       </div>

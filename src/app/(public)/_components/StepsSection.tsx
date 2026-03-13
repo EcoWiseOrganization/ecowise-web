@@ -1,38 +1,40 @@
-const STEPS = [
-  {
-    number: "01",
-    title: "Sign Up & Set Up",
-    description:
-      "Create your account and configure your organization's structure, operational scope, and reporting boundaries.",
-  },
-  {
-    number: "02",
-    title: "Data Collection",
-    description:
-      "Input operational data including energy consumption, transportation, waste, and supply chain activities.",
-  },
-  {
-    number: "03",
-    title: "Calculation & Analysis",
-    description:
-      "The system automatically calculates emissions by Scope 1, 2, and 3, and identifies key carbon hotspots.",
-  },
-  {
-    number: "04",
-    title: "Reporting & Action",
-    description:
-      "Generate compliance-ready reports, build emission reduction plans, and track your progress toward Net Zero.",
-  },
-];
+"use client";
+
+import { useTranslation } from "react-i18next";
 
 export function StepsSection() {
+  const { t } = useTranslation();
+
+  const STEPS = [
+    {
+      number: "01",
+      titleKey: "steps.step1.title",
+      descriptionKey: "steps.step1.description",
+    },
+    {
+      number: "02",
+      titleKey: "steps.step2.title",
+      descriptionKey: "steps.step2.description",
+    },
+    {
+      number: "03",
+      titleKey: "steps.step3.title",
+      descriptionKey: "steps.step3.description",
+    },
+    {
+      number: "04",
+      titleKey: "steps.step4.title",
+      descriptionKey: "steps.step4.description",
+    },
+  ];
+
   return (
     <section className="w-full py-16 sm:py-20 lg:py-[100px]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col items-start gap-12 lg:gap-20">
         {/* Banner Title */}
         <div className="w-full flex items-center justify-center px-6 sm:px-12 lg:px-[97px] py-5 bg-[linear-gradient(270deg,#B8D6B0_0%,#79B669_98%)] shadow-[0px_4px_4px_rgba(218,237,213,0.25)] rounded-2xl lg:rounded-3xl">
           <h2 className="text-center text-white text-2xl sm:text-3xl lg:text-4xl font-bold leading-snug lg:leading-[56px]">
-            4 Simple Steps To Start Managing Your Carbon
+            {t("steps.title")}
           </h2>
         </div>
 
@@ -51,8 +53,8 @@ export function StepsSection() {
                     </span>
                   </div>
                   <div className="flex flex-col items-start gap-2.5">
-                    <h3 className="text-[#104502] text-xl font-semibold leading-6">{step.title}</h3>
-                    <p className="text-[#155A03] text-base font-normal leading-6">{step.description}</p>
+                    <h3 className="text-[#104502] text-xl font-semibold leading-6">{t(step.titleKey)}</h3>
+                    <p className="text-[#155A03] text-base font-normal leading-6">{t(step.descriptionKey)}</p>
                   </div>
                 </div>
               ))}
@@ -67,8 +69,8 @@ export function StepsSection() {
                   <span className="text-white text-2xl font-bold">{step.number}</span>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <h3 className="text-[#104502] text-base sm:text-lg font-semibold leading-6">{step.title}</h3>
-                  <p className="text-[#155A03] text-sm sm:text-base font-normal leading-6">{step.description}</p>
+                  <h3 className="text-[#104502] text-base sm:text-lg font-semibold leading-6">{t(step.titleKey)}</h3>
+                  <p className="text-[#155A03] text-sm sm:text-base font-normal leading-6">{t(step.descriptionKey)}</p>
                 </div>
               </div>
             ))}

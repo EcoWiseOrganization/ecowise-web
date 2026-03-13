@@ -10,34 +10,30 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/services/auth.actions";
 import { useState, useRef, useEffect } from "react";
-
-const NAV_LINKS = [
-  { label: "About Us", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Products", href: "#products" },
-  { label: "Contact", href: "#contact" },
-];
+import { useTranslation } from "react-i18next";
 
 function GuestActions() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3 sm:gap-5">
       <Link
         href="/login"
         className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-[#1F8505] text-[#1F8505] text-sm sm:text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
       >
-        Sign in
+        {t("nav.signIn")}
       </Link>
       <Link
         href="/register"
         className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm sm:text-base font-medium no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
       >
-        Sign up
+        {t("nav.signUp")}
       </Link>
     </div>
   );
 }
 
 function UserActions({ displayName }: { displayName: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -70,14 +66,14 @@ function UserActions({ displayName }: { displayName: string }) {
               href="/dashboard"
               className="block px-4 py-2.5 text-sm text-[#155A03] no-underline hover:bg-[#f0f9ed] transition-colors"
             >
-              Dashboard
+              {t("nav.dashboard")}
             </Link>
             <form action={signOut}>
               <button
                 type="submit"
                 className="w-full text-left px-4 py-2.5 text-sm text-red-600 bg-transparent border-none cursor-pointer hover:bg-red-50 transition-colors"
               >
-                Sign out
+                {t("nav.signOut")}
               </button>
             </form>
           </div>
@@ -87,7 +83,78 @@ function UserActions({ displayName }: { displayName: string }) {
   );
 }
 
+function LanguageSwitcher({ onClose }: { onClose?: () => void }) {
+  const { i18n: i18nInstance } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const currentLang = i18nInstance.language === "vi" ? "VI" : "EN";
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleChange = (lang: string) => {
+    i18nInstance.changeLanguage(lang);
+    localStorage.setItem("ecowise_language", lang);
+    setOpen(false);
+    onClose?.();
+  };
+
+  return (
+    <div className="relative" ref={langRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-[#79B669] hover:text-[#1F8505] transition-colors bg-transparent border-none cursor-pointer p-0"
+        aria-label="Select language"
+      >
+        <LanguageIcon sx={{ fontSize: 24 }} />
+        <span className="text-base font-medium">{currentLang}</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-[#DAEDD5] py-1 z-[60]">
+          <button
+            onClick={() => handleChange("en")}
+            className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 bg-transparent border-none cursor-pointer transition-colors ${
+              i18nInstance.language === "en"
+                ? "text-[#1F8505] bg-[#f0f9ed] font-semibold"
+                : "text-[#3B3D3B] hover:bg-[#f0f9ed] hover:text-[#1F8505]"
+            }`}
+          >
+            <span className="text-base">🇺🇸</span>
+            <span>English</span>
+            {i18nInstance.language === "en" && (
+              <span className="ml-auto text-[#1F8505]">✓</span>
+            )}
+          </button>
+          <button
+            onClick={() => handleChange("vi")}
+            className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 bg-transparent border-none cursor-pointer transition-colors ${
+              i18nInstance.language === "vi"
+                ? "text-[#1F8505] bg-[#f0f9ed] font-semibold"
+                : "text-[#3B3D3B] hover:bg-[#f0f9ed] hover:text-[#1F8505]"
+            }`}
+          >
+            <span className="text-base">🇻🇳</span>
+            <span>Tiếng Việt</span>
+            {i18nInstance.language === "vi" && (
+              <span className="ml-auto text-[#1F8505]">✓</span>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -96,6 +163,13 @@ export function Header() {
     user?.user_metadata?.name ||
     user?.email?.split("@")[0] ||
     "User";
+
+  const NAV_LINKS = [
+    { labelKey: "nav.aboutUs", href: "#about" },
+    { labelKey: "nav.services", href: "#services" },
+    { labelKey: "nav.products", href: "#products" },
+    { labelKey: "nav.contact", href: "#contact" },
+  ];
 
   return (
     <>
@@ -116,11 +190,11 @@ export function Header() {
             <nav className="hidden lg:flex items-center gap-2.5">
               {NAV_LINKS.map((link) => (
                 <Link
-                  key={link.label}
+                  key={link.labelKey}
                   href={link.href}
                   className="p-2.5 text-[#79B669] text-base font-medium no-underline hover:text-[#1F8505] transition-colors"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
             </nav>
@@ -128,8 +202,6 @@ export function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 lg:gap-[60px]">
-            {/* Logged-in: always show UserActions with dropdown on ALL screen sizes */}
-            {/* Guest: show only on sm+, on mobile it's in the drawer */}
             {loading ? (
               <div className="hidden sm:block w-[140px] h-10" />
             ) : user ? (
@@ -140,9 +212,9 @@ export function Header() {
               </div>
             )}
 
-            <div className="hidden lg:flex items-center gap-1.5 text-[#79B669]">
-              <LanguageIcon sx={{ fontSize: 24 }} />
-              <span className="text-base font-medium">EN</span>
+            {/* Language Switcher — desktop only */}
+            <div className="hidden lg:flex">
+              <LanguageSwitcher />
             </div>
 
             {/* Hamburger — visible on < lg */}
@@ -182,15 +254,20 @@ export function Header() {
             <nav className="flex flex-col p-4 gap-1">
               {NAV_LINKS.map((link) => (
                 <Link
-                  key={link.label}
+                  key={link.labelKey}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
                   className="px-3 py-3 text-[#79B669] text-base font-medium no-underline hover:text-[#1F8505] hover:bg-[#f0f9ed] rounded-lg transition-colors"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
             </nav>
+
+            {/* Language Switcher — mobile */}
+            <div className="px-4 py-3 border-t border-[#DAEDD5]">
+              <LanguageSwitcher onClose={() => setMobileOpen(false)} />
+            </div>
 
             {/* Auth section at bottom */}
             <div className="p-4 mt-auto border-t border-[#DAEDD5]">
@@ -211,14 +288,14 @@ export function Header() {
                     onClick={() => setMobileOpen(false)}
                     className="w-full text-center px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-base font-medium no-underline"
                   >
-                    Dashboard
+                    {t("nav.dashboard")}
                   </Link>
                   <form action={signOut}>
                     <button
                       type="submit"
                       className="w-full px-5 py-2.5 rounded-xl border border-red-300 text-red-500 bg-transparent cursor-pointer text-base font-medium"
                     >
-                      Sign out
+                      {t("nav.signOut")}
                     </button>
                   </form>
                 </div>
@@ -229,14 +306,14 @@ export function Header() {
                     onClick={() => setMobileOpen(false)}
                     className="w-full text-center px-5 py-2.5 rounded-xl border border-[#1F8505] text-[#1F8505] text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white transition-all"
                   >
-                    Sign in
+                    {t("nav.signIn")}
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setMobileOpen(false)}
                     className="w-full text-center px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-base font-medium no-underline"
                   >
-                    Sign up
+                    {t("nav.signUp")}
                   </Link>
                 </div>
               )}
