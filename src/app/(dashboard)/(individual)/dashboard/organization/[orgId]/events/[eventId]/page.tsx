@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { T } from "@/components/shared/TranslatedText";
 import {
   getOrganizationByIdServer,
   getEventByIdServer,
@@ -31,10 +32,10 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   if (!org || !event) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pt-6">
       <nav className="flex items-center gap-2 text-sm text-[#AAAAAA] flex-wrap">
         <Link href="/dashboard/organization" className="hover:text-[#1F8505] transition-colors">
-          Organizations
+          <T k="common.breadcrumb.organizations" />
         </Link>
         <span>/</span>
         <Link href={`/dashboard/organization/${orgId}`} className="hover:text-[#1F8505] transition-colors">

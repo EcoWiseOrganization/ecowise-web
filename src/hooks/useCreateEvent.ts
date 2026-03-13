@@ -105,15 +105,15 @@ export function useCreateEvent(): UseCreateEventReturn {
 
 // ── Constants used by the form UI ────────────────────────────────
 
-export const EVENT_TYPE_OPTIONS: { value: EventType; label: string }[] = [
-  { value: "Conference", label: "Conference" },
-  { value: "Festival",   label: "Festival" },
-  { value: "Webinar",    label: "Webinar" },
-  { value: "Workshop",   label: "Workshop" },
-  { value: "Other",      label: "Other" },
+export const EVENT_TYPE_OPTIONS: { value: EventType; labelKey: string }[] = [
+  { value: "Conference", labelKey: "event.type.conference" },
+  { value: "Festival",   labelKey: "event.type.festival" },
+  { value: "Webinar",    labelKey: "event.type.webinar" },
+  { value: "Workshop",   labelKey: "event.type.workshop" },
+  { value: "Other",      labelKey: "event.type.other" },
 ];
 
-export const EVENT_STATUS_OPTIONS: { value: EventStatus; label: string }[] = [
-  { value: "Active",    label: "Active" },
-  { value: "Scheduled", label: "Scheduled" },
+export const EVENT_STATUS_OPTIONS: { value: EventStatus; labelKey: string }[] = [
+  { value: "Active",    labelKey: "event.status.active" },
+  { value: "Scheduled", labelKey: "event.status.scheduled" },
 ];

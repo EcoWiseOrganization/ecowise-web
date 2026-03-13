@@ -182,9 +182,12 @@ export const vi = {
 
   // Organization pages
   "org.title": "Tổ Chức",
+  "org.subtitle": "Quản lý các tổ chức và sự kiện của bạn.",
   "org.new": "Tạo Tổ Chức",
   "org.empty": "Chưa có tổ chức nào",
   "org.emptyHint": "Tạo tổ chức đầu tiên của bạn để bắt đầu.",
+  "org.count_one": "{{count}} tổ chức",
+  "org.count_other": "{{count}} tổ chức",
   "org.members": "Thành Viên",
   "org.events": "Sự Kiện",
   "org.addMembers": "Thêm Thành Viên",
@@ -192,10 +195,85 @@ export const vi = {
   "org.noMembers": "Chưa có thành viên nào.",
   "org.noEvents": "Chưa có sự kiện nào",
   "org.noEventsHint": "Tạo sự kiện đầu tiên cho tổ chức này.",
+  "org.taxCode": "Mã số thuế:",
+  "org.roleAdmin": "Quản Trị",
+  "org.roleMember": "Thành Viên",
+  "org.memberCount_one": "{{count}} thành viên",
+  "org.memberCount_other": "{{count}} thành viên",
+
+  // Create Org Form
+  "org.form.title": "Tạo Tổ Chức",
+  "org.form.legalName": "Tên Pháp Lý Đăng Ký",
+  "org.form.legalNamePlaceholder": "VD: Công Ty TNHH EcoWise Technology",
+  "org.form.taxCode": "Mã Số Thuế / Mã Đăng Ký",
+  "org.form.taxCodePlaceholder": "VD: 0123456789",
+  "org.form.type": "Loại Tổ Chức",
+  "org.type.enterprise": "Doanh Nghiệp Lớn",
+  "org.type.smb": "Doanh Nghiệp Vừa & Nhỏ (SMB)",
+  "org.type.ngo": "Tổ Chức Phi Chính Phủ (NGO)",
+  "org.type.startup": "Khởi Nghiệp",
+
+  // Add Members Form
+  "org.addMembersHint": "Tài khoản mới sẽ dùng <b>123456</b> làm mật khẩu mặc định.",
+  "org.form.emails": "Địa chỉ email",
+  "org.form.emailsHint": "Mỗi email trên một dòng, hoặc phân cách bằng dấu phẩy.",
+  "org.adding": "Đang thêm…",
+  "org.memberCreated": "Đã tạo tài khoản & thêm vào",
+  "org.memberExisting": "Đã thêm người dùng có sẵn",
+  "org.memberExists": "Đã là thành viên",
 
   // Event pages
-  "event.type": "Loại",
+  "event.createTitle": "Tạo Sự Kiện",
+  "event.new": "Tạo Sự Kiện",
+  "event.form.name": "Tên Sự Kiện",
+  "event.form.namePlaceholder": "VD: Hội Nghị Carbon Thường Niên 2025",
+  "event.form.type": "Loại Sự Kiện",
+  "event.form.typePlaceholder": "— Chọn loại sự kiện —",
+  "event.form.status": "Trạng Thái Ban Đầu",
+  "event.form.startDate": "Ngày Bắt Đầu",
+  "event.form.endDate": "Ngày Kết Thúc",
+  "event.type.conference": "Hội Nghị",
+  "event.type.festival": "Lễ Hội",
+  "event.type.webinar": "Hội Thảo Trực Tuyến",
+  "event.type.workshop": "Hội Thảo",
+  "event.type.other": "Khác",
   "event.status.active": "Đang Hoạt Động",
   "event.status.scheduled": "Đã Lên Lịch",
   "event.status.completed": "Hoàn Thành",
+
+  // Common form
+  "form.requiredHint": "Các trường đánh dấu * là bắt buộc.",
+  "common.cancel": "Hủy",
+  "common.done": "Xong",
+  "common.creating": "Đang tạo…",
+  "common.results": "Kết Quả",
+  "common.failed": "Thất bại",
+  "common.breadcrumb.organizations": "Tổ Chức",
+  "common.comingSoon": "Sắp ra mắt",
+
+  // Dashboard page
+  "page.dashboard.title": "Bảng Điều Khiển",
+  "page.dashboard.subtitle": "Tổng quan phát thải carbon của bạn",
+  "page.dashboard.monitoringFor": "Theo dõi hiệu suất carbon cho",
+  "page.dashboard.addEmission": "Thêm Phát Thải",
+
+  // Reports page
+  "page.reports.title": "Báo Cáo",
+  "page.reports.subtitle": "Xem và tạo báo cáo phát thải carbon",
+
+  // Asset Inventory page
+  "page.assets.title": "Quản Lý Tài Sản",
+  "page.assets.subtitle": "Quản lý các tài sản phát sinh khí thải của tổ chức",
+
+  // Target Tracking page
+  "page.targets.title": "Theo Dõi Mục Tiêu",
+  "page.targets.subtitle": "Theo dõi tiến độ đạt mục tiêu giảm phát thải",
+
+  // Settings page
+  "page.settings.title": "Cài Đặt",
+  "page.settings.subtitle": "Quản lý tài khoản và cài đặt không gian làm việc",
+
+  // Help Desk page
+  "page.help.title": "Hỗ Trợ",
+  "page.help.subtitle": "Nhận hỗ trợ và tìm câu trả lời cho các câu hỏi thường gặp",
 };

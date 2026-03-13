@@ -85,9 +85,9 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
 
 // ── Constants used by the form UI ────────────────────────────────
 
-export const ORG_TYPE_OPTIONS: { value: OrgType; label: string }[] = [
-  { value: "Enterprise", label: "Enterprise" },
-  { value: "SMB",        label: "Small & Medium Business (SMB)" },
-  { value: "NGO",        label: "Non-Governmental Organization (NGO)" },
-  { value: "Startup",    label: "Startup" },
+export const ORG_TYPE_OPTIONS: { value: OrgType; labelKey: string }[] = [
+  { value: "Enterprise", labelKey: "org.type.enterprise" },
+  { value: "SMB",        labelKey: "org.type.smb" },
+  { value: "NGO",        labelKey: "org.type.ngo" },
+  { value: "Startup",    labelKey: "org.type.startup" },
 ];

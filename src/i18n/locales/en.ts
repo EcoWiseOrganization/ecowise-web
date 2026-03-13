@@ -181,9 +181,12 @@ export const en = {
 
   // Organization pages
   "org.title": "Organizations",
+  "org.subtitle": "Manage your organizations and their events.",
   "org.new": "New Organization",
   "org.empty": "No organizations yet",
   "org.emptyHint": "Create your first organization to get started.",
+  "org.count_one": "{{count}} organization",
+  "org.count_other": "{{count}} organizations",
   "org.members": "Members",
   "org.events": "Events",
   "org.addMembers": "Add Members",
@@ -191,10 +194,85 @@ export const en = {
   "org.noMembers": "No members yet.",
   "org.noEvents": "No events yet",
   "org.noEventsHint": "Create the first event for this organization.",
+  "org.taxCode": "Tax / Reg code:",
+  "org.roleAdmin": "Admin",
+  "org.roleMember": "Member",
+  "org.memberCount_one": "{{count}} member",
+  "org.memberCount_other": "{{count}} members",
+
+  // Create Org Form
+  "org.form.title": "Create Organization",
+  "org.form.legalName": "Registered Legal Name",
+  "org.form.legalNamePlaceholder": "e.g. EcoWise Technology Co., Ltd.",
+  "org.form.taxCode": "Tax or Registration Code",
+  "org.form.taxCodePlaceholder": "e.g. 0123456789",
+  "org.form.type": "Organization Type",
+  "org.type.enterprise": "Enterprise",
+  "org.type.smb": "Small & Medium Business (SMB)",
+  "org.type.ngo": "Non-Governmental Organization (NGO)",
+  "org.type.startup": "Startup",
+
+  // Add Members Form
+  "org.addMembersHint": "New accounts will use <b>123456</b> as the default password.",
+  "org.form.emails": "Email addresses",
+  "org.form.emailsHint": "One email per line, or separated by commas.",
+  "org.adding": "Adding…",
+  "org.memberCreated": "Account created & added",
+  "org.memberExisting": "Existing user added",
+  "org.memberExists": "Already a member",
 
   // Event pages
-  "event.type": "Type",
+  "event.createTitle": "Create Event",
+  "event.new": "New Event",
+  "event.form.name": "Event Name",
+  "event.form.namePlaceholder": "e.g. Annual Carbon Summit 2025",
+  "event.form.type": "Event Type",
+  "event.form.typePlaceholder": "— Select event type —",
+  "event.form.status": "Initial Status",
+  "event.form.startDate": "Start Date",
+  "event.form.endDate": "End Date",
+  "event.type.conference": "Conference",
+  "event.type.festival": "Festival",
+  "event.type.webinar": "Webinar",
+  "event.type.workshop": "Workshop",
+  "event.type.other": "Other",
   "event.status.active": "Active",
   "event.status.scheduled": "Scheduled",
   "event.status.completed": "Completed",
+
+  // Common form
+  "form.requiredHint": "Fields marked * are required.",
+  "common.cancel": "Cancel",
+  "common.done": "Done",
+  "common.creating": "Creating…",
+  "common.results": "Results",
+  "common.failed": "Failed",
+  "common.breadcrumb.organizations": "Organizations",
+  "common.comingSoon": "Coming soon",
+
+  // Dashboard page
+  "page.dashboard.title": "Executive Dashboard",
+  "page.dashboard.subtitle": "Your carbon emission overview",
+  "page.dashboard.monitoringFor": "Monitoring carbon performance for",
+  "page.dashboard.addEmission": "Add Emission",
+
+  // Reports page
+  "page.reports.title": "Reports",
+  "page.reports.subtitle": "View and generate carbon emission reports",
+
+  // Asset Inventory page
+  "page.assets.title": "Asset Inventory",
+  "page.assets.subtitle": "Manage your organization's emission-generating assets",
+
+  // Target Tracking page
+  "page.targets.title": "Target Tracking",
+  "page.targets.subtitle": "Track progress toward your emission reduction targets",
+
+  // Settings page
+  "page.settings.title": "Settings",
+  "page.settings.subtitle": "Manage your account and workspace settings",
+
+  // Help Desk page
+  "page.help.title": "Help Desk",
+  "page.help.subtitle": "Get support and find answers to common questions",
 };

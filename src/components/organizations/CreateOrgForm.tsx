@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BusinessIcon from "@mui/icons-material/Business";
+import { useTranslation } from "react-i18next";
 import {
   useCreateOrganization,
   ORG_TYPE_OPTIONS,
@@ -40,6 +41,7 @@ interface CreateOrgFormProps {
 }
 
 export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProps) {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { loading, errors, generalError, handleSubmit, clearErrors } =
     useCreateOrganization();
@@ -59,24 +61,23 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit(values, userId, (org) => {
-      showToast(`Organization "${org.legal_name}" created successfully.`, "success");
+      showToast(`${t("org.form.title")}: "${org.legal_name}" ✓`, "success");
       onSuccess?.(org);
     });
   };
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-      {/* Form header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-[#f0f9ed] flex items-center justify-center shrink-0">
           <BusinessIcon sx={{ fontSize: 20, color: "#1F8505" }} />
         </div>
         <div>
           <h2 className="text-[#155A03] text-lg font-semibold leading-6">
-            Create Organization
+            {t("org.form.title")}
           </h2>
           <p className="text-[#AAAAAA] text-xs">
-            Fields marked <span className="text-red-500">*</span> are required.
+            {t("form.requiredHint")}
           </p>
         </div>
       </div>
@@ -87,13 +88,12 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         </div>
       )}
 
-      {/* Registered Legal Name */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="org-name" required>Registered Legal Name</FieldLabel>
+        <FieldLabel htmlFor="org-name" required>{t("org.form.legalName")}</FieldLabel>
         <input
           id="org-name"
           type="text"
-          placeholder="e.g. EcoWise Technology Co., Ltd."
+          placeholder={t("org.form.legalNamePlaceholder")}
           value={values.legal_name}
           onChange={set("legal_name")}
           className={inputCls}
@@ -102,13 +102,12 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         <FieldError message={errors.legal_name} />
       </div>
 
-      {/* Tax / Registration Code */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="tax-code" required>Tax or Registration Code</FieldLabel>
+        <FieldLabel htmlFor="tax-code" required>{t("org.form.taxCode")}</FieldLabel>
         <input
           id="tax-code"
           type="text"
-          placeholder="e.g. 0123456789"
+          placeholder={t("org.form.taxCodePlaceholder")}
           value={values.tax_code}
           onChange={set("tax_code")}
           className={inputCls}
@@ -117,27 +116,23 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         <FieldError message={errors.tax_code} />
       </div>
 
-      {/* Organization Type */}
       <div className="flex flex-col gap-1.5">
-        <FieldLabel htmlFor="org-type" required>Organization Type</FieldLabel>
+        <FieldLabel htmlFor="org-type" required>{t("org.form.type")}</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
-          {ORG_TYPE_OPTIONS.map(({ value, label }) => {
+          {ORG_TYPE_OPTIONS.map(({ value, labelKey }) => {
             const active = values.org_type === value;
             return (
               <button
                 key={value}
                 type="button"
-                onClick={() => {
-                  setValues((prev) => ({ ...prev, org_type: value }));
-                  clearErrors();
-                }}
-                className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                onClick={() => { setValues((prev) => ({ ...prev, org_type: value })); clearErrors(); }}
+                className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                   active
                     ? "border-[#1F8505] bg-[#f0f9ed] text-[#1F8505]"
                     : "border-[#DAEDD5] text-[#3B3D3B] hover:border-[#79B669]"
                 }`}
               >
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}
@@ -145,16 +140,15 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
         <FieldError message={errors.org_type} />
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-3 pt-2">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 px-5 py-2.5 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-50"
+            className="flex-1 px-5 py-2.5 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 cursor-pointer"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         )}
         <button
@@ -162,7 +156,7 @@ export function CreateOrgForm({ userId, onSuccess, onCancel }: CreateOrgFormProp
           disabled={loading}
           className="flex-1 px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {loading ? "Creating…" : "Create Organization"}
+          {loading ? t("common.creating") : t("org.form.title")}
         </button>
       </div>
     </form>

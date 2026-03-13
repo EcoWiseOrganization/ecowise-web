@@ -150,7 +150,7 @@ export function Header() {
 
             {/* Hamburger — visible on < lg */}
             <button
-              className="lg:hidden p-1.5 text-[#79B669] border border-[#DAEDD5] rounded-lg bg-white"
+              className="lg:hidden p-1.5 text-[#79B669] border border-[#DAEDD5] rounded-lg bg-white cursor-pointer"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >

@@ -15,6 +15,9 @@ if (!i18n.isInitialized) {
       escapeValue: false,
     },
   });
+} else {
+  i18n.addResourceBundle("en", "translation", en, true, true);
+  i18n.addResourceBundle("vi", "translation", vi, true, true);
 }
 
 export default i18n;

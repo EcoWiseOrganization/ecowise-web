@@ -156,7 +156,7 @@ export function Sidebar({ userName, userRole, menuSections, showWorkspace = true
     <>
       {/* Mobile hamburger button — fixed, top-left, visible on < lg */}
       <button
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white rounded-lg border border-[#DAEDD5] shadow-md text-[#79B669]"
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white rounded-lg border border-[#DAEDD5] shadow-md text-[#79B669] cursor-pointer"
         onClick={() => setMobileOpen(true)}
         aria-label="Open sidebar"
       >
