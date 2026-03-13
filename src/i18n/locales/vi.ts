@@ -276,4 +276,46 @@ export const vi = {
   // Help Desk page
   "page.help.title": "Hỗ Trợ",
   "page.help.subtitle": "Nhận hỗ trợ và tìm câu trả lời cho các câu hỏi thường gặp",
+
+  // Admin menu
+  "admin.menu.management": "Quản Lý",
+  "admin.menu.emissionEngine": "Động Cơ Phát Thải",
+  "admin.menu.general": "Chung",
+  "admin.menu.dashboard": "Bảng Điều Khiển",
+  "admin.menu.userManagement": "Quản Lý Người Dùng",
+  "admin.menu.emissionFactors": "Hệ Số Phát Thải",
+  "admin.menu.formulaBuilder": "Xây Dựng Công Thức",
+  "admin.menu.settings": "Cài Đặt",
+
+  // Admin – Dashboard page
+  "admin.dashboard.title": "Bảng Điều Khiển Admin",
+  "admin.dashboard.subtitle": "Tổng quan hệ thống và quản lý người dùng",
+  "admin.dashboard.stats.totalUsers": "Tổng Người Dùng",
+  "admin.dashboard.stats.admins": "Quản Trị Viên",
+  "admin.dashboard.stats.activeUsers": "Người Dùng Hoạt Động",
+  "admin.dashboard.authCheck": "Kết Quả Kiểm Tra Phân Quyền",
+  "admin.dashboard.authSuccess": "Bạn có quyền Admin — Truy cập trang này thành công.",
+
+  // Admin – User Management page
+  "admin.users.title": "Quản Lý Người Dùng",
+  "admin.users.subtitle": "Quản lý danh sách người dùng trong hệ thống",
+  "admin.users.table.user": "Người Dùng",
+  "admin.users.table.email": "Email",
+  "admin.users.table.role": "Vai Trò",
+  "admin.users.table.status": "Trạng Thái",
+  "admin.users.table.greenPoints": "Điểm Xanh",
+  "admin.users.table.joined": "Ngày Tham Gia",
+  "admin.users.empty": "Không tìm thấy người dùng",
+
+  // Admin – Settings page
+  "admin.settings.title": "Cài Đặt",
+  "admin.settings.subtitle": "Cấu hình hệ thống",
+
+  // Admin – Emission Factors page
+  "admin.emissionFactors.title": "Quản Lý Hệ Số Phát Thải",
+  "admin.emissionFactors.subtitle": "Quản lý hệ số phát thải (EFs) theo GHG Protocol – MONRE VN, DEFRA, IPCC",
+
+  // Admin – Formula Builder page
+  "admin.formulaBuilder.title": "Xây Dựng Công Thức Động",
+  "admin.formulaBuilder.subtitle": "Tạo công thức tính phát thải động cho từng hạng mục. Không hardcode – Admin định nghĩa tất cả.",
 };

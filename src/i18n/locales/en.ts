@@ -275,4 +275,46 @@ export const en = {
   // Help Desk page
   "page.help.title": "Help Desk",
   "page.help.subtitle": "Get support and find answers to common questions",
+
+  // Admin menu
+  "admin.menu.management": "Management",
+  "admin.menu.emissionEngine": "Emission Engine",
+  "admin.menu.general": "General",
+  "admin.menu.dashboard": "Dashboard",
+  "admin.menu.userManagement": "User Management",
+  "admin.menu.emissionFactors": "Emission Factors",
+  "admin.menu.formulaBuilder": "Formula Builder",
+  "admin.menu.settings": "Settings",
+
+  // Admin – Dashboard page
+  "admin.dashboard.title": "Admin Dashboard",
+  "admin.dashboard.subtitle": "System overview and user management",
+  "admin.dashboard.stats.totalUsers": "Total Users",
+  "admin.dashboard.stats.admins": "Admins",
+  "admin.dashboard.stats.activeUsers": "Active Users",
+  "admin.dashboard.authCheck": "Authorization Check Result",
+  "admin.dashboard.authSuccess": "You have Admin access — Successfully accessed this page.",
+
+  // Admin – User Management page
+  "admin.users.title": "User Management",
+  "admin.users.subtitle": "Manage all users in the system",
+  "admin.users.table.user": "User",
+  "admin.users.table.email": "Email",
+  "admin.users.table.role": "Role",
+  "admin.users.table.status": "Status",
+  "admin.users.table.greenPoints": "Green Points",
+  "admin.users.table.joined": "Joined",
+  "admin.users.empty": "No users found",
+
+  // Admin – Settings page
+  "admin.settings.title": "Settings",
+  "admin.settings.subtitle": "System configuration",
+
+  // Admin – Emission Factors page
+  "admin.emissionFactors.title": "Emission Factor Management",
+  "admin.emissionFactors.subtitle": "Manage emission factors (EFs) per GHG Protocol – MONRE VN, DEFRA, IPCC",
+
+  // Admin – Formula Builder page
+  "admin.formulaBuilder.title": "Dynamic Formula Builder",
+  "admin.formulaBuilder.subtitle": "Create dynamic emission calculation formulas. No hardcoding – Admin defines everything.",
 };

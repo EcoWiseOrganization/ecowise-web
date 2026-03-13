@@ -8,8 +8,8 @@ export default async function UserManagementPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="User Management"
-        description="Quản lý danh sách người dùng trong hệ thống"
+        titleKey="admin.users.title"
+        subtitleKey="admin.users.subtitle"
       />
 
       <UserTable users={users} />

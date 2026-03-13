@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import type { User } from "@/types/database.types";
 
 interface UserTableProps {
@@ -34,28 +37,29 @@ function RoleBadge({ isAdmin }: { isAdmin: boolean }) {
 }
 
 export function UserTable({ users }: UserTableProps) {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-3xl border border-[#B8D6B0] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden">
       <table className="w-full">
         <thead>
           <tr className="border-b border-[#DAEDD5]">
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              User
+              {t("admin.users.table.user")}
             </th>
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              Email
+              {t("admin.users.table.email")}
             </th>
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              Role
+              {t("admin.users.table.role")}
             </th>
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              Status
+              {t("admin.users.table.status")}
             </th>
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              Green Points
+              {t("admin.users.table.greenPoints")}
             </th>
             <th className="text-left px-6 py-4 text-[#155A03] text-sm font-bold">
-              Joined
+              {t("admin.users.table.joined")}
             </th>
           </tr>
         </thead>
@@ -95,7 +99,7 @@ export function UserTable({ users }: UserTableProps) {
 
       {users.length === 0 && (
         <div className="p-12 flex items-center justify-center">
-          <p className="text-[#6E726E] text-sm">No users found</p>
+          <p className="text-[#6E726E] text-sm">{t("admin.users.empty")}</p>
         </div>
       )}
     </div>
