@@ -3,16 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LogoutIcon from "@mui/icons-material/Logout";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { signOut } from "@/services/auth.actions";
-import { WORKSPACE } from "../_data/mock";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { useWorkspace } from "../_context/WorkspaceContext";
 
 export interface MenuItem {
   label: string;
@@ -46,6 +46,25 @@ function SidebarContent({
   onClose,
 }: SidebarProps & { pathname: string; onClose?: () => void }) {
   const { t } = useTranslation();
+  const { organizations, selectedOrgId, setSelectedOrgId, selectedOrg } = useWorkspace();
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!workspaceOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target as Node)) {
+        setWorkspaceOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [workspaceOpen]);
+
+  const displayName = selectedOrg?.legal_name ?? t("sidebar.individual", { defaultValue: "Individual" });
+  const displaySub = selectedOrg
+    ? selectedOrg.address || selectedOrg.org_type || ""
+    : t("sidebar.personal", { defaultValue: "Personal" });
 
   return (
     <div className="flex flex-col h-full">
@@ -84,16 +103,74 @@ function SidebarContent({
           <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
             {t("sidebar.workspace")}
           </h3>
-          <div className="p-2.5 border border-[#DAEDD5] rounded-lg shadow-[0px_4px_4px_rgba(218,237,213,0.25)] flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <span className="text-[#155A03] text-xs font-bold leading-5">
-                {WORKSPACE.name}
-              </span>
-              <span className="text-[#AAAAAA] text-xs leading-[15px]">
-                {WORKSPACE.location}
-              </span>
-            </div>
-            <KeyboardArrowDownIcon sx={{ fontSize: 17, color: "#79B669" }} />
+          <div ref={workspaceRef} className="relative">
+            <button
+              onClick={() => setWorkspaceOpen((prev) => !prev)}
+              className="w-full p-2.5 border border-[#DAEDD5] rounded-lg shadow-[0px_4px_4px_rgba(218,237,213,0.25)] flex items-center justify-between bg-white cursor-pointer"
+            >
+              <div className="flex flex-col gap-1 text-left">
+                <span className="text-[#155A03] text-xs font-bold leading-5 truncate max-w-[130px]">
+                  {displayName}
+                </span>
+                <span className="text-[#AAAAAA] text-xs leading-[15px] truncate max-w-[130px]">
+                  {displaySub}
+                </span>
+              </div>
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 17,
+                  color: "#79B669",
+                  transition: "transform 0.2s",
+                  transform: workspaceOpen ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              />
+            </button>
+
+            {workspaceOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#DAEDD5] rounded-lg shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto">
+                {/* Individual option */}
+                <button
+                  onClick={() => {
+                    setSelectedOrgId(null);
+                    setWorkspaceOpen(false);
+                  }}
+                  className={`w-full p-2.5 text-left flex flex-col gap-0.5 transition-colors cursor-pointer border-none ${
+                    selectedOrgId === null
+                      ? "bg-[#DAEDD5]"
+                      : "hover:bg-[#DAEDD5]/50"
+                  }`}
+                >
+                  <span className="text-[#155A03] text-xs font-bold leading-5">
+                    {t("sidebar.individual", { defaultValue: "Individual" })}
+                  </span>
+                  <span className="text-[#AAAAAA] text-xs leading-[15px]">
+                    {t("sidebar.personal", { defaultValue: "Personal" })}
+                  </span>
+                </button>
+
+                {organizations.map((org) => (
+                  <button
+                    key={org.id}
+                    onClick={() => {
+                      setSelectedOrgId(org.id);
+                      setWorkspaceOpen(false);
+                    }}
+                    className={`w-full p-2.5 text-left flex flex-col gap-0.5 transition-colors cursor-pointer border-none border-t border-[#DAEDD5]/60 ${
+                      selectedOrgId === org.id
+                        ? "bg-[#DAEDD5]"
+                        : "hover:bg-[#DAEDD5]/50"
+                    }`}
+                  >
+                    <span className="text-[#155A03] text-xs font-bold leading-5 truncate max-w-[160px]">
+                      {org.legal_name}
+                    </span>
+                    <span className="text-[#AAAAAA] text-xs leading-[15px] truncate max-w-[160px]">
+                      {org.address || org.org_type || ""}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

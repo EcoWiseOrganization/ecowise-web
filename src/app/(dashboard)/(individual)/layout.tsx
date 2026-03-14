@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/services/user.service";
 import { Sidebar } from "../_components/Sidebar";
 import { USER_MENU_SECTIONS } from "./_config/menu";
+import { getMyOrganizationsServer } from "@/app/actions/organization.actions";
+import { WorkspaceProvider } from "../_context/WorkspaceContext";
 
 export default async function IndividualLayout({
   children,
@@ -13,7 +15,10 @@ export default async function IndividualLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const dbUser = await getUserProfile(user!.id);
+  const [dbUser, organizations] = await Promise.all([
+    getUserProfile(user!.id),
+    getMyOrganizationsServer(),
+  ]);
 
   const displayName =
     dbUser?.full_name ||
@@ -24,7 +29,7 @@ export default async function IndividualLayout({
     "User";
 
   return (
-    <>
+    <WorkspaceProvider organizations={organizations}>
       <Sidebar
         userName={displayName}
         userRole="User"
@@ -33,6 +38,6 @@ export default async function IndividualLayout({
       <div className="lg:ml-[222px]">
         <main className="px-4 sm:px-6 lg:px-9 pt-16 lg:pt-0 py-5 lg:py-[30px]">{children}</main>
       </div>
-    </>
+    </WorkspaceProvider>
   );
 }
