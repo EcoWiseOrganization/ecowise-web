@@ -51,7 +51,7 @@ export default function SuccessPage() {
   const router = useRouter();
 
   return (
-    <AuthLayout imageSrc="/img/register.jpg" imageAlt="EcoWise - Green leaves" logoPosition="bottom-right">
+    <AuthLayout imageSrc="/img/register.png" imageAlt="EcoWise - Green leaves" logoPosition="bottom-right">
       <div
         style={{
           width: 232,

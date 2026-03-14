@@ -55,7 +55,7 @@ export default function RegisterPage() {
   } = useRegisterForm();
 
   return (
-    <AuthLayout imageSrc="/img/register.jpg" imageAlt="EcoWise - Green leaves" logoPosition="bottom-right">
+    <AuthLayout imageSrc="/img/register.png" imageAlt="EcoWise - Green leaves" logoPosition="bottom-right">
       {/* Header */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ color: "#1F8505", fontSize: 36, fontFamily: "Inter", fontWeight: 600, wordWrap: "break-word" }}>
