@@ -10,8 +10,7 @@ export async function checkIsGoogleOnlyAccount(email: string): Promise<boolean> 
   try {
     const admin = createAdminClient();
     const { data, error } = await admin.auth.admin.listUsers({
-      filter: email,
-      perPage: 10,
+      perPage: 1000,
     });
     if (error || !data?.users?.length) return false;
     const user = data.users.find((u) => u.email === email);

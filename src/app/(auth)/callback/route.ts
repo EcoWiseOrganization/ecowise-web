@@ -78,8 +78,7 @@ export async function GET(request: NextRequest) {
         if (isGoogleOnly && user.email) {
           const admin = createAdminClient();
           const { data: usersData } = await admin.auth.admin.listUsers({
-            filter: user.email,
-            perPage: 10,
+            perPage: 1000,
           });
 
           // Find an existing email/password account with the same email
