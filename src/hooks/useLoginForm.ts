@@ -48,7 +48,17 @@ export function useLoginForm() {
         setLoading(false);
       }
       // On success, redirect() in server action handles navigation automatically
-    } catch {
+    } catch (err: unknown) {
+      // Next.js implements redirect() by throwing a NEXT_REDIRECT error internally.
+      // We must rethrow it so the router can handle navigation.
+      if (
+        err &&
+        typeof err === "object" &&
+        "digest" in err &&
+        String((err as { digest: string }).digest).startsWith("NEXT_REDIRECT")
+      ) {
+        throw err;
+      }
       setGeneralError(t("login.error.unexpected"));
       setLoading(false);
     }

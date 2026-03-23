@@ -140,7 +140,12 @@ export const en = {
   "login.error.emailNotConfirmed": "Please verify your email before signing in.",
   "login.error.accountDisabled": "Your account has been disabled. Please contact support.",
   "login.error.tooManyAttempts": "Too many failed attempts. Please wait a moment and try again.",
+  "login.error.googleAccountOnly": "This email is registered via Google. Please sign in with Google to access your account.",
   "login.error.unexpected": "Something went wrong. Please try again.",
+
+  // Register Errors
+  "register.error.googleAccountOnly": "This email is registered via Google. Please sign in with Google to access your account.",
+  "register.error.unexpected": "Something went wrong. Please try again.",
 
   // Register Page
   "register.title": "Get Started Now",

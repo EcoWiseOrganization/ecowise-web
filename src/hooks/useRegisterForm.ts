@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { sendRegistrationOtp } from "@/services/auth.service";
 
 function validate(name: string, email: string, password: string, confirmPassword: string) {
@@ -18,6 +19,7 @@ function validate(name: string, email: string, password: string, confirmPassword
 
 export function useRegisterForm() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -47,7 +49,12 @@ export function useRegisterForm() {
       sessionStorage.setItem("register_password", password);
       router.push("/register/verify");
     } catch (err) {
-      setGeneralError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      const msg = err instanceof Error ? err.message : "";
+      if (msg === "GOOGLE_ACCOUNT_ONLY") {
+        setGeneralError(t("register.error.googleAccountOnly"));
+      } else {
+        setGeneralError(msg || t("register.error.unexpected"));
+      }
       setLoading(false);
     }
   };

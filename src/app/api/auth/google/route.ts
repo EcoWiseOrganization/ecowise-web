@@ -37,10 +37,14 @@ export async function GET(request: NextRequest) {
     }
   );
 
+  // Forward the `link=1` flag through the OAuth round-trip so the callback
+  // can detect a second attempt (account-linking retry) and avoid infinite loops.
+  const isLinkingRetry = new URL(request.url).searchParams.get("link") === "1";
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${siteUrl}/callback`,
+      redirectTo: `${siteUrl}/callback${isLinkingRetry ? "?link=1" : ""}`,
     },
   });
 

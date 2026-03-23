@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkIsGoogleOnlyAccount } from "@/services/user.service";
 import nodemailer from "nodemailer";
 
 export async function POST(request: Request) {
@@ -14,10 +15,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
   }
 
-  // Check if email already exists in Supabase
+  // Check if email is registered as Google-only — fail early before sending OTP
+  const isGoogleOnly = await checkIsGoogleOnlyAccount(email);
+  if (isGoogleOnly) {
+    return NextResponse.json({ error: "GOOGLE_ACCOUNT_ONLY" }, { status: 400 });
+  }
+
   const supabase = await createClient();
-  // We can't directly check if a user exists without signing up,
-  // so we'll check during verify-otp. For now, proceed with OTP.
 
   // Generate 4-digit OTP
   const otp = Math.floor(1000 + Math.random() * 9000).toString();

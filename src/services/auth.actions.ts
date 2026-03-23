@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getDashboardPath } from "@/services/user.service";
+import { getDashboardPath, checkIsGoogleOnlyAccount } from "@/services/user.service";
 
 function mapLoginError(message: string): string {
   const m = message.toLowerCase();
@@ -39,6 +39,10 @@ export async function login(formData: FormData): Promise<{ errorKey: string } | 
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
+    const isGoogleOnly = await checkIsGoogleOnlyAccount(data.email);
+    if (isGoogleOnly) {
+      return { errorKey: "login.error.googleAccountOnly" };
+    }
     return { errorKey: mapLoginError(error.message) };
   }
 

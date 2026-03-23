@@ -141,7 +141,12 @@ export const vi = {
   "login.error.emailNotConfirmed": "Vui lòng xác minh email trước khi đăng nhập.",
   "login.error.accountDisabled": "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.",
   "login.error.tooManyAttempts": "Quá nhiều lần thất bại. Vui lòng chờ một lúc rồi thử lại.",
+  "login.error.googleAccountOnly": "Email này đã được đăng nhập bằng Google. Vui lòng đăng nhập bằng Google để vào hệ thống.",
   "login.error.unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
+
+  // Register Errors
+  "register.error.googleAccountOnly": "Email này đã được đăng nhập bằng Google. Vui lòng đăng nhập bằng Google để vào hệ thống.",
+  "register.error.unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
 
   // Register Page
   "register.title": "Bắt Đầu Ngay",

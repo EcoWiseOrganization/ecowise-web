@@ -2,6 +2,28 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { User } from "@/types/user.types";
 
+/**
+ * Returns true if the email is registered in Supabase Auth
+ * exclusively via Google OAuth (no email/password identity).
+ */
+export async function checkIsGoogleOnlyAccount(email: string): Promise<boolean> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.listUsers({
+      filter: email,
+      perPage: 10,
+    });
+    if (error || !data?.users?.length) return false;
+    const user = data.users.find((u) => u.email === email);
+    if (!user) return false;
+    const providers = (user.identities ?? []).map((id) => id.provider);
+    // Google-only: has at least one identity, all of them are "google"
+    return providers.length > 0 && providers.every((p) => p === "google");
+  } catch {
+    return false;
+  }
+}
+
 export async function getUserProfile(userId: string) {
   const supabase = await createClient();
 
