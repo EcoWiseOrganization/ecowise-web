@@ -1,20 +1,68 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { login } from "@/services/auth.actions";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
+import { useLoginForm } from "@/hooks/useLoginForm";
 import { useTranslation } from "react-i18next";
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 32,
+  paddingTop: 10,
+  paddingBottom: 10,
+  paddingLeft: 10,
+  paddingRight: 36,
+  borderRadius: 8,
+  outline: "1px #C8C8C8 solid",
+  outlineOffset: -1,
+  border: "none",
+  fontSize: 10,
+  fontFamily: "Inter",
+  fontWeight: 500,
+  color: "#141514",
+  boxSizing: "border-box",
+};
+
+const inputStyleError: React.CSSProperties = {
+  ...inputStyle,
+  outline: "1px #DC2626 solid",
+};
+
+const inputStyleNoIcon: React.CSSProperties = {
+  ...inputStyle,
+  paddingRight: 10,
+};
+
+const inputStyleNoIconError: React.CSSProperties = {
+  ...inputStyleNoIcon,
+  outline: "1px #DC2626 solid",
+};
+
+const labelStyle: React.CSSProperties = {
+  color: "#141514",
+  fontSize: 14,
+  fontFamily: "Inter",
+  fontWeight: 500,
+};
+
+const errorTextStyle: React.CSSProperties = {
+  color: "#DC2626",
+  fontSize: 12,
+  fontFamily: "Inter",
+};
 
 function LoginForm() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const [showPassword, setShowPassword] = useState(false);
+  const { loading, errors, generalError, showPassword, setShowPassword, handleSubmit } =
+    useLoginForm();
 
-  const error = searchParams.get("error");
+  // Keep URL-param error support for OAuth/external redirects
+  const urlError = searchParams.get("error");
   const message = searchParams.get("message");
 
   return (
@@ -29,12 +77,14 @@ function LoginForm() {
         </div>
       </div>
 
-      {/* Error / Success Messages */}
-      {error && (
+      {/* General Error (from hook or URL param) */}
+      {(generalError || urlError) && (
         <div style={{ padding: "10px", background: "#FEF2F2", borderRadius: 8, border: "1px solid #FECACA", color: "#B91C1C", fontSize: 12, fontFamily: "Inter" }}>
-          {error}
+          {generalError || urlError}
         </div>
       )}
+
+      {/* Success Message */}
       {message && (
         <div style={{ padding: "10px", background: "#F0FDF4", borderRadius: 8, border: "1px solid #BBF7D0", color: "#15803D", fontSize: 12, fontFamily: "Inter" }}>
           {message}
@@ -42,30 +92,26 @@ function LoginForm() {
       )}
 
       {/* Form Fields */}
-      <form action={login} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Email */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="email" style={{ color: "#141514", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <label htmlFor="email" style={labelStyle}>
             {t("login.emailLabel")}
           </label>
           <input
             id="email"
             name="email"
             type="email"
-            required
             placeholder={t("login.emailPlaceholder")}
-            style={{
-              height: 32, paddingTop: 10, paddingBottom: 10, paddingLeft: 10,
-              borderRadius: 8, outline: "1px #C8C8C8 solid", outlineOffset: -1,
-              border: "none", fontSize: 10, fontFamily: "Inter", fontWeight: 500, color: "#141514",
-            }}
+            style={errors.email ? inputStyleNoIconError : inputStyleNoIcon}
           />
+          {errors.email && <span style={errorTextStyle}>{errors.email}</span>}
         </div>
 
         {/* Password */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label htmlFor="password" style={{ color: "#141514", fontSize: 14, fontFamily: "Inter", fontWeight: 500 }}>
+            <label htmlFor="password" style={labelStyle}>
               {t("login.passwordLabel")}
             </label>
             <Link href="/forgot-password" style={{ color: "#6E726E", fontSize: 10, fontFamily: "Inter", fontWeight: 500, textDecoration: "none" }}>
@@ -77,14 +123,8 @@ function LoginForm() {
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              required
               placeholder={t("login.passwordPlaceholder")}
-              style={{
-                width: "100%", height: 32, paddingTop: 10, paddingBottom: 10,
-                paddingLeft: 10, paddingRight: 36, borderRadius: 8,
-                outline: "1px #C8C8C8 solid", outlineOffset: -1, border: "none",
-                fontSize: 10, fontFamily: "Inter", fontWeight: 500, color: "#141514", boxSizing: "border-box",
-              }}
+              style={errors.password ? inputStyleError : inputStyle}
             />
             <button
               type="button"
@@ -97,12 +137,13 @@ function LoginForm() {
               {showPassword ? <EyeIcon /> : <EyeSlashIcon />}
             </button>
           </div>
+          {errors.password && <span style={errorTextStyle}>{errors.password}</span>}
         </div>
 
         {/* Sign In Button */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 26 }}>
-          <button type="submit" className="btn-auth-primary">
-            {t("login.signIn")}
+          <button type="submit" disabled={loading} className="btn-auth-primary">
+            {loading ? t("login.signingIn") : t("login.signIn")}
           </button>
         </div>
       </form>

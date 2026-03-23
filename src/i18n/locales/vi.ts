@@ -127,10 +127,21 @@ export const vi = {
   "login.passwordPlaceholder": "Nhập mật khẩu của bạn",
   "login.forgotPassword": "Quên mật khẩu",
   "login.signIn": "Đăng Nhập",
+  "login.signingIn": "Đang đăng nhập...",
   "login.or": "Hoặc",
   "login.signInWithGoogle": "Đăng Nhập với Google",
   "login.noAccount": "Chưa có tài khoản?",
   "login.signUp": "Đăng Ký",
+
+  // Login Errors
+  "login.error.emailRequired": "Email là bắt buộc",
+  "login.error.emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+  "login.error.passwordRequired": "Mật khẩu là bắt buộc",
+  "login.error.invalidCredentials": "Email hoặc mật khẩu không đúng. Vui lòng thử lại.",
+  "login.error.emailNotConfirmed": "Vui lòng xác minh email trước khi đăng nhập.",
+  "login.error.accountDisabled": "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.",
+  "login.error.tooManyAttempts": "Quá nhiều lần thất bại. Vui lòng chờ một lúc rồi thử lại.",
+  "login.error.unexpected": "Đã xảy ra lỗi. Vui lòng thử lại.",
 
   // Register Page
   "register.title": "Bắt Đầu Ngay",

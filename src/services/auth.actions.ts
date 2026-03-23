@@ -5,7 +5,30 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardPath } from "@/services/user.service";
 
-export async function login(formData: FormData) {
+function mapLoginError(message: string): string {
+  const m = message.toLowerCase();
+  if (
+    m.includes("invalid login credentials") ||
+    m.includes("invalid_credentials") ||
+    m.includes("invalid email or password") ||
+    m.includes("wrong password") ||
+    m.includes("user not found")
+  ) {
+    return "login.error.invalidCredentials";
+  }
+  if (m.includes("email not confirmed")) {
+    return "login.error.emailNotConfirmed";
+  }
+  if (m.includes("banned") || m.includes("disabled") || m.includes("blocked")) {
+    return "login.error.accountDisabled";
+  }
+  if (m.includes("too many") || m.includes("rate limit")) {
+    return "login.error.tooManyAttempts";
+  }
+  return "login.error.unexpected";
+}
+
+export async function login(formData: FormData): Promise<{ errorKey: string } | void> {
   const supabase = await createClient();
 
   const data = {
@@ -16,7 +39,7 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    return { errorKey: mapLoginError(error.message) };
   }
 
   const {

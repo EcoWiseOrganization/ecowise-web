@@ -126,10 +126,21 @@ export const en = {
   "login.passwordPlaceholder": "Enter your password",
   "login.forgotPassword": "Forgot password",
   "login.signIn": "Sign in",
+  "login.signingIn": "Signing in...",
   "login.or": "Or",
   "login.signInWithGoogle": "Sign in with Google",
   "login.noAccount": "Don't have an account?",
   "login.signUp": "Sign up",
+
+  // Login Errors
+  "login.error.emailRequired": "Email is required",
+  "login.error.emailInvalid": "Please enter a valid email address",
+  "login.error.passwordRequired": "Password is required",
+  "login.error.invalidCredentials": "Incorrect email or password. Please try again.",
+  "login.error.emailNotConfirmed": "Please verify your email before signing in.",
+  "login.error.accountDisabled": "Your account has been disabled. Please contact support.",
+  "login.error.tooManyAttempts": "Too many failed attempts. Please wait a moment and try again.",
+  "login.error.unexpected": "Something went wrong. Please try again.",
 
   // Register Page
   "register.title": "Get Started Now",
