@@ -447,12 +447,36 @@ export async function updateBillingInfo(
 
 // ── Cancel subscription ───────────────────────────────────────────────────
 
-export async function cancelSubscription(id: string): Promise<void> {
+export async function cancelSubscription(
+  id: string,
+  reason?: string,
+  feedback?: string
+): Promise<void> {
   const db = createServiceClient();
   // BR-11 — keep premium until period_end; just turn auto_renew off.
   const { error } = await db
     .from("Subscriptions")
-    .update({ auto_renew: false, canceled_at: new Date().toISOString() })
+    .update({
+      auto_renew: false,
+      canceled_at: new Date().toISOString(),
+      cancel_reason: reason ?? null,
+      cancel_feedback: feedback ?? null,
+    })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/** Re-enable auto-renew (only valid while period_end is still in the future). */
+export async function reactivateAutoRenew(id: string): Promise<void> {
+  const db = createServiceClient();
+  const { error } = await db
+    .from("Subscriptions")
+    .update({
+      auto_renew: true,
+      canceled_at: null,
+      cancel_reason: null,
+      cancel_feedback: null,
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
 }

@@ -31,6 +31,7 @@ export default async function PersonalBillingPage() {
         plans={plans.filter((p) => p.status === "Active")}
         usage={null}
         invoicesHref="/dashboard/billing/invoices"
+        cancelHref="/dashboard/billing/cancel"
         basePath="/dashboard/billing"
       />
     </div>

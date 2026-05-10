@@ -28,6 +28,7 @@ import {
   getSubscriptionById,
   listInvoices,
   listPlans,
+  reactivateAutoRenew,
   subscribeToPlan,
   updateBillingInfo,
   updatePlan,
@@ -344,6 +345,36 @@ export async function updateBillingInfoAction(opts: {
 }
 
 export async function cancelSubscriptionAction(
+  subscriptionId: string,
+  reason?: string,
+  feedback?: string
+): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    const ctx = await requireSession();
+    const sub = await getSubscriptionById(subscriptionId);
+    if (!sub) return { ok: false, error: "SUBSCRIPTION_NOT_FOUND" };
+    if (sub.subject_type === "Org") {
+      await requireOrgRole(sub.subject_id, { adminOnly: true });
+    } else if (sub.subject_id !== ctx.userId) {
+      return { ok: false, error: "FORBIDDEN_SUBJECT" };
+    }
+    await cancelSubSvc(subscriptionId, reason, feedback);
+    await writeAuditLog({
+      action: "cancel_subscription",
+      resourceType: "subscription",
+      resourceId: subscriptionId,
+      orgId: sub.subject_type === "Org" ? sub.subject_id : null,
+      actorUserId: ctx.userId,
+      newValue: { reason: reason ?? null, feedback: feedback ?? null },
+    });
+    return { ok: true, error: null };
+  } catch (err) {
+    if (err instanceof AuthError) return { ok: false, error: err.code };
+    return { ok: false, error: err instanceof Error ? err.message : "unknown" };
+  }
+}
+
+export async function reactivateAutoRenewAction(
   subscriptionId: string
 ): Promise<{ ok: boolean; error: string | null }> {
   try {
@@ -355,9 +386,9 @@ export async function cancelSubscriptionAction(
     } else if (sub.subject_id !== ctx.userId) {
       return { ok: false, error: "FORBIDDEN_SUBJECT" };
     }
-    await cancelSubSvc(subscriptionId);
+    await reactivateAutoRenew(subscriptionId);
     await writeAuditLog({
-      action: "cancel_subscription",
+      action: "reactivate_auto_renew",
       resourceType: "subscription",
       resourceId: subscriptionId,
       orgId: sub.subject_type === "Org" ? sub.subject_id : null,

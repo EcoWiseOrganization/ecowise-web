@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
-  cancelSubscriptionAction,
+  reactivateAutoRenewAction,
   subscribeToPlanAction,
   updateBillingInfoAction,
 } from "@/app/actions/subscription.actions";
@@ -25,6 +25,7 @@ interface Props {
   plans: SubscriptionPlan[];
   usage: SubscriptionUsage | null;
   invoicesHref: string;
+  cancelHref: string;
   basePath: string;
 }
 
@@ -35,6 +36,7 @@ export function SubscriptionCenter({
   plans,
   usage,
   invoicesHref,
+  cancelHref,
   basePath,
 }: Props) {
   const { t } = useTranslation();
@@ -55,10 +57,10 @@ export function SubscriptionCenter({
     });
   };
 
-  const cancel = (sub: Subscription) => {
+  const reactivate = (sub: Subscription) => {
     setError(null);
     startTransition(async () => {
-      const res = await cancelSubscriptionAction(sub.id);
+      const res = await reactivateAutoRenewAction(sub.id);
       if (!res.ok) {
         setError(res.error ?? "unknown");
         return;
@@ -73,8 +75,9 @@ export function SubscriptionCenter({
         current={current}
         usage={usage}
         invoicesHref={invoicesHref}
-        onCancel={cancel}
-        cancelling={pending}
+        cancelHref={cancelHref}
+        onReactivate={reactivate}
+        pending={pending}
       />
 
       {current && (
@@ -126,14 +129,16 @@ function CurrentPlanCard({
   current,
   usage,
   invoicesHref,
-  onCancel,
-  cancelling,
+  cancelHref,
+  onReactivate,
+  pending,
 }: {
   current: SubscriptionWithPlan | null;
   usage: SubscriptionUsage | null;
   invoicesHref: string;
-  onCancel: (sub: Subscription) => void;
-  cancelling: boolean;
+  cancelHref: string;
+  onReactivate: (sub: Subscription) => void;
+  pending: boolean;
 }) {
   const { t } = useTranslation();
   if (!current) {
@@ -216,14 +221,21 @@ function CurrentPlanCard({
         >
           {t("billing.viewInvoices")}
         </Link>
-        {current.auto_renew && (
-          <button
-            type="button"
-            onClick={() => onCancel(current)}
-            disabled={cancelling}
-            className="px-4 py-2 rounded-lg border border-orange-300 text-orange-700 text-sm font-semibold disabled:opacity-50"
+        {current.auto_renew ? (
+          <Link
+            href={cancelHref}
+            className="px-4 py-2 rounded-lg border border-orange-300 text-orange-700 text-sm font-semibold hover:bg-orange-50"
           >
             {t("billing.cancel")}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onReactivate(current)}
+            disabled={pending}
+            className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold disabled:opacity-50"
+          >
+            {t("billing.cancel.reactivate")}
           </button>
         )}
       </div>

@@ -66,8 +66,15 @@ export interface Subscription {
   billing_company_name: string | null;
   billing_address: string | null;
   billing_vat_id: string | null;
+  // Phase 8 — lifecycle (migration 013)
+  cancel_reason: string | null;
+  cancel_feedback: string | null;
+  last_renewal_attempt_at: string | null;
+  last_renewal_error: string | null;
+  trial_reminder_sent_at: string | null;
   created_at: string;
   updated_at: string;
+  created_by?: string | null;
 }
 
 export interface SubscriptionWithPlan extends Subscription {

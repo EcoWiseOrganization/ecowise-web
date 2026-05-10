@@ -494,7 +494,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 8 — Subscription Lifecycle: Cancel, Auto-renew, Failure Retry
+### Phase 8 — Subscription Lifecycle: Cancel, Auto-renew, Failure Retry ✅ DONE
+
+> Completed 2026-05-11. `npm run build` ✓ (4 routes mới: `/dashboard/.../billing/cancel` × 2, `/api/cron/billing`, `/api/cron/billing/simulate-fail/[id]`) · `npm run test:unit` 137/137 ✓ · ESLint Phase 8 files ✓.
+> Migration 013 (cancel_reason / cancel_feedback / last_renewal_attempt_at / last_renewal_error / trial_reminder_sent_at) sẵn sàng apply.
 
 **Goal**: BR-10 (auto-renew fail 3 lần → Canceled/Suspended), BR-11 (cancel không refund, giữ tới hết cycle). UC-39, UC-41.
 

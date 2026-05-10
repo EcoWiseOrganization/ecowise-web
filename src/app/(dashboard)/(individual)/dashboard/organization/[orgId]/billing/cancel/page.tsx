@@ -5,18 +5,14 @@ import {
   getOrganizationByIdServer,
   getMyMembershipServer,
 } from "@/app/actions/organization.actions";
-import {
-  getCurrentSubscription,
-  getOrgUsage,
-  listPlans,
-} from "@/services/subscription.service";
-import { SubscriptionCenter } from "@/components/billing/SubscriptionCenter";
+import { getCurrentSubscription } from "@/services/subscription.service";
+import { CancelFlow } from "@/components/billing/CancelFlow";
 
 interface PageProps {
   params: Promise<{ orgId: string }>;
 }
 
-export default async function OrgBillingPage({ params }: PageProps) {
+export default async function OrgCancelPage({ params }: PageProps) {
   const { orgId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -26,7 +22,6 @@ export default async function OrgBillingPage({ params }: PageProps) {
     getOrganizationByIdServer(orgId),
     getMyMembershipServer(orgId, user.id),
   ]);
-
   if (!org) notFound();
   if (
     !membership ||
@@ -36,22 +31,17 @@ export default async function OrgBillingPage({ params }: PageProps) {
     redirect(`/dashboard/organization/${orgId}/overview`);
   }
 
-  const [current, plans, usage] = await Promise.all([
-    getCurrentSubscription("Org", orgId),
-    listPlans("B2B"),
-    getOrgUsage(orgId),
-  ]);
+  const sub = await getCurrentSubscription("Org", orgId);
+  if (!sub) {
+    redirect(`/dashboard/organization/${orgId}/billing`);
+  }
 
   return (
-    <SubscriptionCenter
-      subjectType="Org"
-      subjectId={orgId}
-      current={current}
-      plans={plans.filter((p) => p.status === "Active")}
-      usage={usage}
-      invoicesHref={`/dashboard/organization/${orgId}/billing/invoices`}
-      cancelHref={`/dashboard/organization/${orgId}/billing/cancel`}
-      basePath={`/dashboard/organization/${orgId}/billing`}
-    />
+    <div className="pt-2">
+      <CancelFlow
+        subscription={sub}
+        backHref={`/dashboard/organization/${orgId}/billing`}
+      />
+    </div>
   );
 }
