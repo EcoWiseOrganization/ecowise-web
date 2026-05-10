@@ -132,7 +132,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 0 — Foundation: Audit Log, Role Helpers, RBAC Hardening
+### Phase 0 — Foundation: Audit Log, Role Helpers, RBAC Hardening ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ · `npm run test:unit` 28/28 ✓ · ESLint Phase 0 files ✓ · TypeScript strict ✓.
+> Migrations 004 + 005 sẵn sàng apply qua `scripts/apply-migrations.ts` (cần Session pooler URL trong `DATABASE_URL`).
 
 **Goal**: Chuẩn hoá nền tảng auth/audit/role trước khi build feature mới.
 
@@ -164,7 +167,11 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 1 — Account Management Enhancement
+### Phase 1 — Account Management Enhancement ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ (route `/dashboard/settings/{profile,password,danger}` đã active) · `npm run test:unit` 48/48 ✓ · ESLint Phase 1 files ✓.
+> Migration 006 sẵn sàng apply qua `scripts/apply-migrations.ts`.
+> Note: thay vì 2 API routes riêng, dùng server actions trực tiếp (`changePasswordAction`, `deleteMyAccountAction`, `updateMyProfileAction`, `uploadAvatarAction`) — pattern Next.js 16 chuẩn, ít boilerplate hơn.
 
 **Goal**: Hoàn thiện trang Profile, Change Password, Delete Account.
 

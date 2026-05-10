@@ -265,6 +265,67 @@ export const en = {
   "common.failed": "Failed",
   "common.breadcrumb.organizations": "Organizations",
   "common.comingSoon": "Coming soon",
+  "common.loading": "Loading…",
+
+  // Phase 1 — Settings tabs
+  "settings.tabs.profile": "Profile",
+  "settings.tabs.password": "Password",
+  "settings.tabs.danger": "Delete Account",
+
+  // Phase 1 — Profile
+  "settings.profile.heading": "Personal Information",
+  "settings.profile.email": "Email",
+  "settings.profile.userName": "Username",
+  "settings.profile.fullName": "Full name",
+  "settings.profile.phone": "Phone",
+  "settings.profile.bio": "Bio",
+  "settings.profile.tier": "Tier",
+  "settings.profile.greenPoints": "Green points",
+  "settings.profile.totalLogs": "Total activity logs",
+  "settings.profile.co2eLogged": "Total CO₂e logged",
+  "settings.profile.changeAvatar": "Change avatar",
+  "settings.profile.uploading": "Uploading…",
+  "settings.profile.save": "Save changes",
+  "settings.profile.saving": "Saving…",
+  "settings.profile.saved": "Profile updated successfully.",
+
+  // Phase 1 — Password
+  "settings.password.heading": "Change Password",
+  "settings.password.policyHint": "At least 8 characters, including a letter and a number.",
+  "settings.password.current": "Current password",
+  "settings.password.new": "New password",
+  "settings.password.confirm": "Confirm new password",
+  "settings.password.submit": "Update password",
+  "settings.password.saving": "Updating…",
+  "settings.password.success": "Password updated. Use the new password next time you sign in.",
+
+  // Phase 1 — Delete account
+  "settings.danger.heading": "Delete account",
+  "settings.danger.warningTitle": "This action cannot be undone.",
+  "settings.danger.warning1": "Your personal information will be permanently removed.",
+  "settings.danger.warning2": "Emission logs you created stay in their organizations as anonymized records.",
+  "settings.danger.warning3": "You cannot delete your account if you are the only Organization Admin in any workspace.",
+  "settings.danger.ack": "I understand the consequences and want to delete my account.",
+  "settings.danger.confirmLabel": "Type your email ({{email}}) to confirm",
+  "settings.danger.submit": "Delete my account",
+  "settings.danger.deleting": "Deleting…",
+  "settings.danger.blockedOrgs": "Blocked: you are the sole admin in {{count}} organization(s). Promote another admin first.",
+
+  // Error map
+  "error.AUTH_REQUIRED": "Please sign in to continue.",
+  "error.FORBIDDEN_SYSTEM_ADMIN": "System Administrator privilege required.",
+  "error.FORBIDDEN_ORG_MEMBER": "You are not an active member of this organization.",
+  "error.FORBIDDEN_ORG_ADMIN": "Organization Admin privilege required.",
+  "error.MSG01": "This field is required.",
+  "error.MSG02": "Invalid format.",
+  "error.MSG09": "Current password is incorrect.",
+  "error.MSG12": "This entry is locked because the report has been published.",
+  "error.MSG19": "File is too large (max 2 MB).",
+  "error.MSG20": "Password must be at least 8 characters and contain a letter and a number.",
+  "error.MSG22": "End date cannot be earlier than the start date.",
+  "error.MSG22B": "Passwords do not match.",
+  "error.MSG26": "You are the only Organization Admin. Promote another admin before deleting your account.",
+  "error.unknown": "Something went wrong. Please try again.",
 
   // Dashboard page
   "page.dashboard.title": "Executive Dashboard",

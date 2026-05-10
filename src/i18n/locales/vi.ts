@@ -266,6 +266,67 @@ export const vi = {
   "common.failed": "Thất bại",
   "common.breadcrumb.organizations": "Tổ Chức",
   "common.comingSoon": "Sắp ra mắt",
+  "common.loading": "Đang tải…",
+
+  // Phase 1 — Settings tabs
+  "settings.tabs.profile": "Hồ Sơ",
+  "settings.tabs.password": "Mật Khẩu",
+  "settings.tabs.danger": "Xóa Tài Khoản",
+
+  // Phase 1 — Profile
+  "settings.profile.heading": "Thông Tin Cá Nhân",
+  "settings.profile.email": "Email",
+  "settings.profile.userName": "Tên đăng nhập",
+  "settings.profile.fullName": "Họ và tên",
+  "settings.profile.phone": "Số điện thoại",
+  "settings.profile.bio": "Giới thiệu",
+  "settings.profile.tier": "Hạng",
+  "settings.profile.greenPoints": "Green points",
+  "settings.profile.totalLogs": "Tổng số hoạt động đã ghi",
+  "settings.profile.co2eLogged": "Tổng CO₂e đã ghi",
+  "settings.profile.changeAvatar": "Thay ảnh đại diện",
+  "settings.profile.uploading": "Đang tải lên…",
+  "settings.profile.save": "Lưu thay đổi",
+  "settings.profile.saving": "Đang lưu…",
+  "settings.profile.saved": "Đã cập nhật hồ sơ.",
+
+  // Phase 1 — Password
+  "settings.password.heading": "Đổi Mật Khẩu",
+  "settings.password.policyHint": "Tối thiểu 8 ký tự, bao gồm chữ cái và chữ số.",
+  "settings.password.current": "Mật khẩu hiện tại",
+  "settings.password.new": "Mật khẩu mới",
+  "settings.password.confirm": "Xác nhận mật khẩu mới",
+  "settings.password.submit": "Cập nhật mật khẩu",
+  "settings.password.saving": "Đang cập nhật…",
+  "settings.password.success": "Đã đổi mật khẩu. Dùng mật khẩu mới cho lần đăng nhập kế tiếp.",
+
+  // Phase 1 — Delete account
+  "settings.danger.heading": "Xóa tài khoản",
+  "settings.danger.warningTitle": "Hành động này không thể khôi phục.",
+  "settings.danger.warning1": "Thông tin cá nhân sẽ bị xóa vĩnh viễn.",
+  "settings.danger.warning2": "Các log phát thải bạn tạo vẫn được giữ trong tổ chức nhưng sẽ ẩn danh.",
+  "settings.danger.warning3": "Không thể xóa nếu bạn là Org Admin duy nhất của bất kỳ tổ chức nào.",
+  "settings.danger.ack": "Tôi hiểu hậu quả và muốn xóa tài khoản.",
+  "settings.danger.confirmLabel": "Nhập email của bạn ({{email}}) để xác nhận",
+  "settings.danger.submit": "Xóa tài khoản của tôi",
+  "settings.danger.deleting": "Đang xóa…",
+  "settings.danger.blockedOrgs": "Bị chặn: bạn là Admin duy nhất tại {{count}} tổ chức. Hãy bổ nhiệm Admin khác trước.",
+
+  // Error map
+  "error.AUTH_REQUIRED": "Vui lòng đăng nhập.",
+  "error.FORBIDDEN_SYSTEM_ADMIN": "Cần quyền System Administrator.",
+  "error.FORBIDDEN_ORG_MEMBER": "Bạn không phải thành viên hoạt động của tổ chức này.",
+  "error.FORBIDDEN_ORG_ADMIN": "Cần quyền Organization Admin.",
+  "error.MSG01": "Trường này bắt buộc.",
+  "error.MSG02": "Định dạng không hợp lệ.",
+  "error.MSG09": "Mật khẩu hiện tại không đúng.",
+  "error.MSG12": "Mục này đã bị khóa do báo cáo đã xuất bản.",
+  "error.MSG19": "Tệp quá lớn (tối đa 2 MB).",
+  "error.MSG20": "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ cái và chữ số.",
+  "error.MSG22": "Ngày kết thúc không thể trước ngày bắt đầu.",
+  "error.MSG22B": "Mật khẩu xác nhận không khớp.",
+  "error.MSG26": "Bạn là Organization Admin duy nhất. Bổ nhiệm admin khác trước khi xóa tài khoản.",
+  "error.unknown": "Có lỗi xảy ra. Vui lòng thử lại.",
 
   // Dashboard page
   "page.dashboard.title": "Bảng Điều Khiển",
