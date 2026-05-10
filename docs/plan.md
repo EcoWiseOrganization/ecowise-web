@@ -290,7 +290,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 4 — Carbon Footprint Tracking (User Side)
+### Phase 4 — Carbon Footprint Tracking (User Side) ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ (5 routes mới `/dashboard/activity`, `/dashboard/recommendations`, `/dashboard/compare` + thay placeholder `/dashboard/reports` & `/dashboard/targets`) · `npm run test:unit` 86/86 ✓ · ESLint Phase 4 files ✓.
+> Migration 009 (CarbonTargets, DailyLogCounters, EmissionLogs.org_id NULLABLE + RLS personal) sẵn sàng apply.
 
 **Goal**: Hoàn thiện trải nghiệm cá nhân: Activity Logger nâng cao, Reports, Targets, Recommendations, Compare.
 

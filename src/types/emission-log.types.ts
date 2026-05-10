@@ -1,6 +1,12 @@
 import type { EmissionCategory } from "./sustainability";
 
-export type EmissionLogStatus = "Pending" | "Review" | "Verified";
+export type EmissionLogStatus =
+  | "Pending"
+  | "Review"
+  | "Verified"
+  | "Rejected"
+  | "Published"
+  | "Exported";
 export type GhgScope = "Scope 1" | "Scope 2" | "Scope 3";
 
 export interface EmissionLog {

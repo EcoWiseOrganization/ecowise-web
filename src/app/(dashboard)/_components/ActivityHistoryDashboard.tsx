@@ -29,6 +29,9 @@ const STATUS_BADGE: Record<EmissionLogStatus, string> = {
   Pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
   Review: "bg-red-100 text-red-700 border-red-200",
   Verified: "bg-[#DAEDD5] text-[#155A03] border-[#79B669]",
+  Rejected: "bg-gray-100 text-gray-600 border-gray-200",
+  Published: "bg-blue-100 text-blue-700 border-blue-200",
+  Exported: "bg-purple-100 text-purple-700 border-purple-200",
 };
 
 const SCOPE_BADGE: Record<GhgScope, string> = {
