@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkIsGoogleOnlyAccount } from "@/services/user.service";
+import { wrapBrand } from "@/lib/emails";
 import nodemailer from "nodemailer";
 
 export async function POST(request: Request) {
@@ -56,18 +57,15 @@ export async function POST(request: Request) {
       from: `"EcoWise" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Your EcoWise Verification Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-          <h2 style="color: #1F8505; margin-bottom: 16px;">EcoWise Verification</h2>
-          <p style="color: #3B3D3B; font-size: 16px;">Hi ${name},</p>
-          <p style="color: #3B3D3B; font-size: 16px;">Your verification code is:</p>
-          <div style="background: #F0FDF4; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
-            <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1F8505;">${otp}</span>
-          </div>
-          <p style="color: #6E726E; font-size: 14px;">This code expires in 5 minutes.</p>
-          <p style="color: #6E726E; font-size: 14px;">If you didn't request this code, you can safely ignore this email.</p>
+      html: wrapBrand(`
+        <p>Hi <b>${name}</b>,</p>
+        <p>Your EcoWise verification code is:</p>
+        <div style="background:#F0FDF4;border:1px solid #DAEDD5;border-radius:12px;padding:20px;text-align:center;margin:18px 0;">
+          <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1F8505;">${otp}</span>
         </div>
-      `,
+        <p style="color:#6E726E;">This code expires in 5 minutes.</p>
+        <p style="color:#AAAAAA;font-size:12px;">If you didn't request this code, you can safely ignore this email.</p>
+      `),
     });
   } catch (emailError) {
     console.error("Failed to send email:", emailError);

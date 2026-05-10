@@ -1,54 +1,65 @@
 "use client";
 
 import { useState } from "react";
+import type { OcrSuggestion } from "@/lib/ocr/types";
 
 export interface OcrExtractedData {
   activity_name?: string;
   quantity?: number;
   unit?: string;
+  reporting_date?: string;
+  vendor?: string;
+  amount?: number;
+  /** Provider that produced this result. "mock" = no real key configured. */
+  provider?: string;
 }
 
-const MOCK_UNITS = ["kWh", "L", "kg", "tonne", "km", "m³", "MJ", "MWh"];
-const MOCK_ACTIVITIES = [
-  "Electricity Consumption",
-  "Diesel Fuel Usage",
-  "Petrol Fuel Usage",
-  "Business Travel - Domestic Flight",
-  "Freight Transport",
-  "Natural Gas Combustion",
-  "Refrigerant Leakage",
-];
-
 /**
- * useOcrDataExtraction
+ * useOcrDataExtraction (Phase 11)
  *
- * Mock hook that simulates an OCR API call.
- * Replace `extractFromImage` internals with a real Vision/OCR API
- * (e.g. Google Vision, AWS Textract, OpenAI GPT-4V) in production.
+ * Calls the real `/api/ocr/extract` endpoint, which routes to the configured
+ * OCR provider (Anthropic Claude vision when `ANTHROPIC_API_KEY` is set,
+ * otherwise a deterministic mock response). Server-side enforces auth, MIME,
+ * and 5 MB size limit.
  */
 export function useOcrDataExtraction() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function extractFromImage(file: File): Promise<OcrExtractedData> {
     setIsExtracting(true);
+    setError(null);
     setPreviewUrl(URL.createObjectURL(file));
 
-    // Simulate OCR processing delay (1.2 – 1.8 s)
-    await new Promise((resolve) =>
-      setTimeout(resolve, 1200 + Math.random() * 600)
-    );
-
-    const result: OcrExtractedData = {
-      activity_name:
-        MOCK_ACTIVITIES[Math.floor(Math.random() * MOCK_ACTIVITIES.length)],
-      quantity: Math.round((Math.random() * 900 + 10) * 10) / 10,
-      unit: MOCK_UNITS[Math.floor(Math.random() * MOCK_UNITS.length)],
-    };
-
-    setIsExtracting(false);
-    return result;
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/ocr/extract", {
+        method: "POST",
+        body: fd,
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        provider?: string;
+        suggestion?: OcrSuggestion;
+        error?: string;
+      };
+      if (!res.ok || !json.ok || !json.suggestion) {
+        setError(json.error ?? "OCR_PROVIDER_ERROR");
+        return { provider: json.provider };
+      }
+      return {
+        provider: json.provider,
+        ...json.suggestion,
+      };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ocr_network_error");
+      return {};
+    } finally {
+      setIsExtracting(false);
+    }
   }
 
-  return { isExtracting, previewUrl, extractFromImage };
+  return { isExtracting, previewUrl, error, extractFromImage };
 }

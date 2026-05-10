@@ -43,14 +43,28 @@ export async function sendEmail(envelope: EmailEnvelope): Promise<boolean> {
 
 // ── Templates ─────────────────────────────────────────────────────────────
 
-const wrap = (body: string) => `
-  <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#3B3D3B;">
-    <h2 style="color:#1F8505;margin-bottom:12px;">EcoWise</h2>
-    ${body}
-    <p style="color:#AAAAAA;font-size:11px;margin-top:24px;">
-      This is an automated message. Reply if you need help.
-    </p>
+/** Branded HTML wrap shared by all transactional emails. */
+export function wrapBrand(body: string, opts?: { footer?: string }): string {
+  const footer =
+    opts?.footer ??
+    "This is an automated message from EcoWise. Reply if you need help.";
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;background:#F5FAF3;padding:24px 0;">
+    <div style="max-width:540px;margin:0 auto;background:#fff;border:1px solid #DAEDD5;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(270deg,#79B669 0%,#1F8505 100%);padding:18px 24px;color:#fff;font-weight:700;letter-spacing:1px;">
+        ECOWISE
+      </div>
+      <div style="padding:24px;color:#3B3D3B;line-height:1.55;font-size:14px;">
+        ${body}
+      </div>
+      <div style="padding:14px 24px;background:#F0FDF4;color:#79B669;font-size:11px;border-top:1px solid #DAEDD5;">
+        ${footer}
+      </div>
+    </div>
   </div>`;
+}
+
+const wrap = (body: string) => wrapBrand(body);
 
 export function renewalSuccessEmail(opts: {
   planName: string;

@@ -771,6 +771,20 @@ export const vi = {
   "page.leaderboard.title": "Bảng xếp hạng",
   "page.leaderboard.subtitle": "Những người đóng góp hàng đầu cộng đồng EcoWise.",
 
+  // Phase 11 — Coverage fill-in
+  "admin.ef.count": "Hiển thị {{shown}} / {{total}} factor",
+  "admin.formula.count": "Hiển thị {{shown}} / {{total}} template",
+  "sidebar.individual": "Cá nhân",
+  "sidebar.personal": "Cá nhân",
+
+  // Phase 10 — Admin operations
+  "admin.menu.operations": "Vận hành",
+  "admin.menu.systemOverview": "Tổng quan hệ thống",
+  "admin.menu.auditLogs": "Audit log",
+  "admin.menu.organizations": "Tổ chức",
+  "admin.menu.contactMessages": "Tin liên hệ",
+  "admin.audit.search": "Tìm kiếm",
+
   // Dashboard page
   "page.dashboard.title": "Bảng Điều Khiển",
   "page.dashboard.subtitle": "Tổng quan phát thải carbon của bạn",

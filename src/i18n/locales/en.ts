@@ -770,6 +770,20 @@ export const en = {
   "page.leaderboard.title": "Leaderboard",
   "page.leaderboard.subtitle": "Top contributors across the EcoWise community.",
 
+  // Phase 11 — Coverage fill-in
+  "admin.ef.count": "Showing {{shown}} of {{total}} factors",
+  "admin.formula.count": "Showing {{shown}} of {{total}} templates",
+  "sidebar.individual": "Personal",
+  "sidebar.personal": "Personal",
+
+  // Phase 10 — Admin operations
+  "admin.menu.operations": "Operations",
+  "admin.menu.systemOverview": "System overview",
+  "admin.menu.auditLogs": "Audit logs",
+  "admin.menu.organizations": "Organizations",
+  "admin.menu.contactMessages": "Contact messages",
+  "admin.audit.search": "Search",
+
   // Dashboard page
   "page.dashboard.title": "Executive Dashboard",
   "page.dashboard.subtitle": "Your carbon emission overview",

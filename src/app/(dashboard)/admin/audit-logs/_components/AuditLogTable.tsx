@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { searchAuditLogsAction } from "@/app/actions/audit.actions";
 import { auditLogsToCsv } from "@/lib/admin-metrics";
-import type { AuditLog } from "@/types/audit.types";
+import type { ActorRole } from "@/lib/auth/roles";
+import type { AuditLog, AuditLogStatus } from "@/types/audit.types";
 
 const STATUS_COLORS: Record<string, string> = {
   success: "bg-[#f0f9ed] text-[#1F8505]",
@@ -41,9 +42,8 @@ export function AuditLogTable({ initial, initialCount }: Props) {
     startTransition(async () => {
       const res = await searchAuditLogsAction({
         action: search || undefined,
-        actorRole: (actorRole || undefined) as AuditLog["actor_role"] | undefined,
-        status:
-          (statusFilter || undefined) as AuditLog["status"] | undefined,
+        actorRole: actorRole ? (actorRole as ActorRole) : undefined,
+        status: statusFilter ? (statusFilter as AuditLogStatus) : undefined,
         resourceType: resourceType || undefined,
         startDate: startDate ? new Date(startDate).toISOString() : undefined,
         endDate: endDate ? new Date(endDate).toISOString() : undefined,

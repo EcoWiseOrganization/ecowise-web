@@ -579,7 +579,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 10 — System Admin Operations
+### Phase 10 — System Admin Operations ✅ DONE
+
+> Completed 2026-05-11. `npm run build` ✓ (5 routes mới: `/admin/system-overview`, `/admin/audit-logs`, `/admin/organizations`, `/admin/organizations/[orgId]`, `/admin/contact-messages`) · `npm run test:unit` 151/151 ✓ · ESLint Phase 10 files ✓.
+> Không có migration mới ở phase này — tận dụng `AuditLogs`, `Organization`, `ContactMessages`, `Subscriptions`, `Invoices`, `EmissionLogs` đã có.
 
 **Goal**: System Overview, Audit Logs viewer, Organizations Manager (system-wide). UC-46, UC-47.
 
@@ -609,7 +612,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 11 — Compliance, OCR, Polish
+### Phase 11 — Compliance, OCR, Polish ✅ DONE
+
+> Completed 2026-05-11. `npm run build` ✓ · `npm run test:unit` 161/161 ✓ · ESLint ✓ · i18n coverage ✓ (786 keys EN+VI, 0 missing).
+> Migration 015 (perf indexes) sẵn sàng. OCR endpoint `/api/ocr/extract` với Anthropic Claude vision (env-gated) + mock fallback. Pure parser unit-tested. Email templates rebranded với `wrapBrand()`. Docs added: `codebase-summary.md`, `system-architecture.md`. Pending checklist: `docs/PENDING.md`.
 
 **Goal**: Hardening cuối: real OCR, RLS audit, performance, i18n hoàn chỉnh, NFR validation.
 
