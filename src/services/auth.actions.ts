@@ -2,8 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardPath, checkIsGoogleOnlyAccount } from "@/services/user.service";
+import { writeAuthAuditLog } from "@/services/audit.service";
+
+async function getRequestMetadata() {
+  try {
+    const h = await headers();
+    return {
+      ipAddress:
+        h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        h.get("x-real-ip") ??
+        null,
+      userAgent: h.get("user-agent") ?? null,
+    };
+  } catch {
+    return { ipAddress: null, userAgent: null };
+  }
+}
 
 function mapLoginError(message: string): string {
   const m = message.toLowerCase();
@@ -36,10 +53,20 @@ export async function login(formData: FormData): Promise<{ errorKey: string } | 
     password: formData.get("password") as string,
   };
 
+  const meta = await getRequestMetadata();
+
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
     const isGoogleOnly = await checkIsGoogleOnlyAccount(data.email);
+    await writeAuthAuditLog({
+      action: "login_failed",
+      email: data.email,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
+      status: "failure",
+      errorMessage: isGoogleOnly ? "google_account_only" : error.message,
+    });
     if (isGoogleOnly) {
       return { errorKey: "login.error.googleAccountOnly" };
     }
@@ -49,6 +76,15 @@ export async function login(formData: FormData): Promise<{ errorKey: string } | 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  await writeAuthAuditLog({
+    action: "login",
+    userId: user?.id,
+    email: user?.email ?? data.email,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent,
+    status: "success",
+  });
 
   revalidatePath("/", "layout");
   redirect(user ? await getDashboardPath(user.id) : "/dashboard");
@@ -63,7 +99,23 @@ export async function signInWithGoogle() {
 
 export async function signOut() {
   const supabase = await createClient();
+  const meta = await getRequestMetadata();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   await supabase.auth.signOut();
+
+  await writeAuthAuditLog({
+    action: "logout",
+    userId: user?.id ?? null,
+    email: user?.email ?? null,
+    ipAddress: meta.ipAddress,
+    userAgent: meta.userAgent,
+    status: "success",
+  });
+
   revalidatePath("/", "layout");
   redirect("/");
 }
