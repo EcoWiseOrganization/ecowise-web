@@ -437,7 +437,11 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 7 — Subscription & Billing (Foundation)
+### Phase 7 — Subscription & Billing (Foundation) ✅ DONE
+
+> Completed 2026-05-11. `npm run build` ✓ (10 routes mới: `/admin/subscriptions{,/new,/[id]/edit}`, `/dashboard/organization/[orgId]/billing{,/invoices,/invoices/[id],/checkout/[id]}`, `/dashboard/billing{,/invoices,/invoices/[id],/checkout/[id]}`, `/api/payments/mock/[intentId]/confirm`) · `npm run test:unit` 127/127 ✓ · ESLint Phase 7 files ✓.
+> Migration 012 (SubscriptionPlans + Subscriptions + Invoices + PaymentMethods + PaymentIntents + 6 default seed plans + RLS + audit triggers) sẵn sàng apply.
+> **Payment provider mocked** — checkout page hiện QR placeholder + button "Simulate payment success"; `/api/payments/mock/[intentId]/confirm` đánh dấu invoice Paid + activate subscription. Khi bạn chốt gateway thật chỉ cần thay implementation trong `subscription.service.ts` + thêm webhook endpoint.
 
 **Goal**: Plan config (System Admin), Subscription Center, Process Payment, Invoice list. UC-31, UC-35, UC-37, UC-38, UC-40, UC-42, UC-43, UC-44.
 

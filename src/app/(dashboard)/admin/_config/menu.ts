@@ -3,6 +3,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ScienceIcon from "@mui/icons-material/Science";
 import FunctionsIcon from "@mui/icons-material/Functions";
+import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import type { MenuSection } from "../../_components/Sidebar";
 
 export const ADMIN_MENU_SECTIONS: MenuSection[] = [
@@ -11,6 +12,7 @@ export const ADMIN_MENU_SECTIONS: MenuSection[] = [
     items: [
       { label: "admin.menu.dashboard", href: "/admin", icon: AdminPanelSettingsIcon },
       { label: "admin.menu.userManagement", href: "/admin/users", icon: PeopleIcon },
+      { label: "admin.menu.subscriptions", href: "/admin/subscriptions", icon: CardMembershipIcon },
     ],
   },
   {

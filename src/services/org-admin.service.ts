@@ -124,16 +124,42 @@ export async function getEmployeeActivity(
   }));
 }
 
-// ── Invite capacity (BR-09 default) ───────────────────────────────────────
+// ── Invite capacity (BR-09) ───────────────────────────────────────────────
 
+/**
+ * Returns the org's invite capacity. Phase 7+: prefers the active
+ * subscription's `plan.max_users`; falls back to `Organization.max_users`
+ * (legacy default = 50). NULL plan limit means unlimited.
+ */
 export async function getInviteCapacity(orgId: string): Promise<InviteCapacity> {
   const db = createServiceClient();
-  const { data: org } = await db
-    .from("Organization")
-    .select("max_users")
-    .eq("id", orgId)
-    .single();
-  const max = Number((org as { max_users: number | null } | null)?.max_users ?? 50);
+
+  // 1) Active subscription quota
+  const { data: subRows } = await db
+    .from("Subscriptions")
+    .select(`plan:SubscriptionPlans(max_users)`)
+    .eq("subject_type", "Org")
+    .eq("subject_id", orgId)
+    .in("status", ["Trial", "Active", "PastDue"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  type SubRow = {
+    plan?: { max_users: number | null } | { max_users: number | null }[] | null;
+  };
+  const planRaw = (subRows?.[0] as SubRow | undefined)?.plan;
+  const planObj = Array.isArray(planRaw) ? planRaw[0] ?? null : planRaw ?? null;
+  let max: number | null;
+  if (planObj) {
+    max = planObj.max_users; // may be null = unlimited
+  } else {
+    const { data: org } = await db
+      .from("Organization")
+      .select("max_users")
+      .eq("id", orgId)
+      .single();
+    max = Number((org as { max_users: number | null } | null)?.max_users ?? 50);
+  }
 
   const { count } = await db
     .from("OrganizationMembers")
@@ -141,6 +167,16 @@ export async function getInviteCapacity(orgId: string): Promise<InviteCapacity> 
     .eq("org_id", orgId)
     .eq("status", "Active");
   const current = count ?? 0;
+
+  if (max === null) {
+    // Unlimited
+    return {
+      current,
+      max: Number.MAX_SAFE_INTEGER,
+      remaining: Number.MAX_SAFE_INTEGER,
+      blocked: false,
+    };
+  }
 
   return {
     current,

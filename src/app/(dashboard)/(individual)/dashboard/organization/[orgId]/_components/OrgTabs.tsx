@@ -27,6 +27,7 @@ export function OrgTabs({ orgId, isAdmin, pendingReviews = 0 }: OrgTabsProps) {
     },
     { href: `${base}/emission-logs/report`, labelKey: "org.tabs.report", show: true },
     { href: `${base}/compliance`, labelKey: "org.tabs.compliance", show: isAdmin },
+    { href: `${base}/billing`, labelKey: "org.tabs.billing", show: isAdmin },
     { href: `${base}/settings`, labelKey: "org.tabs.settings", show: isAdmin },
   ];
 

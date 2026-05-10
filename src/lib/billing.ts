@@ -1,0 +1,70 @@
+/**
+ * Pure billing helpers (Phase 7). No I/O — easy to unit-test.
+ */
+
+import type { SubscriptionBillingCycle } from "@/types/subscription.types";
+
+export function generateInvoiceNumber(now: Date = new Date()): string {
+  const yyyy = now.getUTCFullYear();
+  const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(now.getUTCDate()).padStart(2, "0");
+  // 6-char crypto-random suffix to avoid collisions in concurrent inserts.
+  const suffix = Array.from({ length: 6 })
+    .map(() =>
+      Math.floor(Math.random() * 36)
+        .toString(36)
+        .toUpperCase()
+    )
+    .join("");
+  return `INV-${yyyy}${mm}${dd}-${suffix}`;
+}
+
+/** Returns ISO timestamp `count` cycles after `start` (Monthly or Annual). */
+export function periodEnd(
+  start: Date,
+  cycle: SubscriptionBillingCycle,
+  count: number = 1
+): Date {
+  const out = new Date(start);
+  if (cycle === "Annual") {
+    out.setUTCFullYear(out.getUTCFullYear() + count);
+  } else {
+    out.setUTCMonth(out.getUTCMonth() + count);
+  }
+  return out;
+}
+
+/**
+ * BR-09 helper — given current usage and the plan's quotas, returns
+ * remaining capacity. NULL maxes mean unlimited.
+ */
+export function quotaRemaining(
+  current: number,
+  max: number | null
+): { remaining: number; blocked: boolean; unlimited: boolean } {
+  if (max === null || max === undefined) {
+    return { remaining: Number.POSITIVE_INFINITY, blocked: false, unlimited: true };
+  }
+  const remaining = Math.max(0, max - current);
+  return { remaining, blocked: remaining <= 0, unlimited: false };
+}
+
+/** Trial / period status helpers. */
+export function isTrialActive(trialEnd: string | null, now: Date = new Date()): boolean {
+  if (!trialEnd) return false;
+  return new Date(trialEnd).getTime() > now.getTime();
+}
+
+/** Mock payment QR payload — provider-agnostic placeholder. */
+export function buildMockQrPayload(opts: {
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+}): string {
+  return `MOCK|${opts.invoiceNumber}|${opts.amount.toFixed(2)}|${opts.currency}`;
+}
+
+/** Mock payment intent expiry: 15 minutes from now. */
+export function paymentIntentExpiry(now: Date = new Date()): Date {
+  return new Date(now.getTime() + 15 * 60 * 1000);
+}
