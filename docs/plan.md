@@ -212,7 +212,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 2 — Public Website Discovery
+### Phase 2 — Public Website Discovery ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ (4 routes mới: `/about`, `/services`, `/contact`, `/api/public/contact`) · `npm run test:unit` 58/58 ✓ · ESLint Phase 2 files ✓.
+> Migration 007 (`ContactMessages` + `ContactRateLimits` + RLS + audit trigger) sẵn sàng apply.
 
 **Goal**: Bổ sung trang About Us, Services detail, Contact form (UC-9, UC-10, UC-11).
 

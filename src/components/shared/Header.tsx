@@ -96,10 +96,10 @@ export function Header() {
     "User";
 
   const NAV_LINKS = [
-    { labelKey: "nav.aboutUs", href: "#about" },
-    { labelKey: "nav.services", href: "#services" },
+    { labelKey: "nav.aboutUs", href: "/about" },
+    { labelKey: "nav.services", href: "/services" },
     { labelKey: "nav.products", href: "#products" },
-    { labelKey: "nav.contact", href: "#contact" },
+    { labelKey: "nav.contact", href: "/contact" },
   ];
 
   return (

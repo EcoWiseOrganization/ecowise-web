@@ -22,22 +22,22 @@ export function Footer() {
 
   const FOOTER_LINKS: Record<string, { labelKey: string; href: string }[]> = {
     [t("footer.aboutUs")]: [
-      { labelKey: "footer.companyOverview", href: "#" },
-      { labelKey: "footer.missionVision", href: "#" },
-      { labelKey: "footer.sustainabilityCommitment", href: "#" },
-      { labelKey: "footer.partners", href: "#" },
+      { labelKey: "footer.companyOverview", href: "/about" },
+      { labelKey: "footer.missionVision", href: "/about#mission" },
+      { labelKey: "footer.sustainabilityCommitment", href: "/about#vision" },
+      { labelKey: "footer.partners", href: "/about" },
     ],
     [t("footer.services")]: [
-      { labelKey: "footer.carbonMeasurement", href: "#" },
-      { labelKey: "footer.emissionAnalysis", href: "#" },
-      { labelKey: "footer.carbonReporting", href: "#" },
-      { labelKey: "footer.netZeroConsulting", href: "#" },
+      { labelKey: "footer.carbonMeasurement", href: "/services" },
+      { labelKey: "footer.emissionAnalysis", href: "/services" },
+      { labelKey: "footer.carbonReporting", href: "/services" },
+      { labelKey: "footer.netZeroConsulting", href: "/services" },
     ],
     [t("footer.products")]: [
-      { labelKey: "footer.websitePlatform", href: "#" },
-      { labelKey: "footer.mobileApp", href: "#" },
-      { labelKey: "footer.enterpriseDashboard", href: "#" },
-      { labelKey: "footer.apiIntegration", href: "#" },
+      { labelKey: "footer.websitePlatform", href: "/services" },
+      { labelKey: "footer.mobileApp", href: "/services" },
+      { labelKey: "footer.enterpriseDashboard", href: "/services" },
+      { labelKey: "footer.apiIntegration", href: "/contact" },
     ],
   };
 
