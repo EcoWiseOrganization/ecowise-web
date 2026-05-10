@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { getPersonalStatsAction } from "@/app/actions/personal-carbon.actions";
+import { exportPersonalReportAction } from "@/app/actions/reports.actions";
+import { triggerBase64Download } from "@/lib/download";
+import type { ReportFormat } from "@/types/report.types";
 
 type Stats = {
   total: number;
@@ -62,14 +65,48 @@ export function PersonalReport() {
     );
   }
 
+  return <Report period={period} setPeriod={setPeriod} stats={stats} setLoading={setLoading} />;
+}
+
+function Report({
+  period,
+  setPeriod,
+  stats,
+  setLoading,
+}: {
+  period: (typeof PERIODS)[number]["value"];
+  setPeriod: (p: (typeof PERIODS)[number]["value"]) => void;
+  stats: Stats;
+  setLoading: (v: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  const [pending, startTransition] = useTransition();
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const total = stats.total;
   const top = [...stats.byCategory]
     .sort((a, b) => b.co2eKg - a.co2eKg)
     .slice(0, 5);
 
+  const onExport = (format: ReportFormat) => {
+    setExportError(null);
+    const { start, end } = rangeFor(period);
+    startTransition(async () => {
+      const res = await exportPersonalReportAction({
+        period: { start, end },
+        format,
+      });
+      if (!res.data) {
+        setExportError(res.error ?? "unknown");
+        return;
+      }
+      triggerBase64Download(res.data);
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="inline-flex border border-[#DAEDD5] rounded-lg overflow-hidden">
           {PERIODS.map((p) => (
             <button
@@ -89,10 +126,31 @@ export function PersonalReport() {
             </button>
           ))}
         </div>
-        <span className="text-xs text-[#AAAAAA]">
-          {stats.logCount} {t("reports.logs")}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#AAAAAA]">
+            {stats.logCount} {t("reports.logs")}
+          </span>
+          <div className="inline-flex border border-[#DAEDD5] rounded-lg overflow-hidden">
+            {(["pdf", "xlsx", "csv"] as ReportFormat[]).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => onExport(f)}
+                disabled={pending}
+                className="px-3 py-1.5 text-xs uppercase font-semibold bg-white text-[#1F8505] hover:bg-[#f0f9ed] disabled:opacity-50"
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {exportError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+          {t(`error.${exportError}`, { defaultValue: exportError })}
+        </div>
+      )}
 
       {/* Summary card */}
       <div className="bg-white border border-[#DAEDD5] rounded-2xl p-6">

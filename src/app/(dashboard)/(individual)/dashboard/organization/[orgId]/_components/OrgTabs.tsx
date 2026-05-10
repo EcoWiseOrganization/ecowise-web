@@ -25,6 +25,8 @@ export function OrgTabs({ orgId, isAdmin, pendingReviews = 0 }: OrgTabsProps) {
       show: isAdmin,
       badge: pendingReviews,
     },
+    { href: `${base}/emission-logs/report`, labelKey: "org.tabs.report", show: true },
+    { href: `${base}/compliance`, labelKey: "org.tabs.compliance", show: isAdmin },
     { href: `${base}/settings`, labelKey: "org.tabs.settings", show: isAdmin },
   ];
 

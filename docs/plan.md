@@ -393,7 +393,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 6 — Reporting & Export (PDF / Excel / CSV)
+### Phase 6 — Reporting & Export (PDF / Excel / CSV) ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ (2 routes mới `/dashboard/organization/[orgId]/emission-logs/report` + `/compliance`; export buttons trên `/dashboard/reports`) · `npm run test:unit` 113/113 ✓ · ESLint Phase 6 files ✓.
+> Migration 011 (`ReportArchives` + storage bucket `report-archives` private + RLS) sẵn sàng apply.
 
 **Goal**: Generate Org Emission Log Report, Compliance Report, Personal report export. UC-27.
 
