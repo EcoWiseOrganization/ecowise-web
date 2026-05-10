@@ -83,6 +83,7 @@ async function main() {
     "supabase/migrations/011_report_archives.sql",
     "supabase/migrations/012_subscriptions.sql",
     "supabase/migrations/013_subscription_lifecycle.sql",
+    "supabase/migrations/014_gamification.sql",
   ];
 
   const client = new Client({ connectionString: url });

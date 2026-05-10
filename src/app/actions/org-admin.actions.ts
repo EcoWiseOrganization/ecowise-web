@@ -26,6 +26,8 @@ import {
   setMemberStatus,
   removeMember,
 } from "@/services/org-member.service";
+import { awardPointsForVerifiedLog } from "@/services/gamification.service";
+import { createServiceClient } from "@/lib/supabase/service";
 import type {
   EmployeeActivityRow,
   InviteCapacity,
@@ -169,6 +171,21 @@ export async function reviewEmissionLogAction(
       return { ok: false, error: MSG.INVALID_FORMAT };
     }
     await reviewEmissionLog(logId, decision, ctx.userId, reason);
+
+    // Phase 9: award green points to the log owner on Verified.
+    if (decision === "Verified") {
+      const db = createServiceClient();
+      const { data: log } = await db
+        .from("EmissionLogs")
+        .select("created_by")
+        .eq("id", logId)
+        .maybeSingle();
+      const owner = (log as { created_by: string | null } | null)?.created_by ?? null;
+      if (owner) {
+        await awardPointsForVerifiedLog({ userId: owner, emissionLogId: logId });
+      }
+    }
+
     revalidatePath(`/dashboard/organization/${orgId}/emission-logs/review`);
     revalidatePath(`/dashboard/organization/${orgId}/overview`);
     return { ok: true, error: null };

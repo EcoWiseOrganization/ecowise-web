@@ -9,6 +9,9 @@ import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import RedeemIcon from "@mui/icons-material/Redeem";
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import type { MenuSection } from "../../_components/Sidebar";
 
 export const USER_MENU_SECTIONS: MenuSection[] = [
@@ -23,6 +26,14 @@ export const USER_MENU_SECTIONS: MenuSection[] = [
       { label: "menu.recommendations", href: "/dashboard/recommendations", icon: LightbulbIcon },
       { label: "menu.compare", href: "/dashboard/compare", icon: CompareArrowsIcon },
       { label: "menu.assets", href: "/dashboard/assets", icon: InventoryIcon },
+    ],
+  },
+  {
+    title: "sidebar.gamification",
+    items: [
+      { label: "menu.challenges", href: "/dashboard/challenges", icon: EmojiEventsIcon },
+      { label: "menu.rewards", href: "/dashboard/rewards", icon: RedeemIcon },
+      { label: "menu.leaderboard", href: "/dashboard/leaderboard", icon: LeaderboardIcon },
     ],
   },
   {

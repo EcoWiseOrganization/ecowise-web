@@ -754,6 +754,22 @@ export const en = {
   "billing.cancel.reactivate": "Re-enable auto-renew",
   "billing.cancel.reactivated": "Auto-renew is back on.",
 
+  // Phase 9 — Gamification
+  "sidebar.gamification": "Gamification",
+  "menu.challenges": "Challenges",
+  "menu.rewards": "Rewards",
+  "menu.leaderboard": "Leaderboard",
+  "admin.menu.gamification": "Gamification",
+  "admin.menu.challenges": "Challenges",
+  "admin.menu.rewards": "Rewards",
+  "org.tabs.challenges": "Challenges",
+  "page.challenges.title": "Challenges",
+  "page.challenges.subtitle": "Earn green points by completing eco-friendly challenges.",
+  "page.rewards.title": "Reward Store",
+  "page.rewards.subtitle": "Trade your green points for merchandise, donations, or discount codes.",
+  "page.leaderboard.title": "Leaderboard",
+  "page.leaderboard.subtitle": "Top contributors across the EcoWise community.",
+
   // Dashboard page
   "page.dashboard.title": "Executive Dashboard",
   "page.dashboard.subtitle": "Your carbon emission overview",

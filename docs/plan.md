@@ -527,7 +527,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 9 — Gamification
+### Phase 9 — Gamification ✅ DONE
+
+> Completed 2026-05-11. `npm run build` ✓ (10+ routes mới: `/admin/challenges{,/new,/[id]/edit}`, `/admin/rewards{,/new,/[id]/edit}`, `/dashboard/challenges{,/[id]}`, `/dashboard/rewards`, `/dashboard/leaderboard`, `/dashboard/organization/[orgId]/challenges{,/new,/[challengeId]/edit}`) · `npm run test:unit` 147/147 ✓ · ESLint Phase 9 files ✓.
+> Migration 014 (Challenges + UserChallenges + Badges/UserBadges + Rewards + Redemptions + GreenPointLogs append-only + atomic RPCs `redeem_reward` & `earn_green_points` + 4 default badges + 3 sample rewards) sẵn sàng apply.
 
 **Goal**: Challenges, Rewards, Points, Badges, Leaderboard (web side). UC-48, UC-49, UC-51, UC-52, UC-53, UC-54, UC-55. BR-12, BR-13, BR-14.
 

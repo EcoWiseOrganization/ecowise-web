@@ -755,6 +755,22 @@ export const vi = {
   "billing.cancel.reactivate": "Bật lại tự gia hạn",
   "billing.cancel.reactivated": "Đã bật lại tự gia hạn.",
 
+  // Phase 9 — Gamification
+  "sidebar.gamification": "Gamification",
+  "menu.challenges": "Thử thách",
+  "menu.rewards": "Phần thưởng",
+  "menu.leaderboard": "Bảng xếp hạng",
+  "admin.menu.gamification": "Gamification",
+  "admin.menu.challenges": "Thử thách",
+  "admin.menu.rewards": "Phần thưởng",
+  "org.tabs.challenges": "Thử thách",
+  "page.challenges.title": "Thử thách",
+  "page.challenges.subtitle": "Nhận green points qua các thử thách thân thiện môi trường.",
+  "page.rewards.title": "Cửa hàng đổi thưởng",
+  "page.rewards.subtitle": "Đổi green points lấy quà tặng, donation hoặc mã giảm giá.",
+  "page.leaderboard.title": "Bảng xếp hạng",
+  "page.leaderboard.subtitle": "Những người đóng góp hàng đầu cộng đồng EcoWise.",
+
   // Dashboard page
   "page.dashboard.title": "Bảng Điều Khiển",
   "page.dashboard.subtitle": "Tổng quan phát thải carbon của bạn",
