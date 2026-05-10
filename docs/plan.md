@@ -346,7 +346,10 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · MUI · Supaba
 
 ---
 
-### Phase 5 — Public Event Emission Form (Guest Submit)
+### Phase 5 — Public Event Emission Form (Guest Submit) ✅ DONE
+
+> Completed 2026-05-10. `npm run build` ✓ (3 routes mới `/event-form/[token]`, `/api/public/event-form/[token]`, `/dashboard/.../form-builder`) · `npm run test:unit` 101/101 ✓ · ESLint Phase 5 files ✓.
+> Migration 010 (EventPublicForms / EventPublicSubmissions / RateLimits + RLS Org Admin write + audit triggers) sẵn sàng apply.
 
 **Goal**: Org Admin tạo public form, guest submit không cần login (UC-21, UC-33). BR-08.
 

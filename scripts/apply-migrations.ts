@@ -79,6 +79,7 @@ async function main() {
     "supabase/migrations/007_contact_messages.sql",
     "supabase/migrations/008_org_metadata.sql",
     "supabase/migrations/009_targets_and_personal.sql",
+    "supabase/migrations/010_public_event_forms.sql",
   ];
 
   const client = new Client({ connectionString: url });

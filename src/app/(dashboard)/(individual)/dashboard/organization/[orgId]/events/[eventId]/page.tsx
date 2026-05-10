@@ -43,6 +43,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         </Link>
         <span>/</span>
         <span className="text-[#141514] font-medium">{event.name}</span>
+        <span className="ml-auto" />
+        <Link
+          href={`/dashboard/organization/${orgId}/events/${event.id}/form-builder`}
+          className="px-3 py-1.5 rounded-lg border border-[#DAEDD5] text-[#1F8505] text-xs font-semibold hover:bg-[#f0f9ed]"
+        >
+          <T k="publicForm.builder.openLink" />
+        </Link>
       </nav>
 
       <EventDetailView event={event} />
