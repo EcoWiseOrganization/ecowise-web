@@ -85,6 +85,7 @@ async function main() {
     "supabase/migrations/013_subscription_lifecycle.sql",
     "supabase/migrations/014_gamification.sql",
     "supabase/migrations/015_perf_indexes.sql",
+    "supabase/migrations/016_org_rls_backfill.sql",
   ];
 
   const client = new Client({ connectionString: url });
