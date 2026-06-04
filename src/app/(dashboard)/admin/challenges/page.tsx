@@ -31,7 +31,7 @@ export default async function AdminChallengesPage() {
       </div>
       <ChallengeList
         challenges={challenges}
-        buildEditHref={(id) => `/admin/challenges/${id}/edit`}
+        editHrefBase="/admin/challenges"
         canDelete
       />
     </div>

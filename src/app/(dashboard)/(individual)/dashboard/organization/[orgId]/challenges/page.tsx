@@ -52,9 +52,7 @@ export default async function OrgChallengesPage({ params }: PageProps) {
       </div>
       <ChallengeList
         challenges={challenges}
-        buildEditHref={(id) =>
-          `/dashboard/organization/${orgId}/challenges/${id}/edit`
-        }
+        editHrefBase={`/dashboard/organization/${orgId}/challenges`}
         canDelete
       />
     </div>

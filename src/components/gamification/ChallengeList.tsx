@@ -8,13 +8,18 @@ import { useRouter } from "next/navigation";
 
 interface Props {
   challenges: Challenge[];
-  /** Build edit href for a challenge id. */
-  buildEditHref: (id: string) => string;
+  /**
+   * Base path the Edit link is composed from — `${editHrefBase}/${id}/edit`.
+   * Must be a string (not a builder function) because this is a Client
+   * Component and Next rejects function props crossing the
+   * server→client boundary.
+   */
+  editHrefBase: string;
   /** When true, show a Delete column. */
   canDelete?: boolean;
 }
 
-export function ChallengeList({ challenges, buildEditHref, canDelete }: Props) {
+export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +90,7 @@ export function ChallengeList({ challenges, buildEditHref, canDelete }: Props) {
                 </td>
                 <td className="px-3 py-2 text-right space-x-3">
                   <Link
-                    href={buildEditHref(c.id)}
+                    href={`${editHrefBase}/${c.id}/edit`}
                     className="text-[#1F8505] text-xs hover:underline"
                   >
                     Edit
