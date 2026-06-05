@@ -8,6 +8,7 @@ interface PricingPlanConfig {
   nameKey: string;
   price: string;
   periodKey?: string;
+  yearPriceKey?: string;
   descriptionKey: string;
   buttonKey: string;
   buttonVariant: "outline" | "filled";
@@ -18,7 +19,7 @@ interface PricingPlanConfig {
 const PLANS_CONFIG: PricingPlanConfig[] = [
   {
     nameKey: "pricing.plan1.name",
-    price: "$0",
+    price: "0 VND",
     descriptionKey: "pricing.plan1.description",
     buttonKey: "pricing.plan1.button",
     buttonVariant: "outline",
@@ -31,8 +32,9 @@ const PLANS_CONFIG: PricingPlanConfig[] = [
   },
   {
     nameKey: "pricing.plan2.name",
-    price: "$000",
+    price: "20,000,000 VND",
     periodKey: "pricing.quarter",
+    yearPriceKey: "pricing.plan2.yearPrice",
     descriptionKey: "pricing.plan2.description",
     buttonKey: "pricing.plan2.button",
     buttonVariant: "filled",
@@ -46,8 +48,9 @@ const PLANS_CONFIG: PricingPlanConfig[] = [
   },
   {
     nameKey: "pricing.plan3.name",
-    price: "$00",
+    price: "10,000,000 VND",
     periodKey: "pricing.quarter",
+    yearPriceKey: "pricing.plan3.yearPrice",
     descriptionKey: "pricing.plan3.description",
     buttonKey: "pricing.plan3.button",
     buttonVariant: "outline",
@@ -79,13 +82,20 @@ function PricingCard({ plan }: { plan: PricingPlanConfig }) {
             <h3 className="text-[#1F8505] text-xl sm:text-2xl font-medium leading-[27.6px]">
               {t(plan.nameKey)}
             </h3>
-            <div className="flex items-end gap-2">
-              <span className="text-[#1F8505] text-[48px] sm:text-[60px] font-semibold leading-none">
-                {plan.price}
-              </span>
-              {plan.periodKey && (
-                <span className="text-[#6E726E] text-base font-normal leading-[18.4px] mb-2">
-                  {t(plan.periodKey)}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-end gap-2 flex-wrap">
+                <span className="text-[#1F8505] text-[28px] sm:text-[34px] font-semibold leading-none">
+                  {plan.price}
+                </span>
+                {plan.periodKey && (
+                  <span className="text-[#6E726E] text-base font-normal leading-[18.4px] mb-1">
+                    {t(plan.periodKey)}
+                  </span>
+                )}
+              </div>
+              {plan.yearPriceKey && (
+                <span className="text-[#6E726E] text-sm sm:text-base font-normal leading-[18.4px]">
+                  {t(plan.yearPriceKey)}
                 </span>
               )}
             </div>

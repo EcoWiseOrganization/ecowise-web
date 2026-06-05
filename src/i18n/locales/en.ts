@@ -73,6 +73,7 @@ export const en = {
   "pricing.plan2.description":
     "Best for growing businesses needing automation and ESG reporting.",
   "pricing.plan2.button": "Start Professional Plan",
+  "pricing.plan2.yearPrice": "or 70,000,000 VND/year",
   "pricing.plan2.feature1": "Bulk data upload (Excel/CSV)",
   "pricing.plan2.feature2": "Travel emission tracking",
   "pricing.plan2.feature3": "Real-time dashboard (<500n)",
@@ -81,6 +82,7 @@ export const en = {
   "pricing.plan3.description":
     "Best for growing businesses needing automation and ESG reporting.",
   "pricing.plan3.button": "Get Started",
+  "pricing.plan3.yearPrice": "or 30,000,000 VND/year",
   "pricing.plan3.feature1": "Scope 1 & 2 emission calculation",
   "pricing.plan3.feature2": "Vietnamese emission factors",
   "pricing.plan3.feature3": "Basic emission dashboard",
