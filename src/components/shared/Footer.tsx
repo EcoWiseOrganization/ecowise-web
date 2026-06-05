@@ -5,9 +5,6 @@ import Image from "next/image";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import FacebookIcon from "@mui/icons-material/Facebook";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { useTranslation } from "react-i18next";
 
 const FACEBOOK_URL = "https://www.facebook.com/EcoWise.Netzero";
@@ -17,9 +14,7 @@ const EMAIL = "ecowise.official.vn@gmail.com";
 
 const SOCIAL_LINKS = [
   { icon: FacebookIcon, href: FACEBOOK_URL, label: "Facebook" },
-  { icon: LinkedInIcon, href: "#", label: "LinkedIn" },
-  { icon: InstagramIcon, href: "#", label: "Instagram" },
-  { icon: MusicNoteIcon, href: "#", label: "TikTok" },
+  { icon: EmailIcon, href: `mailto:${EMAIL}`, label: "Email" },
 ];
 
 export function Footer() {
