@@ -21,7 +21,7 @@ function ServiceCard({
         <h3 className="text-[#104502] text-lg sm:text-xl font-semibold leading-6">
           {title}
         </h3>
-        <p className="text-[#6E726E] text-sm sm:text-base font-normal leading-6">
+        <p className="text-[#6E726E] text-sm sm:text-base font-normal leading-6 text-pretty">
           {description}
         </p>
       </div>
@@ -78,12 +78,12 @@ export function ServicesSection() {
                 <h2 className="text-white text-[32px] sm:text-[40px] lg:text-[48px] font-bold leading-tight lg:leading-[56px]">
                   {t("services.title")}
                 </h2>
-                <p className="text-[#E5E5E5] text-base sm:text-lg font-normal leading-6">
+                <p className="text-[#E5E5E5] text-base sm:text-lg font-normal leading-6 text-pretty">
                   {t("services.subtitle")}
                 </p>
               </div>
               <Link
-                href="#services"
+                href="/services"
                 className="self-start px-5 py-2.5 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] overflow-hidden rounded-xl text-white text-base sm:text-xl font-medium no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
               >
                 {t("services.explore")}

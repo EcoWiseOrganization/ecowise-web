@@ -209,7 +209,7 @@ function SidebarContent({
       {/* Language Switcher + Log Out */}
       <div className="px-[19px] pt-4 mt-auto pb-6 flex flex-col gap-2">
         <div className="px-3 py-2">
-          <LanguageSwitcher />
+          <LanguageSwitcher direction="up" />
         </div>
         <form action={signOut}>
           <button

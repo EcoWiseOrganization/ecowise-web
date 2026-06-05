@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useContactForm } from "@/hooks/useContactForm";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
+import FacebookIcon from "@mui/icons-material/Facebook";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 export function ContactBody() {
@@ -27,8 +28,25 @@ export function ContactBody() {
           <h2 className="text-[#155A03] text-xl font-semibold">
             {t("contact.info.title")}
           </h2>
-          <Row icon={EmailIcon} label="Email" value="ecowise.official.vn@gmail.com" />
-          <Row icon={PhoneIcon} label={t("contact.info.phone")} value="(+84) 000 000 000" />
+          <Row
+            icon={EmailIcon}
+            label="Email"
+            value="ecowise.official.vn@gmail.com"
+            href="mailto:ecowise.official.vn@gmail.com"
+          />
+          <Row
+            icon={PhoneIcon}
+            label={t("contact.info.phone")}
+            value="036 611 2016"
+            href="tel:+84366112016"
+          />
+          <Row
+            icon={FacebookIcon}
+            label="Facebook"
+            value="EcoWise.Netzero"
+            href="https://www.facebook.com/EcoWise.Netzero"
+            external
+          />
           <Row icon={LocationOnIcon} label={t("contact.info.address")} value={t("contact.info.addressValue")} />
         </aside>
 
@@ -119,11 +137,16 @@ function Row({
   icon: Icon,
   label,
   value,
+  href,
+  external,
 }: {
   icon: typeof PhoneIcon;
   label: string;
   value: string;
+  href?: string;
+  external?: boolean;
 }) {
+  const valueClass = "text-sm text-[#155A03] font-medium break-all";
   return (
     <div className="flex items-start gap-3">
       <span className="text-[#1F8505] mt-0.5">
@@ -131,7 +154,18 @@ function Row({
       </span>
       <div>
         <div className="text-xs text-[#6E726E]">{label}</div>
-        <div className="text-sm text-[#155A03] font-medium break-all">{value}</div>
+        {href ? (
+          <a
+            href={href}
+            target={external ? "_blank" : undefined}
+            rel={external ? "noopener noreferrer" : undefined}
+            className={`${valueClass} no-underline hover:text-[#1F8505] transition-colors`}
+          >
+            {value}
+          </a>
+        ) : (
+          <div className={valueClass}>{value}</div>
+        )}
       </div>
     </div>
   );

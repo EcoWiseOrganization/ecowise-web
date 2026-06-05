@@ -74,6 +74,7 @@ export const vi = {
   "pricing.plan2.description":
     "Tốt nhất cho doanh nghiệp đang phát triển cần tự động hóa và báo cáo ESG.",
   "pricing.plan2.button": "Bắt Đầu Gói Chuyên Nghiệp",
+  "pricing.plan2.yearPrice": "hoặc 70.000.000 VND/năm",
   "pricing.plan2.feature1": "Tải dữ liệu hàng loạt (Excel/CSV)",
   "pricing.plan2.feature2": "Theo dõi phát thải di chuyển",
   "pricing.plan2.feature3": "Bảng điều khiển thời gian thực (<500n)",
@@ -82,6 +83,7 @@ export const vi = {
   "pricing.plan3.description":
     "Tốt nhất cho doanh nghiệp đang phát triển cần tự động hóa và báo cáo ESG.",
   "pricing.plan3.button": "Bắt Đầu",
+  "pricing.plan3.yearPrice": "hoặc 30.000.000 VND/năm",
   "pricing.plan3.feature1": "Tính toán phát thải Phạm vi 1 & 2",
   "pricing.plan3.feature2": "Hệ số phát thải Việt Nam",
   "pricing.plan3.feature3": "Bảng điều khiển phát thải cơ bản",

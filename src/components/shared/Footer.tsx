@@ -5,16 +5,16 @@ import Image from "next/image";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import FacebookIcon from "@mui/icons-material/Facebook";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { useTranslation } from "react-i18next";
 
+const FACEBOOK_URL = "https://www.facebook.com/EcoWise.Netzero";
+const PHONE_DISPLAY = "036 611 2016";
+const PHONE_HREF = "tel:+84366112016";
+const EMAIL = "ecowise.official.vn@gmail.com";
+
 const SOCIAL_LINKS = [
-  { icon: FacebookIcon, href: "#", label: "Facebook" },
-  { icon: LinkedInIcon, href: "#", label: "LinkedIn" },
-  { icon: InstagramIcon, href: "#", label: "Instagram" },
-  { icon: MusicNoteIcon, href: "#", label: "TikTok" },
+  { icon: FacebookIcon, href: FACEBOOK_URL, label: "Facebook" },
+  { icon: EmailIcon, href: `mailto:${EMAIL}`, label: "Email" },
 ];
 
 export function Footer() {
@@ -48,35 +48,46 @@ export function Footer() {
         {/* Top section */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-10 sm:gap-8">
           {/* Logo & Contact */}
-          <div className="w-full sm:w-[220px] lg:w-[260px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
+          <div className="w-full sm:w-[220px] lg:w-[240px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
             <Image
               src="/img/logo.png"
               alt="EcoWise Logo"
               width={260}
               height={58}
-              className="w-[160px] sm:w-[200px] lg:w-[260px] h-auto"
+              className="w-[160px] sm:w-[200px] lg:w-[240px] h-auto"
             />
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2.5">
-                <PhoneIcon sx={{ fontSize: 20, color: "#79B669" }} />
-                <span className="text-[#79B669] text-sm sm:text-base font-normal">
-                  (+84) 000 000 000
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <EmailIcon sx={{ fontSize: 20, color: "#79B669" }} />
-                <span className="text-[#79B669] text-sm sm:text-base font-normal break-all">
-                  ecowise.official.vn@gmail.com
-                </span>
-              </div>
+              <Link
+                href={FACEBOOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-[#79B669] text-sm sm:text-base font-normal no-underline hover:text-[#1F8505] transition-colors"
+              >
+                <FacebookIcon sx={{ fontSize: 20 }} />
+                <span>EcoWise.Netzero</span>
+              </Link>
+              <Link
+                href={PHONE_HREF}
+                className="flex items-center gap-2.5 text-[#79B669] text-sm sm:text-base font-normal no-underline hover:text-[#1F8505] transition-colors"
+              >
+                <PhoneIcon sx={{ fontSize: 20 }} />
+                <span>{PHONE_DISPLAY}</span>
+              </Link>
+              <Link
+                href={`mailto:${EMAIL}`}
+                className="flex items-center gap-2.5 text-[#79B669] text-sm sm:text-base font-normal no-underline hover:text-[#1F8505] transition-colors"
+              >
+                <EmailIcon sx={{ fontSize: 20 }} />
+                <span className="break-all">{EMAIL}</span>
+              </Link>
             </div>
           </div>
 
           {/* Link Columns */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-6 lg:gap-[100px] w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 w-full sm:w-auto sm:ml-auto lg:mr-2">
             {Object.entries(FOOTER_LINKS).map(([title, links]) => (
               <div key={title} className="flex flex-col gap-3 sm:gap-4">
-                <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6">
+                <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6 whitespace-nowrap">
                   {title}
                 </h4>
                 <div className="flex flex-col gap-1.5 sm:gap-2">
@@ -84,7 +95,7 @@ export function Footer() {
                     <Link
                       key={link.labelKey}
                       href={link.href}
-                      className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors"
+                      className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors text-pretty"
                     >
                       {t(link.labelKey)}
                     </Link>
@@ -118,16 +129,21 @@ export function Footer() {
               </Link>
             </div>
             <div className="flex items-center gap-4 sm:gap-5">
-              {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="text-[#79B669] flex hover:text-[#1F8505] transition-colors"
-                >
-                  <Icon sx={{ fontSize: 22 }} />
-                </Link>
-              ))}
+              {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => {
+                const isExternal = href.startsWith("http");
+                return (
+                  <Link
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="text-[#79B669] flex hover:text-[#1F8505] transition-colors"
+                  >
+                    <Icon sx={{ fontSize: 22 }} />
+                  </Link>
+                );
+              })}
             </div>
             <span className="text-[#79B669] text-xs font-normal leading-5 text-center sm:text-left">
               {t("footer.cookies")}{" "}

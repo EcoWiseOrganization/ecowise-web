@@ -17,7 +17,7 @@ export function MobileAppSection() {
             <h2 className="text-[#155A03] text-[28px] sm:text-[36px] lg:text-[48px] font-bold leading-tight lg:leading-[56px]">
               {t("mobile.title")}
             </h2>
-            <p className="text-[#6E726E] text-base sm:text-lg font-normal leading-6 max-w-[484px]">
+            <p className="text-[#6E726E] text-base sm:text-lg font-normal leading-6 max-w-[484px] text-pretty">
               {t("mobile.subtitle")}
             </p>
             <div className="flex items-start gap-4 sm:gap-6">
