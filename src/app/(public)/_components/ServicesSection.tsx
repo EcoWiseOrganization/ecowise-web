@@ -83,7 +83,7 @@ export function ServicesSection() {
                 </p>
               </div>
               <Link
-                href="#services"
+                href="/services"
                 className="self-start px-5 py-2.5 bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] overflow-hidden rounded-xl text-white text-base sm:text-xl font-medium no-underline hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
               >
                 {t("services.explore")}
