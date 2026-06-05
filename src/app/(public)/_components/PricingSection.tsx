@@ -69,53 +69,49 @@ function PricingCard({ plan }: { plan: PricingPlanConfig }) {
 
   return (
     <div
-      className={`w-full rounded-3xl flex flex-col ${
+      className={`w-full h-full rounded-3xl flex flex-col ${
         isHighlighted
           ? "bg-[linear-gradient(192deg,rgba(255,255,255,0)_0%,#1F8505_100%),linear-gradient(54deg,rgba(255,255,255,0)_0%,#1F8505_100%),white] shadow-[0px_4px_4px_rgba(31,133,5,0.25)] border border-[#1F8505]"
           : "bg-white shadow-[0px_4px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5]"
       }`}
     >
       {/* Top Section */}
-      <div className="px-6 sm:px-[33px] pt-7 sm:pt-9 pb-6 sm:pb-8 overflow-hidden rounded-t-3xl flex flex-col gap-8 sm:gap-[42px]">
-        <div className="flex flex-col gap-8 sm:gap-[42px]">
-          <div className="flex flex-col gap-8 sm:gap-12">
-            <h3 className="text-[#1F8505] text-xl sm:text-2xl font-medium leading-[27.6px]">
-              {t(plan.nameKey)}
-            </h3>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-end gap-2 flex-wrap">
-                <span className="text-[#1F8505] text-[28px] sm:text-[34px] font-semibold leading-none">
-                  {plan.price}
-                </span>
-                {plan.periodKey && (
-                  <span className="text-[#6E726E] text-base font-normal leading-[18.4px] mb-1">
-                    {t(plan.periodKey)}
-                  </span>
-                )}
-              </div>
-              {plan.yearPriceKey && (
-                <span className="text-[#6E726E] text-sm sm:text-base font-normal leading-[18.4px]">
-                  {t(plan.yearPriceKey)}
+      <div className="px-6 sm:px-[33px] pt-7 sm:pt-9 pb-6 sm:pb-8 overflow-hidden rounded-t-3xl flex flex-col gap-8 sm:gap-[42px] flex-1">
+        <div className="flex flex-col gap-8 sm:gap-12">
+          <h3 className="text-[#1F8505] text-xl sm:text-2xl font-medium leading-[27.6px]">
+            {t(plan.nameKey)}
+          </h3>
+          <div className="flex flex-col gap-2 min-h-[72px]">
+            <div className="flex items-end gap-2 flex-wrap">
+              <span className="text-[#1F8505] text-[28px] sm:text-[34px] font-semibold leading-none">
+                {plan.price}
+              </span>
+              {plan.periodKey && (
+                <span className="text-[#6E726E] text-base font-normal leading-[18.4px] mb-1">
+                  {t(plan.periodKey)}
                 </span>
               )}
             </div>
-          </div>
-          <div className="flex flex-col gap-8 sm:gap-[42px]">
-            <p className="text-[#6E726E] text-base font-normal leading-6">
-              {t(plan.descriptionKey)}
-            </p>
-            <Link
-              href="/register"
-              className={`w-full text-center px-5 py-4 sm:py-[18px] rounded-xl text-base sm:text-lg font-medium no-underline shadow-[0px_2px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5] transition-all duration-200 ${
-                plan.buttonVariant === "filled"
-                  ? "bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
-                  : "bg-white text-[#1F8505] hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
-              }`}
-            >
-              {t(plan.buttonKey)}
-            </Link>
+            {plan.yearPriceKey && (
+              <span className="text-[#6E726E] text-sm sm:text-base font-normal leading-[18.4px]">
+                {t(plan.yearPriceKey)}
+              </span>
+            )}
           </div>
         </div>
+        <p className="text-[#6E726E] text-base font-normal leading-6 flex-1">
+          {t(plan.descriptionKey)}
+        </p>
+        <Link
+          href="/register"
+          className={`w-full text-center px-5 py-4 sm:py-[18px] rounded-xl text-base sm:text-lg font-medium no-underline shadow-[0px_2px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5] transition-all duration-200 ${
+            plan.buttonVariant === "filled"
+              ? "bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
+              : "bg-white text-[#1F8505] hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
+          }`}
+        >
+          {t(plan.buttonKey)}
+        </Link>
       </div>
 
       {/* Features Section */}
