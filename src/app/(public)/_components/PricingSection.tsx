@@ -99,7 +99,7 @@ function PricingCard({ plan }: { plan: PricingPlanConfig }) {
             )}
           </div>
         </div>
-        <p className="text-[#6E726E] text-base font-normal leading-6 flex-1">
+        <p className="text-[#6E726E] text-base font-normal leading-6 flex-1 text-pretty">
           {t(plan.descriptionKey)}
         </p>
         <Link

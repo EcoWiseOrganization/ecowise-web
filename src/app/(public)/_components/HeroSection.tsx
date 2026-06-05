@@ -24,7 +24,7 @@ export function HeroSection() {
           <h1 className="text-[#155A03] text-[26px] sm:text-[36px] lg:text-[48px] font-bold leading-tight lg:leading-[56px]">
             {t("hero.title")}
           </h1>
-          <p className="text-[#6E726E] text-sm sm:text-base font-normal leading-6 max-w-[477px]">
+          <p className="text-[#6E726E] text-sm sm:text-base font-normal leading-6 max-w-[477px] text-pretty">
             {t("hero.subtitle")}
           </p>
           <div className="flex items-center gap-3 sm:gap-5">

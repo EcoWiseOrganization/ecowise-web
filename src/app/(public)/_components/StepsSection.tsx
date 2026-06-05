@@ -54,7 +54,7 @@ export function StepsSection() {
                   </div>
                   <div className="flex flex-col items-start gap-2.5">
                     <h3 className="text-[#104502] text-xl font-semibold leading-6">{t(step.titleKey)}</h3>
-                    <p className="text-[#155A03] text-base font-normal leading-6">{t(step.descriptionKey)}</p>
+                    <p className="text-[#155A03] text-base font-normal leading-6 text-pretty">{t(step.descriptionKey)}</p>
                   </div>
                 </div>
               ))}
@@ -70,7 +70,7 @@ export function StepsSection() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <h3 className="text-[#104502] text-base sm:text-lg font-semibold leading-6">{t(step.titleKey)}</h3>
-                  <p className="text-[#155A03] text-sm sm:text-base font-normal leading-6">{t(step.descriptionKey)}</p>
+                  <p className="text-[#155A03] text-sm sm:text-base font-normal leading-6 text-pretty">{t(step.descriptionKey)}</p>
                 </div>
               </div>
             ))}

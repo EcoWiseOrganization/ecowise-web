@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
@@ -48,21 +47,24 @@ export function Footer() {
         {/* Top section */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-10 sm:gap-8">
           {/* Logo & Contact */}
-          <div className="w-full sm:w-[220px] lg:w-[260px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
+          <div className="w-full sm:w-[220px] lg:w-[240px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
             <Image
               src="/img/logo.png"
               alt="EcoWise Logo"
               width={260}
               height={58}
-              className="w-[160px] sm:w-[200px] lg:w-[260px] h-auto"
+              className="w-[160px] sm:w-[200px] lg:w-[240px] h-auto"
             />
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2.5">
-                <PhoneIcon sx={{ fontSize: 20, color: "#79B669" }} />
-                <span className="text-[#79B669] text-sm sm:text-base font-normal">
-                  (+84) 000 000 000
-                </span>
-              </div>
+              <Link
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-[#79B669] text-sm sm:text-base font-normal no-underline hover:text-[#1F8505] transition-colors"
+              >
+                <FacebookIcon sx={{ fontSize: 20 }} />
+                <span>EcoWise Official</span>
+              </Link>
               <div className="flex items-center gap-2.5">
                 <EmailIcon sx={{ fontSize: 20, color: "#79B669" }} />
                 <span className="text-[#79B669] text-sm sm:text-base font-normal break-all">
@@ -73,10 +75,10 @@ export function Footer() {
           </div>
 
           {/* Link Columns */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-6 lg:gap-[100px] w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 w-full sm:w-auto sm:ml-auto lg:mr-2">
             {Object.entries(FOOTER_LINKS).map(([title, links]) => (
               <div key={title} className="flex flex-col gap-3 sm:gap-4">
-                <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6">
+                <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6 whitespace-nowrap">
                   {title}
                 </h4>
                 <div className="flex flex-col gap-1.5 sm:gap-2">
@@ -84,7 +86,7 @@ export function Footer() {
                     <Link
                       key={link.labelKey}
                       href={link.href}
-                      className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors"
+                      className="text-[#79B669] text-sm sm:text-base font-normal leading-6 no-underline hover:text-[#1F8505] transition-colors text-pretty"
                     >
                       {t(link.labelKey)}
                     </Link>
