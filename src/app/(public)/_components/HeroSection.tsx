@@ -36,7 +36,7 @@ export function HeroSection() {
             </Link>
             <Link
               href="/contact"
-              className="px-4 sm:px-5 py-2 sm:py-2.5 overflow-hidden rounded-xl border border-[#1F8505] bg-white/60 backdrop-blur-sm text-[#1F8505] text-sm sm:text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 overflow-hidden rounded-xl border border-[#1F8505] bg-white/40 backdrop-blur-sm text-[#1F8505] text-sm sm:text-base font-medium no-underline hover:bg-[#1F8505] hover:text-white hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)] transition-all duration-200"
             >
               {t("hero.contactUs")}
             </Link>
