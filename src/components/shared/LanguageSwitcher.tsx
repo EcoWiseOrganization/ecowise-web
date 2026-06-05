@@ -4,7 +4,13 @@ import LanguageIcon from "@mui/icons-material/Language";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-export function LanguageSwitcher({ onClose }: { onClose?: () => void }) {
+export function LanguageSwitcher({
+  onClose,
+  direction = "down",
+}: {
+  onClose?: () => void;
+  direction?: "up" | "down";
+}) {
   const { i18n: i18nInstance } = useTranslation();
   const [open, setOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
@@ -39,7 +45,11 @@ export function LanguageSwitcher({ onClose }: { onClose?: () => void }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 bottom-full mb-2 w-40 bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-[#DAEDD5] py-1 z-[60]">
+        <div
+          className={`absolute left-0 w-40 bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-[#DAEDD5] py-1 z-[60] ${
+            direction === "up" ? "bottom-full mb-2" : "top-full mt-2"
+          }`}
+        >
           <button
             onClick={() => handleChange("en")}
             className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 bg-transparent border-none cursor-pointer transition-colors ${
