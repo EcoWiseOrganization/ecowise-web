@@ -107,11 +107,27 @@ export async function setMemberStatus(
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Remove an employee from an org.
+ *
+ * Soft-delete by default — flips `status` to `Inactive` so the row (and
+ * everything FK'd off it: emission_logs.created_by, audit_logs,
+ * UserChallenges, etc.) stays intact for reporting & BR-03 retention.
+ * A previously-inactive employee re-invited later picks up where they
+ * left off because the membership row never disappeared.
+ *
+ * The hard-delete path is reserved for rows that have never been Active
+ * (e.g. a Pending invite the admin wants to revoke before the user even
+ * accepts). In that narrow case there's no history to preserve, so we
+ * scrub the row entirely.
+ *
+ * The last-admin guard (BR-26) still runs in both paths.
+ */
 export async function removeMember(orgId: string, memberId: string): Promise<void> {
   const db = createServiceClient();
   const { data: member } = await db
     .from("OrganizationMembers")
-    .select("user_id, role_id")
+    .select("user_id, role_id, status")
     .eq("id", memberId)
     .eq("org_id", orgId)
     .maybeSingle();
@@ -122,9 +138,24 @@ export async function removeMember(orgId: string, memberId: string): Promise<voi
     if (blocked) throw new Error("MSG26");
   }
 
+  // Pending invitee = never had access; safe to hard-delete since the
+  // employee has no historical artifacts attached to this membership.
+  if (member.status === "Pending") {
+    const { error } = await db
+      .from("OrganizationMembers")
+      .delete()
+      .eq("id", memberId)
+      .eq("org_id", orgId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  // Everyone else: soft-delete so audit trail + emission_logs ownership
+  // + last_active timestamps continue to resolve.
   const { error } = await db
     .from("OrganizationMembers")
-    .delete()
-    .eq("id", memberId);
+    .update({ status: "Inactive" })
+    .eq("id", memberId)
+    .eq("org_id", orgId);
   if (error) throw new Error(error.message);
 }
