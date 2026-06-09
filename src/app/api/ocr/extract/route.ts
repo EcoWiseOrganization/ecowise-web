@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSession, AuthError } from "@/lib/auth/roles";
 import { ocrToSuggestion, runOcr } from "@/services/ocr.service";
 import { writeAuditLog } from "@/services/audit.service";
+import { consumeAuthRateLimit } from "@/lib/rate-limit";
 import { MSG } from "@/lib/messages";
 
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
@@ -22,6 +23,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: err.code }, { status: err.httpStatus });
     }
     return NextResponse.json({ error: "AUTH_REQUIRED" }, { status: 401 });
+  }
+
+  // Per-user rate limit. OCR fans out to Anthropic and burns paid
+  // tokens per call; without a cap a logged-in user (or a stolen
+  // session) can blast 5 MB images at the API as fast as the runtime
+  // allows. 30 calls / hour matches the BR-09 anti-spam intent and
+  // leaves plenty of headroom for legitimate batch uploads.
+  const rate = await consumeAuthRateLimit(`ocr:user:${userId}`, {
+    windowSec: 60 * 60,
+    max: 30,
+  });
+  if (!rate.ok) {
+    return NextResponse.json(
+      { error: "RATE_LIMITED", retryAfterSec: rate.retryAfterSec ?? 60 },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rate.retryAfterSec ?? 60) },
+      },
+    );
   }
 
   let file: File | null = null;
@@ -52,8 +72,7 @@ export async function POST(req: Request) {
     const msg = err instanceof Error ? err.message : "ocr_failed";
     await writeAuditLog({
       action: "ocr_extract",
-      resourceType: "user",
-      resourceId: userId,
+      resourceType: "ocr_extract",
       actorUserId: userId,
       status: "failure",
       errorMessage: msg,
@@ -63,10 +82,12 @@ export async function POST(req: Request) {
 
   await writeAuditLog({
     action: "ocr_extract",
-    resourceType: "user",
-    resourceId: userId,
+    resourceType: "ocr_extract",
     actorUserId: userId,
-    newValue: { provider: result.provider, fields: result.fields.length },
+    // Don't log the raw OCR fields — they carry receipt PII (vendor /
+    // amount) and could contain prompt-injected text from a hostile
+    // image. Provider + field count is enough for ops debugging.
+    newValue: { provider: result.provider, fieldCount: result.fields.length },
   });
 
   return NextResponse.json({

@@ -54,7 +54,11 @@ async function runAnthropic(input: RunInput): Promise<OcrResult> {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.ANTHROPIC_OCR_MODEL ?? "claude-sonnet-4-6",
+      // Default to the latest released Sonnet id. The previous default
+      // `claude-sonnet-4-6` does not exist in the Anthropic catalog, so
+      // any deploy without `ANTHROPIC_OCR_MODEL` set 404'd on the very
+      // first OCR call and surfaced as OCR_PROVIDER_ERROR to the user.
+      model: process.env.ANTHROPIC_OCR_MODEL ?? "claude-sonnet-4-5",
       max_tokens: 1024,
       messages: [
         {
