@@ -9,17 +9,55 @@ import type {
 } from "@/types/user.types";
 
 /**
+ * Look up an auth.users row by email by paginating `auth.admin.listUsers`.
+ * Returns `null` if not found within the page cap.
+ *
+ * Supabase JS v2.98 has no `getUserByEmail` on `auth.admin`, so the only
+ * supported path is paginated listUsers. We cap pages at MAX_PAGES so a
+ * runaway loop on a corrupt result set can't burn the admin API quota.
+ * 100 pages × 1000 perPage = 100 000 users — well above current scale.
+ *
+ * Email is normalised on both sides so case/whitespace variants don't
+ * silently miss.
+ */
+async function findAuthUserByEmail(email: string) {
+  const admin = createAdminClient();
+  const target = email.trim().toLowerCase();
+  const PER_PAGE = 1000;
+  const MAX_PAGES = 100;
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({
+      page,
+      perPage: PER_PAGE,
+    });
+    if (error) {
+      console.error("[user.service] findAuthUserByEmail listUsers failed", error);
+      return null;
+    }
+    const users = data?.users ?? [];
+    const hit = users.find((u) => (u.email ?? "").trim().toLowerCase() === target);
+    if (hit) return hit;
+    if (users.length < PER_PAGE) return null; // reached the end
+  }
+  console.warn(
+    "[user.service] findAuthUserByEmail hit MAX_PAGES — caller treated as not found",
+    { email: target },
+  );
+  return null;
+}
+
+/**
  * Returns true if the email is registered in Supabase Auth
  * exclusively via Google OAuth (no email/password identity).
+ *
+ * Previously paginated only the first 1000 users, so at any non-trivial
+ * scale this silently mis-classified Google-only accounts as "not
+ * Google-only" and let the email/OTP path proceed for users who couldn't
+ * actually authenticate that way.
  */
 export async function checkIsGoogleOnlyAccount(email: string): Promise<boolean> {
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin.auth.admin.listUsers({
-      perPage: 1000,
-    });
-    if (error || !data?.users?.length) return false;
-    const user = data.users.find((u) => u.email === email);
+    const user = await findAuthUserByEmail(email);
     if (!user) return false;
     const providers = (user.identities ?? []).map((id) => id.provider);
     // Google-only: has at least one identity, all of them are "google"
@@ -27,6 +65,25 @@ export async function checkIsGoogleOnlyAccount(email: string): Promise<boolean> 
   } catch {
     return false;
   }
+}
+
+/**
+ * Returns true if Supabase Auth has a user row for this email — under
+ * any identity. Used by forgot-password and OAuth flows that need
+ * "does this email exist?" without leaking the answer to the client.
+ */
+export async function checkAuthUserExists(email: string): Promise<boolean> {
+  try {
+    return (await findAuthUserByEmail(email)) !== null;
+  } catch {
+    return false;
+  }
+}
+
+/** Same lookup but returns the auth user row so callers can inspect id /
+ * identities without another round trip. Returns null when not found. */
+export async function getAuthUserByEmail(email: string) {
+  return findAuthUserByEmail(email);
 }
 
 export async function getUserProfile(userId: string) {

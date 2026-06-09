@@ -77,17 +77,17 @@ export async function GET(request: NextRequest) {
 
         if (isGoogleOnly && user.email) {
           const admin = createAdminClient();
-          const { data: usersData } = await admin.auth.admin.listUsers({
-            perPage: 1000,
-          });
-
-          // Find an existing email/password account with the same email
-          const existingEmailUser = usersData?.users?.find(
-            (u) =>
-              u.email === user.email &&
-              u.id !== user.id &&
-              (u.identities ?? []).some((id) => id.provider === "email")
-          );
+          // Paginated lookup — single-page listUsers used to miss every
+          // user past index 1000, so the linking flow silently created
+          // duplicate Google-only accounts at scale.
+          const { getAuthUserByEmail } = await import("@/services/user.service");
+          const found = await getAuthUserByEmail(user.email);
+          const existingEmailUser =
+            found &&
+            found.id !== user.id &&
+            (found.identities ?? []).some((id) => id.provider === "email")
+              ? found
+              : null;
 
           if (existingEmailUser) {
             if (isLinkRetry) {

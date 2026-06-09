@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAuthUserByEmail } from "@/services/user.service";
 import { normaliseEmail } from "@/lib/otp";
 
 /**
@@ -49,17 +50,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Reset session has expired. Please start over." }, { status: 400 });
   }
 
-  const adminClient = createAdminClient();
-  const { data: users, error: listError } = await adminClient.auth.admin.listUsers();
-
-  if (listError) {
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
-  }
-
-  const user = users.users.find((u) => normaliseEmail(u.email) === email);
+  // Paginated lookup — see findAuthUserByEmail in user.service. The old
+  // single-page `listUsers()` silently missed users past index 1000,
+  // so resets for those accounts would never find the auth row.
+  const user = await getAuthUserByEmail(email);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+
+  const adminClient = createAdminClient();
 
   const { error: updateError } = await adminClient.auth.admin.updateUserById(user.id, {
     password,

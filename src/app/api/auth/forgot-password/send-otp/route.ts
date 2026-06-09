@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAuthUserExists } from "@/services/user.service";
 import { wrapBrand } from "@/lib/emails";
 import { generateOtp, normaliseEmail, otpExpiry } from "@/lib/otp";
 import { clientIp, consumeAuthRateLimit } from "@/lib/rate-limit";
@@ -50,18 +50,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const adminClient = createAdminClient();
-    const { data: users, error: listError } =
-      await adminClient.auth.admin.listUsers();
-    if (listError) {
-      // Internal failure — log but tell the user nothing useful.
-      console.error("[forgot-password/send-otp] listUsers failed", listError);
-      return NextResponse.json({ success: true });
-    }
-
-    const userExists = users.users.some(
-      (u) => normaliseEmail(u.email) === email,
-    );
+    // Paginated lookup — the old single-page `listUsers()` silently
+    // missed any user past index 1000.
+    const userExists = await checkAuthUserExists(email);
     if (!userExists) {
       // Quiet no-op. Don't write to otp_verifications, don't send mail,
       // don't change response shape — looks identical to the success path
