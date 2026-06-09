@@ -186,6 +186,59 @@ export async function getInviteCapacity(orgId: string): Promise<InviteCapacity> 
   };
 }
 
+/**
+ * BR-09 event-creation quota. Mirrors `getInviteCapacity` but reads
+ * `plan.max_events` instead of `plan.max_users` and counts current
+ * Events (excluding Cancelled / Archived) for the org.
+ *
+ * NULL plan limit = unlimited. Free / unknown plans fall back to 0
+ * events (i.e. Free can't create any) per migration 012's seeds.
+ */
+export async function getEventCapacity(orgId: string): Promise<InviteCapacity> {
+  const db = createServiceClient();
+
+  const { data: subRows } = await db
+    .from("Subscriptions")
+    .select(`plan:SubscriptionPlans(max_events)`)
+    .eq("subject_type", "Org")
+    .eq("subject_id", orgId)
+    .in("status", ["Trial", "Active", "PastDue"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  type SubRow = {
+    plan?: { max_events: number | null } | { max_events: number | null }[] | null;
+  };
+  const planRaw = (subRows?.[0] as SubRow | undefined)?.plan;
+  const planObj = Array.isArray(planRaw) ? planRaw[0] ?? null : planRaw ?? null;
+  // No active plan = no event quota at all (Free B2C_FREE has max_events=0
+  // per migration 012). Org admins must upgrade.
+  const max: number | null = planObj ? planObj.max_events : 0;
+
+  const { count } = await db
+    .from("Events")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .not("status", "in", "(\"Cancelled\",\"Archived\")");
+  const current = count ?? 0;
+
+  if (max === null) {
+    return {
+      current,
+      max: Number.MAX_SAFE_INTEGER,
+      remaining: Number.MAX_SAFE_INTEGER,
+      blocked: false,
+    };
+  }
+
+  return {
+    current,
+    max,
+    remaining: Math.max(0, max - current),
+    blocked: current >= max,
+  };
+}
+
 // ── Update profile (UC-26) ────────────────────────────────────────────────
 
 export async function updateOrganization(

@@ -63,6 +63,9 @@ export interface InviteCapacity {
   blocked: boolean;
 }
 
+/** Mirror of InviteCapacity, scoped to event creation (BR-09 `max_events`). */
+export type EventCapacity = InviteCapacity;
+
 export interface OrganizationMember {
   id: string;
   org_id: string | null;

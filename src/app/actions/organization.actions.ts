@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROLE_ADMIN_ID, ROLE_MEMBER_ID } from "@/lib/roles";
 import { sendEmail, orgInviteEmail } from "@/lib/emails";
+import { getEventCapacity } from "@/services/org-admin.service";
 import type {
   Organization,
   OrganizationMember,
@@ -157,6 +158,33 @@ export async function createEventAction(
   if (!user) return { data: null, error: "Not authenticated." };
 
   const db = createServiceClient();
+
+  // 1. Caller must be an Active Org Admin of the SAME org as `input.org_id`
+  //    — the service-role client bypasses RLS so a hand-crafted action
+  //    payload could otherwise create events in other tenants.
+  const { data: callerMembership } = await db
+    .from("OrganizationMembers")
+    .select("role_id, status")
+    .eq("org_id", input.org_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (
+    !callerMembership ||
+    callerMembership.status !== "Active" ||
+    callerMembership.role_id !== ROLE_ADMIN_ID
+  ) {
+    return { data: null, error: "Only Organization Admins can create events." };
+  }
+
+  // 2. BR-09 quota: blocked when current >= plan.max_events. Free / no-plan
+  //    orgs have max_events=0 per migration 012 seeds and will get MSG06.
+  const capacity = await getEventCapacity(input.org_id);
+  if (capacity.blocked) {
+    return {
+      data: null,
+      error: `MSG06: Event quota reached (${capacity.current}/${capacity.max}). Upgrade your plan to add more.`,
+    };
+  }
 
   const { data, error } = await db
     .from("Events")
