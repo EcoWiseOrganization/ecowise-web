@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkIsGoogleOnlyAccount } from "@/services/user.service";
 import { wrapBrand } from "@/lib/emails";
 import { generateOtp, normaliseEmail, otpExpiry } from "@/lib/otp";
+import { clientIp, consumeAuthRateLimit } from "@/lib/rate-limit";
 import nodemailer from "nodemailer";
 
 /** Minimal HTML escape so a user-controlled `name` can't smuggle markup
@@ -38,6 +39,34 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Name and email are required" },
       { status: 400 },
+    );
+  }
+
+  // Rate limit BEFORE the Google-only / mail-send work so a flood can't
+  // burn the Gmail quota or the listUsers admin call. Per-email and
+  // per-IP buckets are checked independently so a single bad actor can
+  // hammer different emails but not the same email forever, and one
+  // email can be probed from different IPs without one IP locking
+  // everyone out via NAT.
+  const ip = clientIp(request);
+  const perEmail = await consumeAuthRateLimit(`send-otp:email:${email}`, {
+    windowSec: 60 * 60,
+    max: 3,
+  });
+  if (!perEmail.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(perEmail.retryAfterSec ?? 60) } },
+    );
+  }
+  const perIp = await consumeAuthRateLimit(`send-otp:ip:${ip}`, {
+    windowSec: 60 * 60,
+    max: 10,
+  });
+  if (!perIp.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(perIp.retryAfterSec ?? 60) } },
     );
   }
 

@@ -66,3 +66,69 @@ export async function consumeContactRateLimit(
   await db.from("ContactRateLimits").insert({ ip_address: key });
   return { ok: true };
 }
+
+/**
+ * Auth-surface limiter (login / send-otp / forgot-otp). Same algorithm
+ * as contact, but keyed by an arbitrary "bucket" string so we can throttle
+ * per-email and per-IP independently across endpoints.
+ *
+ * Returns:
+ *   - `{ ok: true }` when allowed (and writes a row).
+ *   - `{ ok: false, retryAfterSec }` when the limit has been hit.
+ *
+ * The bucket string is opaque to this helper; build it at the call site,
+ * e.g. `consumeAuthRateLimit(`login:email:${email}`, { ... })`.
+ */
+export async function consumeAuthRateLimit(
+  bucket: string,
+  config: RateLimitConfig,
+): Promise<{ ok: boolean; retryAfterSec?: number }> {
+  if (!bucket || bucket.trim().length === 0) {
+    // Don't throttle anonymous buckets — caller bug rather than abuse.
+    return { ok: true };
+  }
+  const db = createServiceClient();
+  const cutoff = new Date(Date.now() - config.windowSec * 1000).toISOString();
+
+  const { data: rows } = await db
+    .from("AuthRateLimits")
+    .select("created_at")
+    .eq("bucket", bucket)
+    .gte("created_at", cutoff);
+
+  const count = rows?.length ?? 0;
+  if (count >= config.max) {
+    const earliest = (rows ?? [])
+      .map((r) => new Date((r as { created_at: string }).created_at).getTime())
+      .sort((a, b) => a - b)[0];
+    const retryAfterSec = earliest
+      ? Math.max(
+          1,
+          Math.ceil((earliest + config.windowSec * 1000 - Date.now()) / 1000),
+        )
+      : config.windowSec;
+    return { ok: false, retryAfterSec };
+  }
+
+  await db.from("AuthRateLimits").insert({ bucket });
+  return { ok: true };
+}
+
+/**
+ * Resolve the caller IP from a Fetch `Request`. Falls back through the
+ * common proxy headers; returns "unknown" when nothing identifies the
+ * client (still throttled, just as a shared bucket). The IP is only used
+ * for rate-limit bucketing — not stored anywhere user-visible.
+ */
+export function clientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const first = xff.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const real = req.headers.get("x-real-ip");
+  if (real) return real.trim();
+  const cf = req.headers.get("cf-connecting-ip");
+  if (cf) return cf.trim();
+  return "unknown";
+}

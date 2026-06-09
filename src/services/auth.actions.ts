@@ -6,6 +6,8 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardPath, checkIsGoogleOnlyAccount } from "@/services/user.service";
 import { writeAuthAuditLog } from "@/services/audit.service";
+import { consumeAuthRateLimit } from "@/lib/rate-limit";
+import { normaliseEmail } from "@/lib/otp";
 
 async function getRequestMetadata() {
   try {
@@ -49,11 +51,50 @@ export async function login(formData: FormData): Promise<{ errorKey: string } | 
   const supabase = await createClient();
 
   const data = {
-    email: formData.get("email") as string,
+    email: normaliseEmail(formData.get("email")),
     password: formData.get("password") as string,
   };
 
   const meta = await getRequestMetadata();
+
+  // App-layer rate limit BEFORE signInWithPassword so credential-stuffing
+  // is capped even when Supabase's own per-IP limiter doesn't catch it.
+  // Per-email is the tight bucket (5 / 15 min); per-IP is the loose net
+  // (30 / 15 min) so a NATed office doesn't fight itself.
+  const perEmail = data.email
+    ? await consumeAuthRateLimit(`login:email:${data.email}`, {
+        windowSec: 15 * 60,
+        max: 5,
+      })
+    : { ok: true };
+  if (!perEmail.ok) {
+    await writeAuthAuditLog({
+      action: "login_failed",
+      email: data.email,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
+      status: "failure",
+      errorMessage: "rate_limited",
+    });
+    return { errorKey: "login.error.tooManyAttempts" };
+  }
+  if (meta.ipAddress) {
+    const perIp = await consumeAuthRateLimit(`login:ip:${meta.ipAddress}`, {
+      windowSec: 15 * 60,
+      max: 30,
+    });
+    if (!perIp.ok) {
+      await writeAuthAuditLog({
+        action: "login_failed",
+        email: data.email,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        status: "failure",
+        errorMessage: "rate_limited_ip",
+      });
+      return { errorKey: "login.error.tooManyAttempts" };
+    }
+  }
 
   const { error } = await supabase.auth.signInWithPassword(data);
 

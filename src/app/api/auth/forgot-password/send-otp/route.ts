@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { wrapBrand } from "@/lib/emails";
 import { generateOtp, normaliseEmail, otpExpiry } from "@/lib/otp";
+import { clientIp, consumeAuthRateLimit } from "@/lib/rate-limit";
 import nodemailer from "nodemailer";
 
 /**
@@ -24,6 +25,28 @@ export async function POST(request: Request) {
 
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  }
+
+  // Throttle before we hit listUsers / write rows / send mail. We still
+  // return success on the way out (#7 enumeration fix) so a 429 also acts
+  // as a soft enumeration signal — but only to a client that's already
+  // observably abusing the endpoint, which is fine.
+  const ip = clientIp(request);
+  const perEmail = await consumeAuthRateLimit(`forgot-otp:email:${email}`, {
+    windowSec: 60 * 60,
+    max: 3,
+  });
+  if (!perEmail.ok) {
+    // Stay polite — same success shape — so attackers don't get a clean
+    // "this email is rate-limited" signal that confirms registration.
+    return NextResponse.json({ success: true });
+  }
+  const perIp = await consumeAuthRateLimit(`forgot-otp:ip:${ip}`, {
+    windowSec: 60 * 60,
+    max: 10,
+  });
+  if (!perIp.ok) {
+    return NextResponse.json({ success: true });
   }
 
   try {
