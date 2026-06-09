@@ -30,12 +30,19 @@ export async function GET(_req: Request, { params }: ContextParams) {
   const db = createServiceClient();
   const { data: form } = await db
     .from("EventPublicForms")
-    .select("id, event_id, org_id, fields, welcome_message, brand_color, status")
+    .select(
+      "id, event_id, org_id, fields, welcome_message, brand_color, status, expires_at",
+    )
     .eq("token", token)
     .maybeSingle();
 
   if (!form) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   if (form.status !== "Published") {
+    return NextResponse.json({ error: "FORM_CLOSED" }, { status: 403 });
+  }
+  // Expired-token check — added in migration 024. Collapse to FORM_CLOSED
+  // so we never confirm "this token used to exist but now doesn't".
+  if (form.expires_at && new Date(form.expires_at) < new Date()) {
     return NextResponse.json({ error: "FORM_CLOSED" }, { status: 403 });
   }
 
@@ -64,14 +71,17 @@ export async function POST(req: Request, { params }: ContextParams) {
   const ua = req.headers.get("user-agent");
   const db = createServiceClient();
 
-  // 1. Verify token + form is Published
+  // 1. Verify token + form is Published + token hasn't expired
   const { data: form } = await db
     .from("EventPublicForms")
-    .select("id, event_id, org_id, status")
+    .select("id, event_id, org_id, status, expires_at")
     .eq("token", token)
     .maybeSingle();
   if (!form) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   if (form.status !== "Published") {
+    return NextResponse.json({ error: "FORM_CLOSED" }, { status: 403 });
+  }
+  if (form.expires_at && new Date(form.expires_at) < new Date()) {
     return NextResponse.json({ error: "FORM_CLOSED" }, { status: 403 });
   }
 
@@ -153,7 +163,23 @@ export async function POST(req: Request, { params }: ContextParams) {
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 
-  // 5. Persist submission + rate-limit row
+  // 5. Persist submission + rate-limit row.
+  //
+  // Whitelist exactly the keys we expect, even though `submission` is
+  // typed — the input was a `req.json()` blob and the original concern in
+  // REVIEW.md was that arbitrary keys could ride along into JSONB
+  // storage. Explicit object beats a typed cast for an attacker-facing
+  // surface.
+  const safeSubmittedData = {
+    attendee_email: submission.attendee_email ?? null,
+    transport_mode: submission.transport_mode,
+    distance_km: submission.distance_km,
+    round_trip: submission.round_trip,
+    diet: submission.diet,
+    meals_count: submission.meals_count,
+    hotel_nights: submission.hotel_nights ?? null,
+  } satisfies Record<string, unknown>;
+
   const { data: subRow, error: subErr } = await db
     .from("EventPublicSubmissions")
     .insert({
@@ -161,7 +187,7 @@ export async function POST(req: Request, { params }: ContextParams) {
       event_id: form.event_id,
       org_id: form.org_id,
       submitted_by_email: submission.attendee_email ?? null,
-      submitted_data: submission as unknown as Record<string, unknown>,
+      submitted_data: safeSubmittedData,
       computed_co2e: co2e,
       emission_log_id: (emissionLog as { id: string }).id,
       ip_address: ip,

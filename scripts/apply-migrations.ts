@@ -93,6 +93,7 @@ async function main() {
     "supabase/migrations/021_otp_lockout.sql",
     "supabase/migrations/022_otp_metadata.sql",
     "supabase/migrations/023_auth_rate_limits.sql",
+    "supabase/migrations/024_event_public_form_expiry.sql",
   ];
 
   const client = new Client({ connectionString: url });
