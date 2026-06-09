@@ -174,15 +174,6 @@ export async function subscribeToPlan(opts: {
   const plan = await getPlan(opts.planId);
   if (!plan) throw new Error("PLAN_NOT_FOUND");
 
-  // Cancel any existing active/trial subscription for this subject so the
-  // current_period_end constraint is preserved with a clean slate.
-  await db
-    .from("Subscriptions")
-    .update({ status: "Canceled", canceled_at: new Date().toISOString() })
-    .eq("subject_type", opts.subjectType)
-    .eq("subject_id", opts.subjectId)
-    .in("status", ["Trial", "Active", "PastDue"]);
-
   const start = new Date();
   const end = periodEnd(start, plan.billing_cycle);
   const inTrial = plan.trial_days > 0;
@@ -190,6 +181,15 @@ export async function subscribeToPlan(opts: {
     ? new Date(start.getTime() + plan.trial_days * 86_400_000)
     : null;
 
+  // Insert the NEW subscription first. The previous version cancelled
+  // the old sub before inserting — if the insert then failed (DB hiccup,
+  // plan archived, etc.) the user was left with NO active subscription
+  // and a partial state to recover by hand.
+  //
+  // By inserting first we briefly have two active subs in the worst
+  // case, which the cron / RLS / billing UI all tolerate. We then cancel
+  // the previous one; failure to cancel is logged + flagged for cleanup
+  // but never bubbles up as a failed checkout.
   const { data: subRow, error: subErr } = await db
     .from("Subscriptions")
     .insert({
@@ -211,6 +211,30 @@ export async function subscribeToPlan(opts: {
     .single();
   if (subErr) throw new Error(subErr.message);
   const subscription = subRow as Subscription;
+
+  // Now retire any prior active/trial sub. We exclude the row we just
+  // inserted from the predicate so a transient read of our own row
+  // doesn't get clobbered.
+  const { error: cancelErr } = await db
+    .from("Subscriptions")
+    .update({ status: "Canceled", canceled_at: new Date().toISOString() })
+    .eq("subject_type", opts.subjectType)
+    .eq("subject_id", opts.subjectId)
+    .neq("id", subscription.id)
+    .in("status", ["Trial", "Active", "PastDue"]);
+  if (cancelErr) {
+    // Don't roll back the new sub — the user has a valid subscription
+    // either way. Log so ops can sweep the duplicate.
+    console.error(
+      "[subscription.subscribeToPlan] failed to cancel prior subscription",
+      {
+        subjectType: opts.subjectType,
+        subjectId: opts.subjectId,
+        newSubId: subscription.id,
+        error: cancelErr.message,
+      },
+    );
+  }
 
   // Free plan → no invoice, immediately Active.
   if (plan.base_price_usd === 0) {
