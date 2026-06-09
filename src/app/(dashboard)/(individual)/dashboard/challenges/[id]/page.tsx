@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getChallenge } from "@/services/gamification.service";
 import { CompleteChallengeButton } from "./CompleteChallengeButton";
+import { T } from "@/components/shared/TranslatedText";
 import type { UserChallenge } from "@/types/gamification.types";
 
 interface PageProps {
@@ -36,7 +37,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-6 pt-6 max-w-3xl">
       <Link href="/dashboard/challenges" className="text-sm text-[#1F8505] hover:underline">
-        ← All challenges
+        ← <T k="challenges.allChallenges" />
       </Link>
       <header>
         <span className="text-[10px] uppercase tracking-wide text-[#79B669]">
@@ -57,21 +58,29 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
 
       <div className="bg-[#F0FDF4] border border-[#DAEDD5] rounded-2xl p-6 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase text-[#6E726E]">Reward</p>
+          <p className="text-xs uppercase text-[#6E726E]">
+            <T k="challenges.reward" />
+          </p>
           <p className="text-2xl font-bold text-[#1F8505]">
             +{ch.points_reward} green points
           </p>
         </div>
         <div>
-          {!uc && <p className="text-sm text-[#6E726E]">Not joined</p>}
+          {!uc && (
+            <p className="text-sm text-[#6E726E]">
+              <T k="challenges.notJoined" />
+            </p>
+          )}
           {uc?.status === "Joined" && (
-            <p className="text-sm text-[#1F8505]">Joined ✓</p>
+            <p className="text-sm text-[#1F8505]">
+              <T k="challenges.joined" />
+            </p>
           )}
           {uc?.status === "Completed" && (
             <p className="text-sm text-[#1F8505] font-semibold">
-              Completed{" "}
+              <T k="challenges.completed" />
               {uc.completed_at
-                ? new Date(uc.completed_at).toLocaleDateString()
+                ? ` ${new Date(uc.completed_at).toLocaleDateString()}`
                 : ""}
             </p>
           )}

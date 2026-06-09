@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { joinChallengeAction } from "@/app/actions/gamification.actions";
 import type { Challenge, UserChallenge } from "@/types/gamification.types";
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function ChallengesBrowser({ challenges, joined }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function ChallengesBrowser({ challenges, joined }: Props) {
       )}
       {challenges.length === 0 ? (
         <div className="bg-white border border-[#DAEDD5] rounded-2xl p-12 text-center text-sm text-[#6E726E]">
-          No challenges available right now. Check back later!
+          {t("challenges.list.empty")}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -76,7 +78,7 @@ export function ChallengesBrowser({ challenges, joined }: Props) {
                   </Link>
                   {isJoined ? (
                     <span className="text-xs text-[#1F8505] font-semibold">
-                      Joined ✓
+                      {t("challenges.joined")}
                     </span>
                   ) : (
                     <button
@@ -85,7 +87,7 @@ export function ChallengesBrowser({ challenges, joined }: Props) {
                       disabled={pending || c.status !== "Active"}
                       className="px-3 py-1.5 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-xs font-semibold disabled:opacity-50"
                     >
-                      {c.status !== "Active" ? c.status : "Join"}
+                      {c.status !== "Active" ? c.status : t("challenges.join")}
                     </button>
                   )}
                 </div>

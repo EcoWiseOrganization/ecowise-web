@@ -935,4 +935,70 @@ export const en = {
   "dashboard.recentEntries.title": "Recent Emission Entries",
   "dashboard.recentEntries.viewAll": "View All",
   "dashboard.intensityMetrics.title": "Intensity Metrics",
+
+  // ── Billing (B2C) — incremental keys ─────────────────────────────────────
+  // Other "billing.*" copy lives higher up in this file. Only the new ones
+  // are appended here to avoid duplicating existing keys (TS catches it).
+  "billing.title": "Billing",
+  "billing.subtitle": "Manage your personal subscription and invoices.",
+  "billing.invoices.title": "Invoices",
+  "billing.invoices.back": "Back to billing",
+  "billing.invoice.notFound": "Invoice not found",
+  "billing.invoice.heading": "Invoice {{number}}",
+  "billing.checkout.title": "Complete payment",
+  "billing.checkout.summary": "Order summary",
+  "billing.checkout.payNow": "Pay now",
+  "billing.error.featureRequired": "This feature is available on a paid plan.",
+
+  // ── Challenges ───────────────────────────────────────────────────────────
+  "challenges.title": "Challenges",
+  "challenges.subtitle": "Earn green points by completing sustainability challenges.",
+  "challenges.list.empty": "No challenges available right now. Check back later!",
+  "challenges.join": "Join",
+  "challenges.joined": "Joined ✓",
+  "challenges.completed": "Completed",
+  "challenges.notJoined": "Not joined yet",
+  "challenges.reward": "Reward",
+  "challenges.allChallenges": "All challenges",
+  "challenges.markComplete": "Mark complete",
+  "challenges.submitting": "Submitting…",
+  "challenges.error.joinFailed": "Could not join this challenge.",
+  "challenges.error.completeFailed": "Could not mark this challenge complete.",
+  "challenges.error.alreadyCompleted": "You have already completed this challenge.",
+  "challenges.orgTitle": "Organisation challenges",
+  "challenges.orgSubtitle": "Custom challenges visible only to your team.",
+
+  // ── Rewards ──────────────────────────────────────────────────────────────
+  "rewards.title": "Rewards",
+  "rewards.subtitle": "Spend your green points on perks and offers.",
+  "rewards.points.balance": "Your balance",
+  "rewards.points.suffix": "points",
+  "rewards.redeem": "Redeem",
+  "rewards.redeem.confirm": "Redeem this reward for {{cost}} points?",
+  "rewards.redeem.success": "Reward redeemed.",
+  "rewards.redeem.insufficient": "Not enough points to redeem.",
+  "rewards.redeem.outOfStock": "This reward is out of stock.",
+  "rewards.redeem.failed": "Could not redeem this reward.",
+  "rewards.history.title": "Recent redemptions",
+  "rewards.history.empty": "No redemptions yet.",
+  "rewards.empty": "No rewards available yet.",
+  "rewards.outOfStock": "Out of stock",
+
+  // ── Leaderboard ──────────────────────────────────────────────────────────
+  "leaderboard.title": "Leaderboard",
+  "leaderboard.subtitle": "See how you rank against other EcoWise members.",
+  "leaderboard.window.allTime": "All time",
+  "leaderboard.window.thisMonth": "This month",
+  "leaderboard.window.thisWeek": "This week",
+  "leaderboard.loading": "Loading…",
+  "leaderboard.empty": "No activity in this window.",
+  "leaderboard.rank": "Rank",
+  "leaderboard.user": "User",
+  "leaderboard.points": "Points",
+
+  // ── Common ───────────────────────────────────────────────────────────────
+  "common.search": "Search",
+  "common.clear": "Clear",
+  "common.previous": "Previous",
+  "common.next": "Next",
 };

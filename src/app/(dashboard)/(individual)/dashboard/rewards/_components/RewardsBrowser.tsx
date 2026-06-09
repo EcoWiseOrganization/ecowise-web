@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { redeemRewardAction } from "@/app/actions/gamification.actions";
 import type { Reward, Redemption } from "@/types/gamification.types";
 
@@ -13,17 +14,32 @@ interface Props {
 }
 
 export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const errorMessage = (code: string): string => {
+    switch (code) {
+      case "INSUFFICIENT_POINTS":
+        return t("rewards.redeem.insufficient");
+      case "REWARD_OUT_OF_STOCK":
+        return t("rewards.redeem.outOfStock");
+      case "REWARD_INACTIVE":
+      case "REWARD_NOT_FOUND":
+      default:
+        return t("rewards.redeem.failed");
+    }
+  };
 
   const redeem = (r: Reward) => {
     if (r.points_cost > myPoints) {
       setError("INSUFFICIENT_POINTS");
       return;
     }
-    if (!window.confirm(`Redeem "${r.name}" for ${r.points_cost} pts?`)) return;
+    if (!window.confirm(t("rewards.redeem.confirm", { cost: r.points_cost })))
+      return;
     setError(null);
     setSuccess(null);
     startTransition(async () => {
@@ -32,7 +48,7 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
         setError(res.error ?? "unknown");
         return;
       }
-      setSuccess(`Redemption created. Track its fulfillment below.`);
+      setSuccess(t("rewards.redeem.success"));
       router.refresh();
     });
   };
@@ -41,8 +57,12 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
     <div className="flex flex-col gap-4">
       <div className="bg-[#F0FDF4] border border-[#DAEDD5] rounded-2xl p-4 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase text-[#6E726E]">Your balance</p>
-          <p className="text-2xl font-bold text-[#1F8505]">{myPoints} pts</p>
+          <p className="text-xs uppercase text-[#6E726E]">
+            {t("rewards.points.balance")}
+          </p>
+          <p className="text-2xl font-bold text-[#1F8505]">
+            {myPoints} {t("rewards.points.suffix")}
+          </p>
         </div>
       </div>
 
@@ -57,9 +77,11 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
         </div>
       )}
 
-      <h2 className="text-[#155A03] text-lg font-semibold mt-2">Catalog</h2>
+      <h2 className="text-[#155A03] text-lg font-semibold mt-2">
+        {t("rewards.title")}
+      </h2>
       {rewards.length === 0 ? (
-        <p className="text-sm text-[#AAAAAA]">No rewards available.</p>
+        <p className="text-sm text-[#AAAAAA]">{t("rewards.empty")}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rewards.map((r) => {
@@ -93,7 +115,9 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
                   <div>
                     <p className="text-2xl font-bold text-[#1F8505]">
                       {r.points_cost}
-                      <span className="text-xs text-[#6E726E] ml-1">pts</span>
+                      <span className="text-xs text-[#6E726E] ml-1">
+                        {t("rewards.points.suffix")}
+                      </span>
                     </p>
                     <p className="text-[10px] text-[#AAAAAA]">
                       Stock: {r.total_stock} · {r.fulfillment}
@@ -105,11 +129,7 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
                     disabled={pending || outOfStock || r.points_cost > myPoints}
                     className="px-3 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {outOfStock
-                      ? "Out of stock"
-                      : r.points_cost > myPoints
-                        ? "Need more pts"
-                        : "Redeem"}
+                    {outOfStock ? t("rewards.outOfStock") : t("rewards.redeem")}
                   </button>
                 </div>
               </article>
@@ -118,17 +138,19 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
         </div>
       )}
 
-      <h2 className="text-[#155A03] text-lg font-semibold mt-4">My redemptions</h2>
+      <h2 className="text-[#155A03] text-lg font-semibold mt-4">
+        {t("rewards.history.title")}
+      </h2>
       {redemptions.length === 0 ? (
-        <p className="text-sm text-[#AAAAAA]">No redemptions yet.</p>
+        <p className="text-sm text-[#AAAAAA]">{t("rewards.history.empty")}</p>
       ) : (
         <div className="bg-white border border-[#DAEDD5] rounded-2xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-[#6E726E] text-xs uppercase">
               <tr className="border-b border-gray-100">
                 <th className="px-3 py-2">When</th>
-                <th className="px-3 py-2">Reward</th>
-                <th className="px-3 py-2">Points</th>
+                <th className="px-3 py-2">{t("rewards.title")}</th>
+                <th className="px-3 py-2">{t("leaderboard.points")}</th>
                 <th className="px-3 py-2">Status</th>
               </tr>
             </thead>
@@ -157,19 +179,4 @@ export function RewardsBrowser({ rewards, redemptions, myPoints }: Props) {
       )}
     </div>
   );
-}
-
-function errorMessage(code: string): string {
-  switch (code) {
-    case "INSUFFICIENT_POINTS":
-      return "You don't have enough green points.";
-    case "REWARD_OUT_OF_STOCK":
-      return "This reward is out of stock.";
-    case "REWARD_INACTIVE":
-      return "This reward is no longer available.";
-    case "REWARD_NOT_FOUND":
-      return "Reward not found.";
-    default:
-      return code;
-  }
 }

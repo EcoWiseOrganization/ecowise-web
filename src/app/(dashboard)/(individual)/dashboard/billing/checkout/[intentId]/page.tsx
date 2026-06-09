@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getInvoice } from "@/services/subscription.service";
 import { CheckoutView } from "@/components/billing/CheckoutView";
+import { T } from "@/components/shared/TranslatedText";
 import type { PaymentIntent } from "@/types/subscription.types";
 
 interface PageProps {
@@ -30,7 +31,9 @@ export default async function PersonalCheckoutPage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col gap-4 pt-6">
-      <h1 className="text-[#155A03] text-xl font-bold">Complete payment</h1>
+      <h1 className="text-[#155A03] text-xl font-bold">
+        <T k="billing.checkout.title" />
+      </h1>
       <CheckoutView
         intent={intent as PaymentIntent}
         invoice={invoice}

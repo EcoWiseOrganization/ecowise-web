@@ -5,6 +5,7 @@ import {
   listPlans,
 } from "@/services/subscription.service";
 import { SubscriptionCenter } from "@/components/billing/SubscriptionCenter";
+import { T } from "@/components/shared/TranslatedText";
 
 export default async function PersonalBillingPage() {
   const supabase = await createClient();
@@ -19,9 +20,11 @@ export default async function PersonalBillingPage() {
   return (
     <div className="flex flex-col gap-4 pt-6">
       <div>
-        <h1 className="text-[#155A03] text-2xl font-bold">Billing</h1>
+        <h1 className="text-[#155A03] text-2xl font-bold">
+          <T k="billing.title" />
+        </h1>
         <p className="text-sm text-[#6E726E]">
-          Manage your personal subscription and invoices.
+          <T k="billing.subtitle" />
         </p>
       </div>
       <SubscriptionCenter

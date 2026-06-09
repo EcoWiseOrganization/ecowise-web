@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { getLeaderboardAction } from "@/app/actions/gamification.actions";
 import type { LeaderboardRow } from "@/types/gamification.types";
 
@@ -8,9 +9,17 @@ const WINDOWS = ["all", "month", "week"] as const;
 type Window = (typeof WINDOWS)[number];
 
 export function LeaderboardView({ initial }: { initial: LeaderboardRow[] }) {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<LeaderboardRow[]>(initial);
   const [windowSel, setWindowSel] = useState<Window>("all");
   const [pending, startTransition] = useTransition();
+
+  const windowLabel = (w: Window) =>
+    w === "all"
+      ? t("leaderboard.window.allTime")
+      : w === "month"
+        ? t("leaderboard.window.thisMonth")
+        : t("leaderboard.window.thisWeek");
 
   const switchWindow = (next: Window) => {
     setWindowSel(next);
@@ -38,15 +47,15 @@ export function LeaderboardView({ initial }: { initial: LeaderboardRow[] }) {
                 : "bg-white text-[#6E726E]"
             }`}
           >
-            {w === "all" ? "All time" : w === "month" ? "This month" : "This week"}
+            {windowLabel(w)}
           </button>
         ))}
       </div>
 
       {pending && rows.length === 0 ? (
-        <p className="text-sm text-[#AAAAAA]">Loading…</p>
+        <p className="text-sm text-[#AAAAAA]">{t("leaderboard.loading")}</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-[#AAAAAA]">No activity in this window.</p>
+        <p className="text-sm text-[#AAAAAA]">{t("leaderboard.empty")}</p>
       ) : (
         <ul className="bg-white border border-[#DAEDD5] rounded-2xl divide-y divide-gray-100">
           {rows.map((r) => (
