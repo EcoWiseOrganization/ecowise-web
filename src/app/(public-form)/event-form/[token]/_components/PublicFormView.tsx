@@ -240,17 +240,33 @@ export function PublicFormView({ token, form, event, organization }: Props) {
               </Field>
             </div>
 
-            {/* Honeypot */}
-            <label className="hidden" aria-hidden="true">
-              Website
-              <input
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-              />
-            </label>
+            {/* Honeypot — positioned off-screen instead of `display:none` so
+              * modern form-fillers and headless browsers still see + auto-fill
+              * it. `aria-hidden` + `tabIndex={-1}` + `autoComplete="off"` keep
+              * it invisible to real users and screen readers. */}
+            <div
+              style={{
+                position: "absolute",
+                left: "-9999px",
+                top: "auto",
+                width: 1,
+                height: 1,
+                overflow: "hidden",
+              }}
+              aria-hidden="true"
+            >
+              <label>
+                Website URL
+                <input
+                  type="text"
+                  name="website_url_check"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                />
+              </label>
+            </div>
 
             {/* Live preview */}
             <div className="bg-[#F0FDF4] border border-[#DAEDD5] rounded-lg p-4 flex items-center justify-between">
