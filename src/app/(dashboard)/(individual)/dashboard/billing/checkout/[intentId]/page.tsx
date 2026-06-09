@@ -29,6 +29,18 @@ export default async function PersonalCheckoutPage({ params }: PageProps) {
     notFound();
   }
 
+  // Reject stale intents before rendering CheckoutView — see the org
+  // variant for the rationale.
+  const ACTIVE_STATUSES = new Set(["Pending", "Processing"]);
+  const intentExpired =
+    intent.expires_at && new Date(intent.expires_at) < new Date();
+  if (!ACTIVE_STATUSES.has(intent.status) || intentExpired) {
+    if (intent.status === "Paid") {
+      redirect(`/dashboard/billing/invoices/${invoice.id}`);
+    }
+    redirect(`/dashboard/billing/invoices`);
+  }
+
   return (
     <div className="flex flex-col gap-4 pt-6">
       <h1 className="text-[#155A03] text-xl font-bold">

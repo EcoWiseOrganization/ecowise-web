@@ -47,6 +47,25 @@ export default async function OrgCheckoutPage({ params }: PageProps) {
     notFound();
   }
 
+  // Reject stale intents BEFORE rendering CheckoutView — a Succeeded /
+  // Failed / Expired intent shouldn't show a "Pay" button (the previous
+  // version would render and then surface a confusing error on submit).
+  // The expires_at fallback covers Pending intents that aged out of the
+  // 30-minute window without anyone running the cron.
+  const ACTIVE_STATUSES = new Set(["Pending", "Processing"]);
+  const intentExpired =
+    intent.expires_at && new Date(intent.expires_at) < new Date();
+  if (!ACTIVE_STATUSES.has(intent.status) || intentExpired) {
+    // Paid → straight to the invoice page; everything else → the invoice
+    // list with the failed intent visible there.
+    if (intent.status === "Paid") {
+      redirect(
+        `/dashboard/organization/${orgId}/billing/invoices/${invoice.id}`,
+      );
+    }
+    redirect(`/dashboard/organization/${orgId}/billing/invoices`);
+  }
+
   return (
     <div className="flex flex-col gap-4 pt-2">
       <h1 className="text-[#155A03] text-xl font-bold">Complete payment</h1>
