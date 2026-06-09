@@ -25,11 +25,32 @@ import type { CalculationParams, CalculationResult } from "@/types/sustainabilit
  *   + - * /     -> arithmetic operators
  *   ()          -> parentheses for grouping
  *   .           -> decimal separator
+ *   ,           -> argument separator for built-ins (pow, min, max)
  *   \s          -> whitespace (ignored by JS parser)
  *   a-zA-Z_     -> identifier start chars (variable names)
  *   a-zA-Z0-9_  -> identifier continuation chars
+ *
+ * NOTE: `constructor` is also rejected explicitly via {@link DENY_TOKENS}
+ * even though it matches the identifier rule — combined with the
+ * length cap, this closes the obvious escape hatch in case the
+ * sandbox ever loses the regex check.
  */
-const SAFE_FORMULA_REGEX = /^[0-9+\-*/().\s_a-zA-Z]+$/;
+const SAFE_FORMULA_REGEX = /^[0-9+\-*/().,\s_a-zA-Z]+$/;
+
+/** Hard cap to keep the `new Function()` parser bounded — protects
+ * against admin-driven DoS via giant expressions. 500 chars is well
+ * above the longest documented template in admin-emission-engine.md. */
+const MAX_FORMULA_LENGTH = 500;
+
+/** Identifiers that look harmless under the regex but are escape
+ * hatches when combined with property access. We reject these as
+ * whole-token matches *after* the regex passes. */
+const DENY_TOKENS = new Set([
+  "constructor",
+  "prototype",
+  "__proto__",
+  "globalThis",
+]);
 
 /** Math built-ins exposed to formulas (no DOM / Node access) */
 const MATH_BUILTINS: Record<string, unknown> = {
@@ -95,11 +116,30 @@ export class FormulaEngine {
       return { valid: false, error: "Formula cannot be empty" };
     }
 
+    if (trimmed.length > MAX_FORMULA_LENGTH) {
+      return {
+        valid: false,
+        error: `Formula is too long (limit ${MAX_FORMULA_LENGTH} characters).`,
+      };
+    }
+
     if (!SAFE_FORMULA_REGEX.test(trimmed)) {
       return {
         valid: false,
         error:
-          "Formula contains invalid characters. Only numbers, operators (+ - * /), parentheses and variable names are allowed.",
+          "Formula contains invalid characters. Only numbers, operators (+ - * /), parentheses, commas and variable names are allowed.",
+      };
+    }
+
+    // Token-level deny list to catch identifiers that look harmless to
+    // the char-class regex but would let a clever expression reach
+    // Function/prototype escape hatches if the sandbox ever weakens.
+    const tokens = trimmed.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) ?? [];
+    const banned = tokens.find((t) => DENY_TOKENS.has(t));
+    if (banned) {
+      return {
+        valid: false,
+        error: `Formula references disallowed identifier "${banned}".`,
       };
     }
 
@@ -146,8 +186,22 @@ export class FormulaEngine {
   static evaluate(formula: string, scope: Record<string, number>): number {
     const trimmed = formula.trim();
 
+    if (trimmed.length > MAX_FORMULA_LENGTH) {
+      throw new Error(
+        `Formula is too long (limit ${MAX_FORMULA_LENGTH} characters).`,
+      );
+    }
+
     if (!SAFE_FORMULA_REGEX.test(trimmed)) {
       throw new Error("Formula failed safety check — contains forbidden characters");
+    }
+
+    const evalTokens = trimmed.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) ?? [];
+    const evalBanned = evalTokens.find((t) => DENY_TOKENS.has(t));
+    if (evalBanned) {
+      throw new Error(
+        `Formula references disallowed identifier "${evalBanned}".`,
+      );
     }
 
     FormulaEngine.checkParentheses(trimmed);
