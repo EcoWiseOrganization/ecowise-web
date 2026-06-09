@@ -318,7 +318,24 @@ async function createFreeReceipt(
 
 // ── Confirm mock payment ──────────────────────────────────────────────────
 
-export async function confirmMockPayment(intentId: string): Promise<{
+/**
+ * Identifies who's allowed to confirm a given payment intent. For B2C
+ * the caller MUST be the invoice subject's user id. For B2B the caller
+ * must be an Active Org Admin of the invoice subject's org. Passing
+ * `null` lets the caller scope themselves implicitly (service-role /
+ * cron); production callers should always pass a context.
+ */
+export interface ConfirmCallerContext {
+  userId: string;
+  /** Comma-list of org_ids where the caller is an Active Org Admin. Used
+   *  to authorise B2B invoice confirmations. */
+  adminOrgIds: string[];
+}
+
+export async function confirmMockPayment(
+  intentId: string,
+  caller?: ConfirmCallerContext,
+): Promise<{
   intent: PaymentIntent;
   invoice: Invoice;
   subscription: Subscription | null;
@@ -331,6 +348,30 @@ export async function confirmMockPayment(intentId: string): Promise<{
     .eq("id", intentId)
     .single();
   if (e1 || !intent) throw new Error("INTENT_NOT_FOUND");
+
+  // AUTHORISATION: anyone with `intentId` can hit this endpoint, so we
+  // MUST verify the caller is entitled to flip this specific invoice to
+  // Paid. Without this check, any signed-in user who guessed/leaked an
+  // intentId could activate someone else's plan for free. Load the
+  // invoice first to find subject_type/subject_id.
+  if (caller) {
+    const invoiceForCheck = await getInvoice(intent.invoice_id);
+    if (!invoiceForCheck) throw new Error("INTENT_NOT_FOUND");
+
+    if (invoiceForCheck.subject_type === "User") {
+      if (invoiceForCheck.subject_id !== caller.userId) {
+        throw new Error("FORBIDDEN");
+      }
+    } else if (invoiceForCheck.subject_type === "Org") {
+      if (!caller.adminOrgIds.includes(invoiceForCheck.subject_id)) {
+        throw new Error("FORBIDDEN");
+      }
+    } else {
+      // Unknown subject_type — fail closed.
+      throw new Error("FORBIDDEN");
+    }
+  }
+
   if (intent.status === "Paid") {
     // Already paid — return current snapshot
     const inv = await getInvoice(intent.invoice_id);

@@ -15,6 +15,8 @@ import {
   requireSession,
   requireSystemAdmin,
 } from "@/lib/auth/roles";
+import { createServiceClient } from "@/lib/supabase/service";
+import { ROLE_ADMIN_ID } from "@/lib/roles";
 import { writeAuditLog } from "@/services/audit.service";
 import {
   archivePlan as archivePlanSvc,
@@ -245,7 +247,26 @@ export async function confirmMockPaymentAction(intentId: string): Promise<{
 }> {
   try {
     const ctx = await requireSession();
-    const result = await confirmMockPayment(intentId);
+
+    // Resolve the orgs where the caller is an Active Org Admin so the
+    // service-layer authorisation check can verify B2B invoices belong
+    // to one of them. Reads via service client so RLS doesn't filter
+    // away rows the caller hasn't visited yet this session.
+    const svcDb = createServiceClient();
+    const { data: adminRows } = await svcDb
+      .from("OrganizationMembers")
+      .select("org_id")
+      .eq("user_id", ctx.userId)
+      .eq("status", "Active")
+      .eq("role_id", ROLE_ADMIN_ID);
+    const adminOrgIds = (adminRows ?? [])
+      .map((r) => (r as { org_id: string | null }).org_id)
+      .filter((x): x is string => typeof x === "string");
+
+    const result = await confirmMockPayment(intentId, {
+      userId: ctx.userId,
+      adminOrgIds,
+    });
     await writeAuditLog({
       action: "confirm_mock_payment",
       resourceType: "payment_intent",
