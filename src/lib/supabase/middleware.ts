@@ -1,14 +1,39 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Exact-match top-level auth pages. We also treat any path starting
+ *  with `/forgot-password` or `/register/*` as auth — exact-match alone
+ *  used to leave `/forgot-password/verify` and `/forgot-password/reset`
+ *  accessible to already-logged-in users, which is confusing UX. */
 const AUTH_ROUTES = ["/login", "/register", "/register/verify", "/register/success"];
+const AUTH_PREFIXES = ["/forgot-password", "/register/"];
 
 function isAuthRoute(pathname: string) {
-  return AUTH_ROUTES.includes(pathname);
+  if (AUTH_ROUTES.includes(pathname)) return true;
+  return AUTH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
 }
 
 function isProtectedRoute(pathname: string) {
   return pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+}
+
+/** Sanitise `?next=` for safe post-login redirect. Only same-origin
+ *  paths starting with `/` and not `//` (protocol-relative) get through;
+ *  everything else collapses to the default destination so an attacker
+ *  can't craft `/login?next=https://evil.example/` */
+function safeNextPath(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  // Reject JS / data URLs that try to slip through the slash check via
+  // URL-encoded characters. We compare against the decoded form too.
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (!decoded.startsWith("/") || decoded.startsWith("//")) return null;
+    if (decoded.match(/^\/(javascript|data):/i)) return null;
+  } catch {
+    return null;
+  }
+  return raw;
 }
 
 // ── is_admin cache ────────────────────────────────────────────────────────
@@ -175,19 +200,27 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Unauthenticated users trying to access protected routes → login
+  // Unauthenticated users trying to access protected routes → login.
+  // Preserve the original destination via `?next=` so we can bounce
+  // them back after login instead of dumping them on `/dashboard`.
   if (!user && isProtectedRoute(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    const nextWithSearch =
+      pathname + (request.nextUrl.search ? request.nextUrl.search : "");
+    url.search = `?next=${encodeURIComponent(nextWithSearch)}`;
     return NextResponse.redirect(url);
   }
 
-  // Authenticated users trying to access auth pages → dashboard
+  // Authenticated users trying to access auth pages → dashboard (or the
+  // `?next=` target the original login wanted).
   if (user && isAuthRoute(pathname)) {
     const url = request.nextUrl.clone();
     const redirectResponse = NextResponse.redirect(url);
     const isAdmin = await resolveIsAdmin(supabase, request, redirectResponse, user.id);
-    url.pathname = isAdmin ? "/admin" : "/dashboard";
+    const wanted = safeNextPath(request.nextUrl.searchParams.get("next"));
+    url.pathname = wanted ?? (isAdmin ? "/admin" : "/dashboard");
+    url.search = wanted ? "" : "";
     return NextResponse.redirect(url, redirectResponse);
   }
 
