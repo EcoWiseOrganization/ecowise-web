@@ -8,6 +8,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession, AuthError } from "@/lib/auth/roles";
+import { writeAuditLog } from "@/services/audit.service";
 import { MSG } from "@/lib/messages";
 import {
   createPersonalLog,
@@ -58,6 +59,23 @@ export async function createPersonalLogAction(
       return { data: null, error: MSG.INVALID_FORMAT };
     }
     const data = await createPersonalLog(ctx.userId, input);
+    // BR-16: every mutation against an emission log writes an audit
+    // entry. SRS UC-16 explicitly requires audit on delete; the create
+    // + update paths follow the same standard for symmetry.
+    await writeAuditLog({
+      action: "personal_log_created",
+      resourceType: "emission_log",
+      resourceId: data.id,
+      actorUserId: ctx.userId,
+      newValue: {
+        activity_name: data.activity_name,
+        scope: data.scope,
+        reporting_date: data.reporting_date,
+        quantity: data.quantity,
+        unit: data.unit,
+        co2e_result: data.co2e_result,
+      },
+    });
     revalidatePath("/dashboard/activity");
     revalidatePath("/dashboard/reports");
     return { data, error: null };
@@ -101,6 +119,13 @@ export async function updatePersonalLogAction(
   try {
     const ctx = await requireSession();
     await updatePersonalLog(ctx.userId, logId, patch);
+    await writeAuditLog({
+      action: "personal_log_updated",
+      resourceType: "emission_log",
+      resourceId: logId,
+      actorUserId: ctx.userId,
+      newValue: patch as Record<string, unknown>,
+    });
     revalidatePath("/dashboard/activity");
     revalidatePath("/dashboard/reports");
     return { ok: true, error: null };
@@ -119,6 +144,13 @@ export async function deletePersonalLogAction(
   try {
     const ctx = await requireSession();
     await deletePersonalLog(ctx.userId, logId);
+    // SRS UC-16 explicit: delete on personal log MUST be audited.
+    await writeAuditLog({
+      action: "personal_log_deleted",
+      resourceType: "emission_log",
+      resourceId: logId,
+      actorUserId: ctx.userId,
+    });
     revalidatePath("/dashboard/activity");
     revalidatePath("/dashboard/reports");
     return { ok: true, error: null };
@@ -185,6 +217,19 @@ export async function createMyTargetAction(
       return { data: null, error: MSG.DATE_RANGE };
     }
     const data = await createPersonalTarget(ctx.userId, input);
+    await writeAuditLog({
+      action: "carbon_target_created",
+      resourceType: "carbon_target",
+      resourceId: data.id,
+      actorUserId: ctx.userId,
+      newValue: {
+        name: data.name,
+        baseline_co2e: data.baseline_co2e,
+        target_co2e: data.target_co2e,
+        start_date: data.start_date,
+        end_date: data.end_date,
+      },
+    });
     revalidatePath("/dashboard/targets");
     return { data, error: null };
   } catch (err) {
@@ -231,6 +276,12 @@ export async function archiveTargetAction(id: string): Promise<{
   try {
     const ctx = await requireSession();
     await archiveTarget(ctx.userId, id);
+    await writeAuditLog({
+      action: "carbon_target_archived",
+      resourceType: "carbon_target",
+      resourceId: id,
+      actorUserId: ctx.userId,
+    });
     revalidatePath("/dashboard/targets");
     return { ok: true, error: null };
   } catch (err) {
