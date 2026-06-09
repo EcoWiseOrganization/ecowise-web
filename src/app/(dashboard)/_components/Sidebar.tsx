@@ -50,6 +50,43 @@ function SidebarContent({
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const workspaceRef = useRef<HTMLDivElement>(null);
 
+  // Collapsed-by-user state per menu section, persisted to localStorage so
+  // toggles survive navigations. We only store closed sections; missing
+  // keys default to open. The render logic also force-opens any section
+  // containing the active route so the current page is never hidden.
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(
+    {},
+  );
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("ecowise.sidebar.collapsed");
+      // Hydration step: localStorage isn't available during SSR, so we must
+      // sync it in an effect — `react-hooks/set-state-in-effect` flags this
+      // but the alternative (useSyncExternalStore) is overkill for a UI
+      // preference. Disable for this one call.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (raw) setCollapsedSections(JSON.parse(raw) as Record<string, boolean>);
+    } catch {
+      // Ignore — corrupted JSON or storage disabled, just stay default-open.
+    }
+  }, []);
+  const toggleSection = (title: string) => {
+    setCollapsedSections((prev) => {
+      const next = { ...prev, [title]: !prev[title] };
+      if (!next[title]) delete next[title];
+      try {
+        window.localStorage.setItem(
+          "ecowise.sidebar.collapsed",
+          JSON.stringify(next),
+        );
+      } catch {
+        // Storage might be disabled (Safari private mode); state still
+        // applies for this session.
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!workspaceOpen) return;
     function handleClickOutside(event: MouseEvent) {
@@ -66,8 +103,12 @@ function SidebarContent({
     ? selectedOrg.address || selectedOrg.org_type || ""
     : t("sidebar.personal", { defaultValue: "Personal" });
 
+  // `overflow-y-auto` + `overscroll-contain` so the sidebar scrolls internally
+  // when the menu doesn't fit (short viewports, many tabs, zoomed-in users).
+  // Without this `mt-auto` pushes the language picker + logout below the
+  // viewport and they become unreachable.
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-contain">
       {/* Logo */}
       <div className="px-[19px] pt-5 flex items-center justify-between">
         <Link href="/" onClick={onClose}>
@@ -175,36 +216,66 @@ function SidebarContent({
         </div>
       )}
 
-      {/* Dynamic Menu Sections */}
-      {menuSections.map((section) => (
-        <div key={section.title} className="px-[19px] pt-6 flex flex-col gap-3">
-          <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
-            {t(section.title, { defaultValue: section.title })}
-          </h3>
-          <nav className="flex flex-col gap-0.5">
-            {section.items.map(({ label, href, icon: Icon }) => {
-              const active = checkActive(pathname, href);
-              return (
-                <Link
-                  key={label}
-                  href={href}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline transition-colors ${
-                    active
-                      ? "bg-[#DAEDD5] text-[#1F8505] font-bold"
-                      : "text-[#79B669] hover:bg-[#DAEDD5]/50"
-                  }`}
-                >
-                  <Icon sx={{ fontSize: 18, color: active ? "#1F8505" : "#79B669" }} />
-                  <span className="text-sm leading-6">
-                    {t(label, { defaultValue: label })}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      ))}
+      {/* Dynamic Menu Sections — collapsible per section. Sections containing
+       * the active route stay open by default so the user always sees where
+       * they are. Toggling state lives in `collapsedSections` (closed only,
+       * so a fresh load defaults everything to open). */}
+      {menuSections.map((section) => {
+        const hasActive = section.items.some((i) => checkActive(pathname, i.href));
+        const isCollapsed = collapsedSections[section.title] ?? false;
+        const open = !isCollapsed || hasActive;
+        return (
+          <div key={section.title} className="px-[19px] pt-6 flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => toggleSection(section.title)}
+              aria-expanded={open}
+              // `hover:bg-transparent active:bg-transparent` opts the header
+              // out of the global `filter: brightness(...)` hover/active rule
+              // in globals.css (the exclusion matches any class containing
+              // `hover:bg-`). Without this the click feels like a brief
+              // "loading" flash because the whole header dims for ~150ms.
+              className="flex items-center justify-between gap-2 bg-transparent border-none p-0 text-left transition-none hover:bg-transparent active:bg-transparent"
+            >
+              <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
+                {t(section.title, { defaultValue: section.title })}
+              </h3>
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  color: "#79B669",
+                  transition: "transform 0.2s",
+                  transform: open ? "rotate(0deg)" : "rotate(-90deg)",
+                }}
+              />
+            </button>
+            {open && (
+              <nav className="flex flex-col gap-0.5">
+                {section.items.map(({ label, href, icon: Icon }) => {
+                  const active = checkActive(pathname, href);
+                  return (
+                    <Link
+                      key={label}
+                      href={href}
+                      onClick={onClose}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline transition-colors ${
+                        active
+                          ? "bg-[#DAEDD5] text-[#1F8505] font-bold"
+                          : "text-[#79B669] hover:bg-[#DAEDD5]/50"
+                      }`}
+                    >
+                      <Icon sx={{ fontSize: 18, color: active ? "#1F8505" : "#79B669" }} />
+                      <span className="text-sm leading-6">
+                        {t(label, { defaultValue: label })}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
+          </div>
+        );
+      })}
 
       {/* Language Switcher + Log Out */}
       <div className="px-[19px] pt-4 mt-auto pb-6 flex flex-col gap-2">

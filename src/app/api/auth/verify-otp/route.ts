@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkIsGoogleOnlyAccount } from "@/services/user.service";
+import { randomAvatarUrl } from "@/lib/avatar";
 
 export async function POST(request: Request) {
   const { email, otp, name, password } = await request.json();
@@ -67,6 +68,23 @@ export async function POST(request: Request) {
     await admin.auth.admin.updateUserById(signUpData.user.id, {
       email_confirm: true,
     });
+
+    // Seed a random default avatar so the profile screen isn't a blank
+    // placeholder until the user uploads their own. We swallow the error
+    // because failing to set an avatar shouldn't block account creation —
+    // the UI falls back to the initial-letter placeholder.
+    const avatarUrl = randomAvatarUrl(name);
+    const { error: avatarError } = await admin
+      .from("User")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", signUpData.user.id);
+    if (avatarError) {
+      console.warn(
+        "[verify-otp] failed to seed avatar_url for new user",
+        signUpData.user.id,
+        avatarError.message,
+      );
+    }
   }
 
   // Clean up OTP record
