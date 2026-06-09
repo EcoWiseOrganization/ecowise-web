@@ -14,20 +14,22 @@ export default async function ChallengesIndexPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Pull global + org-scoped (for orgs the user belongs to).
-  const [globalRows, orgs, joined] = await Promise.all([
-    listChallenges({ orgId: null }),
-    getMyOrganizationsServer(),
+  // Resolve org memberships once, then make a SINGLE batched query that
+  // unions global + every org-scoped challenge. The previous version
+  // looped `listChallenges({ orgId })` per org → N+1 DB round-trips on
+  // every page render for users with multiple memberships.
+  const orgs = await getMyOrganizationsServer();
+  const orgIds = orgs.map((o) => o.id);
+
+  const [allChallenges, joined] = await Promise.all([
+    orgIds.length > 0
+      ? listChallenges({ orgIds, includeGlobal: true })
+      : listChallenges({ orgId: null }),
     listMyChallenges(user.id),
   ]);
 
-  const orgChallenges: Challenge[] = [];
-  for (const org of orgs) {
-    const rows = await listChallenges({ orgId: org.id });
-    orgChallenges.push(...rows);
-  }
-  const all = [...globalRows, ...orgChallenges].filter(
-    (c) => c.status === "Active" || c.status === "Upcoming"
+  const visible: Challenge[] = allChallenges.filter(
+    (c) => c.status === "Active" || c.status === "Upcoming",
   );
 
   return (
@@ -36,7 +38,7 @@ export default async function ChallengesIndexPage() {
         titleKey="page.challenges.title"
         subtitleKey="page.challenges.subtitle"
       />
-      <ChallengesBrowser challenges={all} joined={joined} />
+      <ChallengesBrowser challenges={visible} joined={joined} />
     </div>
   );
 }

@@ -26,6 +26,8 @@ import type {
 
 export async function listChallenges(opts: {
   orgId?: string | null;
+  /** Multiple orgs in one call (replaces the N+1 loop on /dashboard/challenges). */
+  orgIds?: string[];
   /** include global challenges (org_id IS NULL). */
   includeGlobal?: boolean;
 }): Promise<Challenge[]> {
@@ -34,7 +36,17 @@ export async function listChallenges(opts: {
     .from("Challenges")
     .select("*")
     .order("start_date", { ascending: false });
-  if (opts.orgId !== undefined) {
+
+  if (opts.orgIds && opts.orgIds.length > 0) {
+    // Batch case: pull all rows for the supplied orgs in one round trip
+    // and optionally union global challenges (org_id IS NULL).
+    if (opts.includeGlobal) {
+      const inList = opts.orgIds.map((id) => `"${id}"`).join(",");
+      q = q.or(`org_id.is.null,org_id.in.(${inList})`);
+    } else {
+      q = q.in("org_id", opts.orgIds);
+    }
+  } else if (opts.orgId !== undefined) {
     if (opts.orgId === null) {
       q = q.is("org_id", null);
     } else if (opts.includeGlobal) {
