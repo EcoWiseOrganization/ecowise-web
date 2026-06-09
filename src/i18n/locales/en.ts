@@ -1022,4 +1022,7 @@ export const en = {
   "auth.field.passwordsMismatch": "Passwords do not match",
   "auth.field.otp6Required": "Please enter the 6-digit code",
   "auth.field.otp6RequiredVerify": "Please enter the 6-digit verification code",
+
+  // ── Targets (UC-15) ────────────────────────────────────────────────────
+  "targets.confirmArchive": "Archive \"{{name}}\"? You'll lose its progress tracking.",
 };

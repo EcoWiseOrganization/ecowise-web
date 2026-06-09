@@ -1021,4 +1021,8 @@ export const vi = {
   "auth.field.passwordsMismatch": "Mật khẩu không khớp",
   "auth.field.otp6Required": "Vui lòng nhập mã 6 chữ số",
   "auth.field.otp6RequiredVerify": "Vui lòng nhập mã xác thực 6 chữ số",
+
+  // ── Targets (UC-15) ────────────────────────────────────────────────────
+  "targets.confirmArchive":
+    "Lưu trữ mục tiêu \"{{name}}\"? Bạn sẽ mất theo dõi tiến độ.",
 };

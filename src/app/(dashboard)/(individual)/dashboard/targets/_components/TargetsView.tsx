@@ -160,7 +160,20 @@ function ActiveTargetCard({
         </div>
         <button
           type="button"
-          onClick={() => onArchive(target.id)}
+          onClick={() => {
+            // Confirm before destroying a target the user has been
+            // tracking — a single mis-click otherwise loses weeks of
+            // progress data with no undo path.
+            const ok = window.confirm(
+              t("targets.confirmArchive", {
+                defaultValue:
+                  'Archive "{{name}}"? You\'ll lose its progress tracking.',
+                name: target.name,
+              }),
+            );
+            if (!ok) return;
+            onArchive(target.id);
+          }}
           disabled={archiving}
           className="text-xs text-red-600 hover:underline disabled:opacity-50"
         >
