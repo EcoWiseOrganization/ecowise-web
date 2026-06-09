@@ -4,6 +4,53 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * Global button affordances
+ *
+ * Every interactive element shaped like a button — native <button>, ARIA
+ * role="button", anchors playing the same role — gets a pointer cursor.
+ * Disabled buttons stay on the default arrow + show the not-allowed cursor.
+ *
+ * Hover feedback: a `filter: brightness()` shift gives every button a subtle
+ * darker-on-hover state without us having to hand-pick a colour per button.
+ * Buttons that already declare their own `hover:bg-*` class are *excluded*
+ * via the attribute selector so the existing Tailwind hover rules win and
+ * the filter doesn't compound on top of them.
+ * ──────────────────────────────────────────────────────────────────────────── */
+button:not(:disabled),
+a[role="button"]:not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+a[role="button"][aria-disabled="true"],
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+button:not(:disabled),
+a[role="button"]:not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]) {
+  transition: filter 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover darken — only when the element doesn't already script its own
+ * hover background via Tailwind (`hover:bg-…`). */
+button:not(:disabled):not([class*="hover:bg-"]):hover,
+a[role="button"]:not([aria-disabled="true"]):not([class*="hover:bg-"]):hover,
+[role="button"]:not([aria-disabled="true"]):not([class*="hover:bg-"]):hover {
+  filter: brightness(0.93);
+}
+
+/* Active pressed state — a touch more emphasis. */
+button:not(:disabled):not([class*="hover:bg-"]):active,
+a[role="button"]:not([aria-disabled="true"]):not([class*="hover:bg-"]):active,
+[role="button"]:not([aria-disabled="true"]):not([class*="hover:bg-"]):active {
+  filter: brightness(0.88);
+}
+
 @keyframes fade-slide-up {
   from {
     opacity: 0;
