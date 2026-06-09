@@ -38,6 +38,9 @@ export interface LifecycleTickReport {
   scanned: number;
   renewed: number;
   failed: number;
+  /** Bumped when the unique constraint on Invoices catches a duplicate
+   *  renewal — i.e. another concurrent tick already handled this sub. */
+  skippedDuplicate: number;
   canceled: number;
   expired: number;
   trialReminders: number;
@@ -106,7 +109,7 @@ async function attemptRenewal(
   now: Date,
   outcome: boolean
 ): Promise<{
-  status: "renewed" | "failed";
+  status: "renewed" | "failed" | "skipped_duplicate";
   error?: string;
   invoice?: Invoice;
   newPeriodEnd?: Date;
@@ -144,6 +147,14 @@ async function attemptRenewal(
     .select()
     .single();
   if (invErr || !invRow) {
+    // Postgres 23505 = unique_violation on the
+    // `invoices_dedup_per_period_unique` constraint added in migration
+    // 025. Another lifecycle tick already created the renewal invoice
+    // for this (subscription, billing_reason, due_date) — short-circuit
+    // gracefully instead of double-billing or throwing.
+    if (invErr?.code === "23505") {
+      return { status: "skipped_duplicate" };
+    }
     return { status: "failed", error: invErr?.message ?? "INSERT_FAILED" };
   }
   const invoice = invRow as Invoice;
@@ -232,6 +243,7 @@ export async function runLifecycleTick(
     scanned: candidates.length,
     renewed: 0,
     failed: 0,
+    skippedDuplicate: 0,
     canceled: 0,
     expired: 0,
     trialReminders: 0,
@@ -249,7 +261,12 @@ export async function runLifecycleTick(
 
         const billingEmail = await getBillingEmail(sub);
 
-        if (result.status === "renewed") {
+        if (result.status === "skipped_duplicate") {
+          // Another tick won the unique-constraint race for this
+          // (subscription, billing_reason, due_date). No state to
+          // change, no email to send — just count and move on.
+          report.skippedDuplicate += 1;
+        } else if (result.status === "renewed") {
           report.renewed += 1;
           await writeAuditLog({
             action: "subscription_renewed",
