@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePersonalActivity } from "@/hooks/usePersonalActivity";
 import type { GhgScope } from "@/types/emission-log.types";
 
 const SCOPES: GhgScope[] = ["Scope 1", "Scope 2", "Scope 3"];
+const PAGE_SIZE = 25;
 
 export function ActivityLogger() {
   const { t } = useTranslation();
   const {
     logs,
+    count,
     quota,
     loading,
     submitting,
@@ -20,7 +22,38 @@ export function ActivityLogger() {
     create,
     remove,
     refresh,
-  } = usePersonalActivity({ pageSize: 25 });
+  } = usePersonalActivity({ pageSize: PAGE_SIZE, page: 1 });
+
+  // Debounce: keep the input responsive but only hit the server 300 ms
+  // after the user stops typing. Without this, every keystroke fires a
+  // server action — fine on a laptop, painful on a phone.
+  const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, []);
+  const onSearchChange = (value: string) => {
+    setSearchInput(value);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      const next = { ...filters, search: value, page: 1 };
+      setFilters(next);
+      void refresh(next);
+    }, 300);
+  };
+
+  // Pager helpers (server-side pagination — caller supplies page in filters).
+  const currentPage = filters.page ?? 1;
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const goToPage = (next: number) => {
+    const clamped = Math.min(totalPages, Math.max(1, next));
+    if (clamped === currentPage) return;
+    const nextFilters = { ...filters, page: clamped };
+    setFilters(nextFilters);
+    void refresh(nextFilters);
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<{
@@ -221,12 +254,8 @@ export function ActivityLogger() {
         <input
           type="search"
           placeholder={t("activity.searchPlaceholder")}
-          value={filters.search ?? ""}
-          onChange={(e) => {
-            const next = { ...filters, search: e.target.value, page: 1 };
-            setFilters(next);
-            void refresh(next);
-          }}
+          value={searchInput}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="flex-1 px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
         />
         <select
@@ -313,6 +342,46 @@ export function ActivityLogger() {
           </tbody>
         </table>
       </div>
+
+      {/* Paginator — only shown when there's more than one page. Previous
+        * versions silently capped users at 25 rows because no UI existed. */}
+      {count > PAGE_SIZE && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-[#6E726E]">
+          <span>
+            {t("activity.paginationSummary", {
+              defaultValue: "{{from}}–{{to}} of {{total}}",
+              from: count === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1,
+              to: Math.min(currentPage * PAGE_SIZE, count),
+              total: count,
+            })}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={loading || currentPage <= 1}
+              onClick={() => goToPage(currentPage - 1)}
+              className="px-3 py-1.5 rounded-lg border border-[#DAEDD5] text-[#3B3D3B] text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
+            >
+              {t("common.previous", { defaultValue: "Previous" })}
+            </button>
+            <span className="text-xs">
+              {t("activity.paginationPage", {
+                defaultValue: "Page {{page}} / {{total}}",
+                page: currentPage,
+                total: totalPages,
+              })}
+            </span>
+            <button
+              type="button"
+              disabled={loading || currentPage >= totalPages}
+              onClick={() => goToPage(currentPage + 1)}
+              className="px-3 py-1.5 rounded-lg border border-[#DAEDD5] text-[#3B3D3B] text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
+            >
+              {t("common.next", { defaultValue: "Next" })}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
