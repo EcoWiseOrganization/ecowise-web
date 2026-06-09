@@ -3,18 +3,16 @@
 import Link from "next/link";
 import { signInWithGoogle } from "@/services/auth.actions";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
-import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
-import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import { useTranslation } from "react-i18next";
 
-const inputStyle: React.CSSProperties = {
+const inputStyleNoIcon: React.CSSProperties = {
   width: "100%",
   height: 32,
   paddingTop: 10,
   paddingBottom: 10,
   paddingLeft: 10,
-  paddingRight: 36,
+  paddingRight: 10,
   borderRadius: 8,
   outline: "1px #C8C8C8 solid",
   outlineOffset: -1,
@@ -24,11 +22,6 @@ const inputStyle: React.CSSProperties = {
   fontWeight: 500,
   color: "#141514",
   boxSizing: "border-box",
-};
-
-const inputStyleNoIcon: React.CSSProperties = {
-  ...inputStyle,
-  paddingRight: 10,
 };
 
 const labelStyle: React.CSSProperties = {
@@ -47,8 +40,6 @@ const errorTextStyle: React.CSSProperties = {
 export default function RegisterPage() {
   const { t } = useTranslation();
   const {
-    showPassword, setShowPassword,
-    showConfirmPassword, setShowConfirmPassword,
     agreed, setAgreed,
     loading, errors, generalError,
     handleSubmit,
@@ -89,55 +80,8 @@ export default function RegisterPage() {
           {errors.email && <span style={errorTextStyle}>{errors.email}</span>}
         </div>
 
-        {/* Password */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="password" style={labelStyle}>{t("register.passwordLabel")}</label>
-          <div style={{ position: "relative" }}>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder={t("register.passwordPlaceholder")}
-              style={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center",
-              }}
-            >
-              {showPassword ? <EyeIcon /> : <EyeSlashIcon />}
-            </button>
-          </div>
-          {errors.password && <span style={errorTextStyle}>{errors.password}</span>}
-        </div>
-
-        {/* Confirm Password */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="confirmPassword" style={labelStyle}>{t("register.confirmPasswordLabel")}</label>
-          <div style={{ position: "relative" }}>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder={t("register.confirmPasswordPlaceholder")}
-              style={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              style={{
-                position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center",
-              }}
-            >
-              {showConfirmPassword ? <EyeIcon /> : <EyeSlashIcon />}
-            </button>
-          </div>
-          {errors.confirmPassword && <span style={errorTextStyle}>{errors.confirmPassword}</span>}
-        </div>
+        {/* Password is now captured on the OTP verify step so the plaintext
+          * never round-trips through sessionStorage between two endpoints. */}
 
         {/* Terms Checkbox */}
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>

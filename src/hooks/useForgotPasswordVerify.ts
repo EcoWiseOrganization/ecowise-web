@@ -1,29 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { verifyForgotPasswordOtp } from "@/services/auth.service";
 
+/**
+ * Forgot-password step 2 — verify the OTP.
+ *
+ * Email comes from the URL (`?email=`) instead of sessionStorage. On
+ * success the server sets an HTTP-only `ecowise.reset_token` cookie that
+ * the `/reset` endpoint will read; the client never sees or stores the
+ * token, removing the XSS vector that the previous `sessionStorage` round
+ * trip exposed.
+ */
 export function useForgotPasswordVerify() {
   const router = useRouter();
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const searchParams = useSearchParams();
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem("forgot_password_email");
-    if (!storedEmail) {
+    const fromQuery = searchParams?.get("email") ?? "";
+    if (!fromQuery) {
       router.replace("/forgot-password");
       return;
     }
-    setEmail(storedEmail);
-  }, [router]);
+    setEmail(fromQuery);
+  }, [router, searchParams]);
 
   const handleConfirm = async () => {
     const otpCode = otp.join("");
-    if (otpCode.length !== 4) {
-      setError("Please enter the 4-digit verification code");
+    if (otpCode.length !== 6) {
+      setError("Please enter the 6-digit verification code");
       return;
     }
 
@@ -31,9 +41,8 @@ export function useForgotPasswordVerify() {
     setLoading(true);
 
     try {
-      const data = await verifyForgotPasswordOtp(email, otpCode);
-      sessionStorage.setItem("reset_token", data.resetToken!);
-      router.push("/forgot-password/reset");
+      await verifyForgotPasswordOtp(email, otpCode);
+      router.push(`/forgot-password/reset?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

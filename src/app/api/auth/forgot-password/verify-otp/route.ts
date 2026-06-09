@@ -66,5 +66,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, resetToken });
+  // Set the reset token as an HTTP-only cookie scoped to the reset endpoint
+  // so JS (and thus XSS) cannot read it. The cookie is the only way the
+  // /reset endpoint identifies the in-progress reset. Replaces the
+  // previous response-body token + sessionStorage round-trip.
+  const response = NextResponse.json({ success: true });
+  response.cookies.set("ecowise.reset_token", resetToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/api/auth/forgot-password",
+    maxAge: 10 * 60, // 10 minutes — matches DB expiry
+  });
+  return response;
 }

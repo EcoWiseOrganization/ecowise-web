@@ -16,29 +16,37 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Register step 1 — email + display name only.
+ *
+ * Password is NOT collected here anymore. The previous flow accepted it,
+ * sat on it in sessionStorage, then re-sent it to /verify-otp — meaning
+ * a user's plaintext password was both XSS-readable and shipped to two
+ * separate endpoints. Now the password is captured only on the verify
+ * page right before account creation; nothing crosses the wire twice.
+ *
+ * The `name` is persisted on the OTP row so the verify step can use it
+ * for `auth.signUp(...).options.data.full_name` without trusting the
+ * client to round-trip it back.
+ */
 export async function POST(request: Request) {
   const body = await request.json();
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const email = normaliseEmail(body?.email);
-  const password = typeof body?.password === "string" ? body.password : "";
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+  if (!name || !email) {
+    return NextResponse.json(
+      { error: "Name and email are required" },
+      { status: 400 },
+    );
   }
 
-  if (password.length < 6) {
-    return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
-  }
-
-  // Check if email is registered as Google-only — fail early before sending OTP
   const isGoogleOnly = await checkIsGoogleOnlyAccount(email);
   if (isGoogleOnly) {
     return NextResponse.json({ error: "GOOGLE_ACCOUNT_ONLY" }, { status: 400 });
   }
 
   const supabase = await createClient();
-
-  // 6-digit cryptographically random OTP; replaces Math.random + 4 digits.
   const otp = generateOtp();
   const expiresAt = otpExpiry();
 
@@ -49,15 +57,18 @@ export async function POST(request: Request) {
   const { error: insertError } = await supabase.from("otp_verifications").insert({
     email,
     otp,
+    name,
     expires_at: expiresAt,
   });
 
   if (insertError) {
     console.error("Failed to store OTP:", insertError);
-    return NextResponse.json({ error: "Failed to send OTP. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send OTP. Please try again." },
+      { status: 500 },
+    );
   }
 
-  // Send OTP via email
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -83,9 +94,11 @@ export async function POST(request: Request) {
     });
   } catch (emailError) {
     console.error("Failed to send email:", emailError);
-    // Clean up the OTP record
     await supabase.from("otp_verifications").delete().eq("email", email);
-    return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send verification email. Please try again." },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ success: true });

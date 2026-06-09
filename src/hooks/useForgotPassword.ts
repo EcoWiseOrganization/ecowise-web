@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sendForgotPasswordOtp } from "@/services/auth.service";
 
+/**
+ * Forgot-password step 1 — request an OTP for the supplied email.
+ *
+ * Email is passed to the verify step through the URL (`?email=`) instead
+ * of sessionStorage. Server endpoints always return success regardless of
+ * whether the email is registered (see send-otp route comment) so the
+ * navigation behaviour stays identical.
+ */
 export function useForgotPassword() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -23,9 +31,8 @@ export function useForgotPassword() {
 
     try {
       await sendForgotPasswordOtp(email);
-      sessionStorage.setItem("forgot_password_email", email);
       setSent(true);
-      router.push("/forgot-password/verify");
+      router.push(`/forgot-password/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

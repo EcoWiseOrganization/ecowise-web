@@ -5,9 +5,11 @@ import { useRef } from "react";
 interface OtpInputProps {
   value: string[];
   onChange: (value: string[]) => void;
+  /** Number of digits to render (default 6 — matches our 6-digit OTPs). */
+  length?: number;
 }
 
-export function OtpInput({ value, onChange }: OtpInputProps) {
+export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, digit: string) => {
@@ -15,12 +17,15 @@ export function OtpInput({ value, onChange }: OtpInputProps) {
     const newValue = [...value];
     newValue[index] = digit;
     onChange(newValue);
-    if (digit && index < 3) {
+    if (digit && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key === "Backspace" && !value[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -28,32 +33,35 @@ export function OtpInput({ value, onChange }: OtpInputProps) {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, length);
     if (!pasted) return;
     const newValue = [...value];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < length; i++) {
       newValue[i] = pasted[i] || "";
     }
     onChange(newValue);
-    const focusIndex = Math.min(pasted.length, 3);
+    const focusIndex = Math.min(pasted.length, length - 1);
     inputRefs.current[focusIndex]?.focus();
   };
 
   return (
-    <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-      {[0, 1, 2, 3].map((index) => (
+    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+      {Array.from({ length }).map((_, index) => (
         <input
           key={index}
           ref={(el) => { inputRefs.current[index] = el; }}
           type="text"
           inputMode="numeric"
           maxLength={1}
-          value={value[index]}
+          value={value[index] ?? ""}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
           style={{
-            width: 50,
+            width: 44,
             height: 50,
             textAlign: "center",
             fontSize: 24,

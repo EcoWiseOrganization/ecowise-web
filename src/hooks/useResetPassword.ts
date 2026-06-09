@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/auth.service";
 
 function validatePasswords(password: string, confirmPassword: string): string | null {
@@ -11,27 +11,34 @@ function validatePasswords(password: string, confirmPassword: string): string | 
   return null;
 }
 
+/**
+ * Forgot-password step 3 — set a new password.
+ *
+ * Email comes from the URL (`?email=`). The reset token is in the
+ * HTTP-only cookie that the verify step set — the client never handles
+ * it. If the cookie is missing or stale, the server returns
+ * `Invalid or expired reset session` and we bounce the user back to
+ * step 1.
+ */
 export function useResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [email, setEmail] = useState("");
-  const [resetToken, setResetToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem("forgot_password_email");
-    const storedToken = sessionStorage.getItem("reset_token");
-    if (!storedEmail || !storedToken) {
+    const fromQuery = searchParams?.get("email") ?? "";
+    if (!fromQuery) {
       router.replace("/forgot-password");
       return;
     }
-    setEmail(storedEmail);
-    setResetToken(storedToken);
-  }, [router]);
+    setEmail(fromQuery);
+  }, [router, searchParams]);
 
   const handleReset = async () => {
     const validationError = validatePasswords(password, confirmPassword);
@@ -44,9 +51,7 @@ export function useResetPassword() {
     setLoading(true);
 
     try {
-      await resetPassword(email, password, resetToken);
-      sessionStorage.removeItem("forgot_password_email");
-      sessionStorage.removeItem("reset_token");
+      await resetPassword(email, password);
       router.push("/forgot-password/success");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
