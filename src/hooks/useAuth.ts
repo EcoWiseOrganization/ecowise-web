@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-const supabase = createClient();
-
 export function useAuth() {
+  // The Supabase browser client touches `localStorage` and `window` during
+  // construction. Building it at module scope (the previous behaviour)
+  // ran that during import — fine in a "use client" boundary, broken
+  // the moment any transitive import pulled this file into a Server
+  // Component tree. Defer construction to the hook body so SSR can
+  // import the module without exploding.
+  const supabase = useMemo(() => createClient(), []);
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +32,7 @@ export function useAuth() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   return { user, loading };
 }
