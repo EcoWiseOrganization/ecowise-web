@@ -247,6 +247,15 @@ export async function getRecommendationsAction(): Promise<{
 }> {
   try {
     const ctx = await requireSession();
+
+    // Per seed plans (migration 012) the `recommendations` feature is on
+    // B2C_PLUS only. Free users get the empty state, never recommendations.
+    // Enforced server-side so a crafted action call can't bypass the gate.
+    const { userHasFeature } = await import("@/lib/features");
+    if (!(await userHasFeature(ctx.userId, "recommendations"))) {
+      return { data: [], error: "PLAN_FEATURE_REQUIRED" };
+    }
+
     // Use last 90 days for category share.
     const end = new Date();
     const start = new Date();

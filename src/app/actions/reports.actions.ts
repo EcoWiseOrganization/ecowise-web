@@ -295,6 +295,16 @@ export async function exportPersonalReportAction(opts: {
 }): Promise<{ data: ExportResult | null; error: string | null }> {
   try {
     const ctx = await requireSession();
+
+    // Per seed plans (migration 012): `advanced_reports` is on B2C_PLUS
+    // only — Free users get the in-app dashboard but not PDF/XLSX/CSV
+    // exports. The gate is enforced server-side so a hand-crafted action
+    // call can't bypass the UI.
+    const { userHasFeature } = await import("@/lib/features");
+    if (!(await userHasFeature(ctx.userId, "advanced_reports"))) {
+      return { data: null, error: "PLAN_FEATURE_REQUIRED" };
+    }
+
     const data = await getPersonalReportData({
       userId: ctx.userId,
       period: opts.period,
