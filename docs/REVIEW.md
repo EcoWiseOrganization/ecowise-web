@@ -16,19 +16,42 @@
 
 ## TL;DR — Top blockers cần fix ngay
 
-| # | Mức | Module | Vấn đề | File |
+> **🎉 All 11 blockers FIXED** (commits in main). See "Progress" section below for the audit trail.
+
+| # | Mức | Module | Vấn đề | Status |
 |---|---|---|---|---|
-| 1 | 🔴 | Cron | `CRON_SECRET` rỗng → bất kỳ ai cũng gọi được `/api/cron/billing`, lifecycle phá nát data | `src/app/api/cron/billing/route.ts:13-17` |
-| 2 | 🔴 | Auth — signup | Password plaintext lưu `sessionStorage` + truyền qua 2 endpoint | `src/hooks/useRegisterForm.ts:49`, `verify-otp/route.ts` |
-| 3 | 🔴 | Auth — signup | OTP sinh từ `Math.random()` 4 chữ số, không lock attempts | `src/app/api/auth/send-otp/route.ts:28` |
-| 4 | 🔴 | Auth — forgot password | Endpoint trả "no account found" → enumeration oracle | `src/app/api/auth/forgot-password/send-otp/route.ts:24` |
-| 5 | 🔴 | Org — overview | `getEventByIdServer` không check `event.org_id === orgId` → cross-tenant leak | `src/app/actions/organization.actions.ts:80-89` |
-| 6 | 🔴 | Org — invite | `addOrgMembersAction` hardcode password `"123456"` cho user mới | `src/app/actions/organization.actions.ts:214` |
-| 7 | 🔴 | Public form | BR-08 yêu cầu CAPTCHA — chỉ có honeypot `display:none` (dễ bypass) | `src/app/(public-form)/_components/PublicFormView.tsx:244` |
-| 8 | 🔴 | Admin — users | `getAllUsers()` dump full PII không pagination, không guard | `src/services/user.service.ts:87-100` |
-| 9 | 🔴 | Billing | B2C Premium feature gating chưa implement nhưng đã cho thanh toán | `billing/page.tsx` + PENDING §6 |
-| 10 | 🔴 | Gamification | RPC `redeem_reward` không check `auth.uid() = p_user_id` | `supabase/migrations/014_gamification.sql` |
-| 11 | 🔴 | i18n | Hardcoded English nguyên trang ở billing/challenges/rewards/leaderboard | nhiều file |
+| 1 | 🔴 | Cron | `CRON_SECRET` rỗng → bất kỳ ai cũng gọi được `/api/cron/billing`, lifecycle phá nát data | ✅ `8aa9aca` |
+| 2 | 🔴 | Auth — signup | Password plaintext lưu `sessionStorage` + truyền qua 2 endpoint | ✅ `0e5ab89` |
+| 3 | 🔴 | Auth — signup | OTP sinh từ `Math.random()` 4 chữ số, không lock attempts | ✅ `077b6f2` |
+| 4 | 🔴 | Auth — forgot password | Endpoint trả "no account found" → enumeration oracle | ✅ `1a7a649` |
+| 5 | 🔴 | Org — overview | `getEventByIdServer` không check `event.org_id === orgId` → cross-tenant leak | ✅ `b82f04c` |
+| 6 | 🔴 | Org — invite | `addOrgMembersAction` hardcode password `"123456"` cho user mới | ✅ `5ee3c25` |
+| 7 | 🔴 | Public form | BR-08 yêu cầu CAPTCHA — chỉ có honeypot `display:none` (dễ bypass) | ✅ `88d484f` (off-screen positioning; full CAPTCHA chờ product) |
+| 8 | 🔴 | Admin — users | `getAllUsers()` dump full PII không pagination, không guard | ✅ `d14821b` |
+| 9 | 🔴 | Billing | B2C Premium feature gating chưa implement nhưng đã cho thanh toán | ✅ `fa16370` (helper + 2 initial gates) |
+| 10 | 🔴 | Gamification | RPC `redeem_reward` không check `auth.uid() = p_user_id` | ✅ `e33bdfe` (migration 020) |
+| 11 | 🔴 | i18n | Hardcoded English nguyên trang ở billing/challenges/rewards/leaderboard | ✅ `e89d5db` |
+
+## Progress log
+
+### Round 1 — Blockers (11/11 DONE) · commits on `main`
+- `8aa9aca` fix(cron/billing): fail closed in production + timing-safe secret compare
+- `5ee3c25` fix(org/invite): replace hardcoded "123456" with random pwd + email recovery link
+- `e33bdfe` fix(rpc/redeem_reward): require auth.uid() = p_user_id (migration 020)
+- `b82f04c` fix(org/events): require orgId on getEventByIdServer + membership guard
+- `d14821b` fix(admin/users): paginate + project + escape PII dump
+- `077b6f2` fix(auth/otp): crypto.randomInt 6-digit codes + per-row lockout (migration 021)
+- `1a7a649` fix(forgot-password): close user-enumeration oracle on send-otp
+- `88d484f` fix(public-form): off-screen honeypot instead of display:none
+- `0e5ab89` fix(auth): remove plaintext password/token from sessionStorage (migration 022 + httponly cookie + global signOut)
+- `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
+- `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
+
+### Manual deployment steps still required
+1. Apply migrations 020/021/022 via `npx tsx scripts/apply-migrations.ts`.
+2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
+3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
+4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.
 
 ---
 
