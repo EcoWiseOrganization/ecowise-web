@@ -95,6 +95,7 @@ async function main() {
     "supabase/migrations/023_auth_rate_limits.sql",
     "supabase/migrations/024_event_public_form_expiry.sql",
     "supabase/migrations/025_invoice_idempotency.sql",
+    "supabase/migrations/026_daily_counter_rpc.sql",
   ];
 
   const client = new Client({ connectionString: url });

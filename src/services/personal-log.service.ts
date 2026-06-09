@@ -6,10 +6,10 @@
 
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
-import {
-  exceedsDailyLogLimit,
-  PERSONAL_DAILY_LOG_LIMIT,
-} from "@/lib/targets";
+// `exceedsDailyLogLimit` is no longer used here — the BR-09 check now
+// lives in the `increment_daily_log_count` RPC (migration 026) so the
+// limit + increment can't drift apart under concurrent load.
+import { PERSONAL_DAILY_LOG_LIMIT } from "@/lib/targets";
 import type {
   CreateEmissionLogInput,
   EmissionLog,
@@ -36,21 +36,34 @@ export async function getTodayLogCount(userId: string): Promise<number> {
 }
 
 /**
- * Atomically increment today's counter via upsert. Returns the new count.
- * NOTE: Postgres upsert with `count + 1` is not atomic out of the box — for
- * MVP we accept the race window (very low likelihood under per-user load).
+ * Atomically check + increment today's counter via the
+ * `increment_daily_log_count` RPC (migration 026).
+ *
+ * The old implementation did a read-then-upsert in two round trips, with
+ * the BR-09 limit check running *before* the increment — a classic
+ * TOCTOU window that let burst submissions bypass the 50/day cap.
+ *
+ * The RPC takes a row-level lock on `(user_id, log_date)`, evaluates the
+ * limit against the locked value, and only increments when allowed.
+ * Concurrent calls serialise on the lock and produce strictly monotonic
+ * counts. Returns `{ allowed: false }` when the user is over quota; the
+ * caller surfaces MSG30 without inserting the emission log row.
  */
-async function incrementTodayLogCount(userId: string): Promise<number> {
+async function tryIncrementTodayLogCount(
+  userId: string,
+): Promise<{ allowed: boolean; newCount: number }> {
   const db = createServiceClient();
-  const date = todayDateStr();
-  const current = await getTodayLogCount(userId);
-  const next = current + 1;
-  await db
-    .from("DailyLogCounters")
-    .upsert({ user_id: userId, log_date: date, count: next }, {
-      onConflict: "user_id,log_date",
-    });
-  return next;
+  const { data, error } = await db.rpc("increment_daily_log_count", {
+    p_user_id: userId,
+    p_log_date: todayDateStr(),
+  });
+  if (error) throw new Error(error.message);
+  // PostgREST returns the SETOF row as an array — we asked for a single
+  // (new_count, allowed) tuple.
+  const row = Array.isArray(data) ? data[0] : data;
+  const allowed = Boolean((row as { allowed?: boolean } | null)?.allowed);
+  const newCount = Number((row as { new_count?: number } | null)?.new_count ?? 0);
+  return { allowed, newCount };
 }
 
 // ── Create / list / update / delete personal logs ─────────────────────────
@@ -59,9 +72,11 @@ export async function createPersonalLog(
   userId: string,
   input: Omit<CreateEmissionLogInput, "org_id">
 ): Promise<EmissionLog> {
-  // BR-09 daily limit
-  const current = await getTodayLogCount(userId);
-  if (exceedsDailyLogLimit(current)) {
+  // BR-09 daily limit — increment-then-check at the DB so concurrent
+  // submissions can't both pass the gate. RPC returns allowed=false
+  // when over quota and DOES NOT increment in that case.
+  const { allowed } = await tryIncrementTodayLogCount(userId);
+  if (!allowed) {
     const err = new Error("MSG30");
     (err as Error & { code: string }).code = "MSG30";
     throw err;
@@ -85,9 +100,19 @@ export async function createPersonalLog(
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Roll back the counter so a transient insert failure doesn't
+    // permanently consume one of the user's 50/day allowance. Best-effort
+    // — if this fails too we accept the lost slot; throwing the original
+    // error matters more.
+    await db
+      .from("DailyLogCounters")
+      .update({ count: Math.max(0, (await getTodayLogCount(userId)) - 1) })
+      .eq("user_id", userId)
+      .eq("log_date", todayDateStr());
+    throw new Error(error.message);
+  }
 
-  await incrementTodayLogCount(userId);
   return data as EmissionLog;
 }
 
