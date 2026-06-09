@@ -22,11 +22,13 @@ export default async function OrgOverviewPage({ params }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [org, membership, metrics, employees, events] = await Promise.all([
+  // Resolve membership FIRST so we can decide whether to fetch the
+  // admin-only employee activity at all — non-admin members shouldn't
+  // see the per-coworker email + log breakdown (BR-04 managerial scope).
+  const [org, membership, metrics, events] = await Promise.all([
     getOrganizationByIdServer(orgId),
     getMyMembershipServer(orgId, user.id),
     getOrgMetricsSummary(orgId),
-    getEmployeeActivity(orgId),
     getEventsByOrgServer(orgId),
   ]);
 
@@ -36,6 +38,12 @@ export default async function OrgOverviewPage({ params }: PageProps) {
   }
 
   const isAdmin = membership.role_id === ROLE_ADMIN_ID;
+
+  // Gated fetch: only admins can see per-employee activity (PII: email,
+  // total logs, last activity timestamp). Standard members get an empty
+  // array and the OverviewBody hides the "Top Contributors" panel for
+  // them via the existing `isAdmin` flag.
+  const employees = isAdmin ? await getEmployeeActivity(orgId) : [];
 
   return (
     <OverviewBody

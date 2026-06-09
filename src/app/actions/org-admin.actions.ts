@@ -58,7 +58,10 @@ export async function getEmployeeActivityAction(
   orgId: string
 ): Promise<{ data: EmployeeActivityRow[]; error: string | null }> {
   try {
-    await requireOrgRole(orgId);
+    // Admin-only per BR-04 (managerial scope) — non-admin members would
+    // otherwise see every coworker's email + log count via this action,
+    // even though the overview page UI doesn't render that panel for them.
+    await requireOrgRole(orgId, { adminOnly: true });
     const data = await getEmployeeActivity(orgId);
     return { data, error: null };
   } catch (err) {
