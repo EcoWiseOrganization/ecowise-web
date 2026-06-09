@@ -1,9 +1,27 @@
-import { getAllUsers } from "@/services/user.service";
+import { listAdminUsers } from "@/services/user.service";
+import { requireSystemAdmin } from "@/lib/auth/roles";
 import { PageHeader } from "../_components/PageHeader";
 import { UserTable } from "../_components/UserTable";
 
-export default async function UserManagementPage() {
-  const users = await getAllUsers();
+interface UserManagementPageProps {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}
+
+export default async function UserManagementPage({
+  searchParams,
+}: UserManagementPageProps) {
+  // Defence-in-depth: middleware already filters /admin/* to is_admin = true
+  // but server actions and direct fetches don't go through middleware. The
+  // explicit check makes the admin gate explicit + survives middleware bugs.
+  await requireSystemAdmin();
+
+  const { page: pageParam, q } = await searchParams;
+  const page = Number.parseInt(pageParam ?? "1", 10);
+  const { rows, total, pageSize } = await listAdminUsers({
+    page: Number.isFinite(page) ? page : 1,
+    pageSize: 25,
+    search: q,
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -12,7 +30,13 @@ export default async function UserManagementPage() {
         subtitleKey="admin.users.subtitle"
       />
 
-      <UserTable users={users} />
+      <UserTable
+        users={rows}
+        total={total}
+        page={Math.max(1, page || 1)}
+        pageSize={pageSize}
+        search={q ?? ""}
+      />
     </div>
   );
 }

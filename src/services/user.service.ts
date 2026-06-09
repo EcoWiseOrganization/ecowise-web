@@ -84,19 +84,86 @@ export async function getUserStats() {
   };
 }
 
-export async function getAllUsers(): Promise<User[]> {
-  const supabase = createAdminClient();
+/**
+ * Display-only projection of a User row for the admin list. Excludes PII
+ * the table never shows (`phone`, `bio`, `avatar_url`) so we don't ship
+ * private fields into the SSR payload of every page render.
+ */
+export type AdminUserListRow = Pick<
+  User,
+  | "id"
+  | "email"
+  | "full_name"
+  | "user_name"
+  | "is_admin"
+  | "status"
+  | "green_points"
+  | "created_at"
+>;
 
-  const { data, error } = await supabase
+const ADMIN_USER_LIST_COLUMNS =
+  "id, email, full_name, user_name, is_admin, status, green_points, created_at" as const;
+
+export interface ListUsersResult {
+  rows: AdminUserListRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/**
+ * Paginated, projected listing for `/admin/users`. Replaces the old
+ * `getAllUsers()` which loaded every row with `select("*")` — at scale
+ * that dumped megabytes of PII into the SSR payload and made the page
+ * slower with every signup.
+ *
+ * - `pageSize` is clamped to [1, 100] so a crafted URL can't bypass.
+ * - `search` runs a case-insensitive `ilike` over `email` / `full_name`
+ *   / `user_name`. Substring is escaped for `%` / `_` / `,` to neutralise
+ *   PostgREST `.or()` injection.
+ */
+export async function listAdminUsers({
+  page = 1,
+  pageSize = 25,
+  search,
+}: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+} = {}): Promise<ListUsersResult> {
+  const safePage = Math.max(1, Math.floor(page) || 1);
+  const safePageSize = Math.min(100, Math.max(1, Math.floor(pageSize) || 25));
+
+  const db = createAdminClient();
+  let query = db
     .from("User")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select(ADMIN_USER_LIST_COLUMNS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((safePage - 1) * safePageSize, safePage * safePageSize - 1);
 
+  const term = search?.trim();
+  if (term) {
+    // Escape PostgREST `.or()` delimiters before interpolation; the comma
+    // is the OR-clause separator and `(/)` would close the call.
+    const escaped = term.replace(/[,()%_]/g, (c) =>
+      c === "," ? " " : `\\${c}`,
+    );
+    query = query.or(
+      `email.ilike.%${escaped}%,full_name.ilike.%${escaped}%,user_name.ilike.%${escaped}%`,
+    );
+  }
+
+  const { data, error, count } = await query;
   if (error) {
     throw new Error(`Failed to fetch users: ${error.message}`);
   }
 
-  return data ?? [];
+  return {
+    rows: (data ?? []) as AdminUserListRow[],
+    total: count ?? 0,
+    page: safePage,
+    pageSize: safePageSize,
+  };
 }
 
 // ── Phase 1: Profile management ───────────────────────────────────────────
