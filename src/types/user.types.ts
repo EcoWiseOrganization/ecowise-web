@@ -1,10 +1,22 @@
+/**
+ * `User.status` is constrained at the DB level (CHECK in migration 001
+ * / 006). Promoting it to a string union catches typos like `if
+ * (user.status === "Active")` at compile time instead of letting them
+ * silently mis-match the lowercase DB values.
+ *
+ * Rows ingested from the wild (audit dumps, test fixtures, old data)
+ * may carry unexpected values — service-layer code should still handle
+ * a fallback gracefully rather than crash on type assertion.
+ */
+export type UserStatus = "active" | "pending" | "deleted";
+
 export interface User {
   id: string;
   email: string;
   full_name: string | null;
   user_name: string | null;
   is_admin: boolean;
-  status: string;
+  status: UserStatus;
   green_points: number;
   created_at: string;
   // Phase 1 additions (migration 006)

@@ -151,15 +151,22 @@ export async function getAdminOrgDetail(
     | null)?.plan;
   const planObj = Array.isArray(planRaw) ? planRaw[0] : planRaw;
 
+  // The DB CHECK constraints (migrations 001/008) restrict these columns
+  // to the same value set the unions enumerate, but PostgREST still gives
+  // us `string | null`. Cast through `as` to the typed unions — if a row
+  // ever carries an unexpected value, downstream UI surfaces the raw
+  // string anyway via the `OrgType`/`OrgVerificationStatus` fallback
+  // path.
   const orgRow: AdminOrganizationRow = {
     id: orgId,
     legal_name: (org as { legal_name: string | null }).legal_name,
     tax_code: (org as { tax_code: string | null }).tax_code,
-    org_type: (org as { org_type: string | null }).org_type,
+    org_type: (org as { org_type: AdminOrganizationRow["org_type"] | null }).org_type,
     industry: (org as { industry: string | null }).industry,
     contact_email: (org as { contact_email: string | null }).contact_email,
-    verification_status: (org as { verification_status: string | null })
-      .verification_status,
+    verification_status: (
+      org as { verification_status: AdminOrganizationRow["verification_status"] | null }
+    ).verification_status,
     created_at: (org as { created_at: string }).created_at,
     member_count: memberCount ?? 0,
     active_subscription: planObj?.plan_name ?? null,
@@ -179,7 +186,8 @@ export async function getAdminOrgDetail(
         email: u?.email ?? "",
         full_name: u?.full_name ?? null,
         role_id: m.role_id,
-        status: m.status,
+        // CHECK constraint restricts to MemberStatus values; cast through.
+        status: m.status as AdminOrganizationDetail["members"][number]["status"],
       };
     }),
     recentLogs:
