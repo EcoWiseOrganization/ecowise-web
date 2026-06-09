@@ -230,7 +230,12 @@ function SidebarContent({
               type="button"
               onClick={() => toggleSection(section.title)}
               aria-expanded={open}
-              className="flex items-center justify-between gap-2 bg-transparent border-none p-0 text-left"
+              // `hover:bg-transparent active:bg-transparent` opts the header
+              // out of the global `filter: brightness(...)` hover/active rule
+              // in globals.css (the exclusion matches any class containing
+              // `hover:bg-`). Without this the click feels like a brief
+              // "loading" flash because the whole header dims for ~150ms.
+              className="flex items-center justify-between gap-2 bg-transparent border-none p-0 text-left transition-none hover:bg-transparent active:bg-transparent"
             >
               <h3 className="text-[#155A03] text-xs font-bold uppercase tracking-[0.5px] leading-[15px]">
                 {t(section.title, { defaultValue: section.title })}
