@@ -5,6 +5,7 @@ import { T } from "@/components/shared/TranslatedText";
 import {
   getOrganizationByIdServer,
   getEventByIdServer,
+  getMyMembershipServer,
 } from "@/app/actions/organization.actions";
 import { EventDetailView } from "./_components/EventDetailView";
 
@@ -13,8 +14,10 @@ interface EventDetailPageProps {
 }
 
 export async function generateMetadata({ params }: EventDetailPageProps) {
-  const { eventId } = await params;
-  const event = await getEventByIdServer(eventId);
+  const { orgId, eventId } = await params;
+  // Pass orgId so a crafted (orgId, eventId) pair can't fish for an event
+  // belonging to another tenant via the SSR-cached page title.
+  const event = await getEventByIdServer(eventId, orgId);
   return { title: event ? `${event.name} – EcoWise` : "Event – EcoWise" };
 }
 
@@ -24,9 +27,15 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Membership gate must run before the event/org data fetch is rendered —
+  // a non-member can't see this page even if they know the (orgId, eventId)
+  // pair. notFound() (not "forbidden") so the URL doesn't probe existence.
+  const membership = await getMyMembershipServer(orgId, user.id);
+  if (!membership) notFound();
+
   const [org, event] = await Promise.all([
     getOrganizationByIdServer(orgId),
-    getEventByIdServer(eventId),
+    getEventByIdServer(eventId, orgId),
   ]);
 
   if (!org || !event) notFound();

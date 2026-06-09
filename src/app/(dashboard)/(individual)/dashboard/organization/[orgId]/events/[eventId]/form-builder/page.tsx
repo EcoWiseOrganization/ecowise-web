@@ -40,12 +40,14 @@ export default async function FormBuilderPage({ params }: PageProps) {
 
   const [org, event, membership] = await Promise.all([
     getOrganizationByIdServer(orgId),
-    getEventByIdServer(eventId),
+    getEventByIdServer(eventId, orgId),
     getMyMembershipServer(orgId, user.id),
   ]);
 
+  // getEventByIdServer now filters by org_id internally, so a null result
+  // covers both "not found" and "wrong org" — no need for the previous
+  // separate event.org_id !== orgId guard.
   if (!org || !event) notFound();
-  if (event.org_id !== orgId) notFound();
   if (
     !membership ||
     membership.status !== "Active" ||

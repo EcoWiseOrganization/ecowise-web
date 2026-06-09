@@ -41,8 +41,11 @@ export async function upsertEventFormAction(
 ): Promise<{ data: EventPublicForm | null; error: string | null }> {
   try {
     const ctx = await requireOrgRole(orgId, { adminOnly: true });
-    const event = await getEventByIdServer(eventId);
-    if (!event || event.org_id !== orgId) {
+    // getEventByIdServer now enforces the org filter itself; null means
+    // either "not found" or "belongs to another org" — both surface as
+    // EVENT_NOT_FOUND to avoid leaking which one.
+    const event = await getEventByIdServer(eventId, orgId);
+    if (!event) {
       return { data: null, error: "EVENT_NOT_FOUND" };
     }
     const data = await upsertForm({

@@ -79,12 +79,25 @@ export async function getEventsByOrgServer(orgId: string): Promise<Event[]> {
   return (data ?? []) as Event[];
 }
 
-export async function getEventByIdServer(eventId: string): Promise<Event | null> {
+/**
+ * Fetch a single event by id. The caller MUST pass the org id from their URL
+ * so we can verify the event actually belongs to that tenant — otherwise an
+ * authenticated user could guess the `(orgId, eventId)` pair in their URL
+ * and see another org's events (the service client bypasses RLS).
+ *
+ * Returns `null` for both "not found" and "wrong org" so callers can simply
+ * `notFound()` on null.
+ */
+export async function getEventByIdServer(
+  eventId: string,
+  orgId: string,
+): Promise<Event | null> {
   const db = createServiceClient();
   const { data, error } = await db
     .from("Events")
     .select("*")
     .eq("id", eventId)
+    .eq("org_id", orgId)
     .single();
   if (error) return null;
   return data as Event;
