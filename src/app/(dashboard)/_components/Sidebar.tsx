@@ -66,8 +66,12 @@ function SidebarContent({
     ? selectedOrg.address || selectedOrg.org_type || ""
     : t("sidebar.personal", { defaultValue: "Personal" });
 
+  // `overflow-y-auto` + `overscroll-contain` so the sidebar scrolls internally
+  // when the menu doesn't fit (short viewports, many tabs, zoomed-in users).
+  // Without this `mt-auto` pushes the language picker + logout below the
+  // viewport and they become unreachable.
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-auto overscroll-contain">
       {/* Logo */}
       <div className="px-[19px] pt-5 flex items-center justify-between">
         <Link href="/" onClick={onClose}>
