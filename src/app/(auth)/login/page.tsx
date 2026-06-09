@@ -61,8 +61,21 @@ function LoginForm() {
   const { loading, errors, generalError, showPassword, setShowPassword, handleSubmit } =
     useLoginForm();
 
-  // Keep URL-param error support for OAuth/external redirects
-  const urlError = searchParams.get("error");
+  // Keep URL-param error support for OAuth/external redirects. We only
+  // accept known translation keys here — rendering an arbitrary string
+  // from `?error=` would let a crafted URL inject phishing copy into
+  // the login page. Unknown values are ignored.
+  const KNOWN_URL_ERRORS = new Set([
+    "oauth.linkFailed",
+    "login.error.googleAccountOnly",
+    "login.error.invalidCredentials",
+    "login.error.emailNotConfirmed",
+    "login.error.accountDisabled",
+    "login.error.tooManyAttempts",
+    "login.error.unexpected",
+  ]);
+  const rawUrlError = searchParams.get("error");
+  const urlError = rawUrlError && KNOWN_URL_ERRORS.has(rawUrlError) ? t(rawUrlError) : "";
   const message = searchParams.get("message");
 
   return (

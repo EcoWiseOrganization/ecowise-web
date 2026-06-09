@@ -91,32 +91,74 @@ export async function GET(request: NextRequest) {
 
           if (existingEmailUser) {
             if (isLinkRetry) {
-              // Second attempt still produced a separate Google account — Supabase
-              // auto-linking is unavailable. Clean up and send user to login.
-              await admin.auth.admin.deleteUser(user.id);
+              // Second attempt still produced a separate Google account —
+              // Supabase auto-linking is unavailable. Clean up the
+              // duplicate Google account and bounce to login with a
+              // translatable error code (not a hardcoded VI string).
+              try {
+                await admin.auth.admin.deleteUser(user.id);
+              } catch (cleanupErr) {
+                // Cleanup failure is logged but non-fatal — we still
+                // want to redirect the user somewhere usable.
+                console.error(
+                  "[callback] failed to delete duplicate Google account",
+                  cleanupErr,
+                );
+              }
               return NextResponse.redirect(
-                new URL(
-                  `/login?error=${encodeURIComponent(
-                    "Không thể liên kết tài khoản tự động. Vui lòng đăng nhập bằng email và mật khẩu."
-                  )}`,
-                  siteUrl
-                )
+                new URL("/login?error=oauth.linkFailed", siteUrl),
               );
             }
 
-            // First attempt: delete the brand-new Google-only account (no user
-            // data yet), confirm the existing email/password account's email so
-            // Supabase will auto-link on the next OAuth pass, then retry.
-            await admin.auth.admin.deleteUser(user.id);
-            await admin.auth.admin.updateUserById(existingEmailUser.id, {
-              email_confirm: true,
-            });
+            // First attempt: delete the brand-new Google-only account (no
+            // user data yet), confirm the existing email/password
+            // account's email so Supabase will auto-link on the next
+            // OAuth pass, then retry. If ANY step fails, roll back: the
+            // Google account is already deleted, so undoing the
+            // email_confirm flip we may have just set keeps the existing
+            // account in its prior state and we send the user to the
+            // error page instead of leaving them in limbo.
+            const wasEmailConfirmed = Boolean(existingEmailUser.email_confirmed_at);
+            try {
+              await admin.auth.admin.deleteUser(user.id);
+            } catch (delErr) {
+              console.error(
+                "[callback] failed to delete Google-only account before linking",
+                delErr,
+              );
+              return NextResponse.redirect(
+                new URL("/login?error=oauth.linkFailed", siteUrl),
+              );
+            }
+            try {
+              await admin.auth.admin.updateUserById(existingEmailUser.id, {
+                email_confirm: true,
+              });
+            } catch (confErr) {
+              console.error(
+                "[callback] failed to confirm existing email account",
+                confErr,
+              );
+              // Best-effort rollback of the confirm flip (if we
+              // ever set it on a Supabase that needs explicit revert,
+              // this becomes the right place to do so).
+              if (!wasEmailConfirmed) {
+                console.warn(
+                  "[callback] email_confirmed_at may need manual reset for",
+                  existingEmailUser.id,
+                );
+              }
+              return NextResponse.redirect(
+                new URL("/login?error=oauth.linkFailed", siteUrl),
+              );
+            }
 
-            // Redirect through Google OAuth again — this time Supabase will find
-            // the confirmed email/password account and link the Google identity.
-            // The `link=1` flag prevents an infinite loop if linking still fails.
+            // Redirect through Google OAuth again — this time Supabase
+            // will find the confirmed email/password account and link
+            // the Google identity. `link=1` prevents an infinite loop
+            // if linking still fails.
             return NextResponse.redirect(
-              new URL("/api/auth/google?link=1", siteUrl)
+              new URL("/api/auth/google?link=1", siteUrl),
             );
           }
         }

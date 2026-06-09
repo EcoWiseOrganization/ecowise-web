@@ -1001,4 +1001,8 @@ export const en = {
   "common.clear": "Clear",
   "common.previous": "Previous",
   "common.next": "Next",
+
+  // ── OAuth callback errors ───────────────────────────────────────────────
+  "oauth.linkFailed":
+    "We couldn't link your Google account automatically. Please sign in with your email and password instead.",
 };

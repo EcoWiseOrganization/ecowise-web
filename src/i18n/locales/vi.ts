@@ -1000,4 +1000,8 @@ export const vi = {
   "common.clear": "Xóa",
   "common.previous": "Trước",
   "common.next": "Tiếp",
+
+  // ── OAuth callback errors ───────────────────────────────────────────────
+  "oauth.linkFailed":
+    "Không thể liên kết tài khoản Google tự động. Vui lòng đăng nhập bằng email và mật khẩu.",
 };
