@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { sendRegistrationOtp } from "@/services/auth.service";
 
-function validate(name: string, email: string) {
+/** Returns translation KEYS instead of literal strings so the rendering
+ * component (or this hook itself, via `t`) resolves them once at render
+ * time. Keeps validation testable without React context. */
+function validateKeys(name: string, email: string) {
   const errors: Record<string, string> = {};
-  if (!name.trim()) errors.name = "Name is required";
-  if (!email.trim()) errors.email = "Email is required";
+  if (!name.trim()) errors.name = "auth.field.nameRequired";
+  if (!email.trim()) errors.email = "auth.field.emailRequired";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    errors.email = "Please enter a valid email";
+    errors.email = "auth.field.emailInvalid";
   return errors;
 }
 
@@ -39,7 +42,11 @@ export function useRegisterForm() {
     const name = ((form.get("name") as string) || "").trim();
     const email = ((form.get("email") as string) || "").trim();
 
-    const errs = validate(name, email);
+    // Convert keys → localised text once before they leave the hook so
+    // the page can keep rendering `errors.foo` directly.
+    const keyErrs = validateKeys(name, email);
+    const errs: Record<string, string> = {};
+    for (const [field, key] of Object.entries(keyErrs)) errs[field] = t(key);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
@@ -54,7 +61,13 @@ export function useRegisterForm() {
       if (msg === "GOOGLE_ACCOUNT_ONLY") {
         setGeneralError(t("register.error.googleAccountOnly"));
       } else {
-        setGeneralError(msg || t("register.error.unexpected"));
+        // `msg` comes straight from the server response — only surface
+        // it when it isn't a raw MSG / error code (lowercase indicator).
+        // Otherwise fall back to the generic localised copy.
+        const looksFriendly = msg && /[ a-z]{4,}/i.test(msg);
+        setGeneralError(
+          looksFriendly ? msg : t("auth.error.unexpected"),
+        );
       }
       setLoading(false);
     }

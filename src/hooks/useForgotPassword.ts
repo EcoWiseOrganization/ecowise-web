@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { sendForgotPasswordOtp } from "@/services/auth.service";
 
 /**
@@ -14,6 +15,7 @@ import { sendForgotPasswordOtp } from "@/services/auth.service";
  */
 export function useForgotPassword() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ export function useForgotPassword() {
 
   const handleSend = async () => {
     if (!email) {
-      setError("Please enter your email address");
+      setError(t("auth.field.emailRequiredSimple"));
       return;
     }
 
@@ -34,7 +36,7 @@ export function useForgotPassword() {
       setSent(true);
       router.push(`/forgot-password/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("auth.error.unexpected"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export function useForgotPassword() {
 
   const handleResend = async () => {
     if (!email) {
-      setError("Please enter your email address");
+      setError(t("auth.field.emailRequiredSimple"));
       return;
     }
 
@@ -53,7 +55,7 @@ export function useForgotPassword() {
       await sendForgotPasswordOtp(email);
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("auth.error.unexpected"));
     } finally {
       setResending(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { verifyForgotPasswordOtp } from "@/services/auth.service";
 
 /**
@@ -16,6 +17,7 @@ import { verifyForgotPasswordOtp } from "@/services/auth.service";
 export function useForgotPasswordVerify() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -33,7 +35,7 @@ export function useForgotPasswordVerify() {
   const handleConfirm = async () => {
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
-      setError("Please enter the 6-digit verification code");
+      setError(t("auth.field.otp6RequiredVerify"));
       return;
     }
 
@@ -44,7 +46,7 @@ export function useForgotPasswordVerify() {
       await verifyForgotPasswordOtp(email, otpCode);
       router.push(`/forgot-password/reset?email=${encodeURIComponent(email)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("auth.error.unexpected"));
     } finally {
       setLoading(false);
     }

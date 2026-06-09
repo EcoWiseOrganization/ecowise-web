@@ -1005,4 +1005,17 @@ export const en = {
   // ── OAuth callback errors ───────────────────────────────────────────────
   "oauth.linkFailed":
     "We couldn't link your Google account automatically. Please sign in with your email and password instead.",
+
+  // ── Auth-flow validation + generic error copy ───────────────────────────
+  "auth.error.unexpected": "Something went wrong. Please try again.",
+  "auth.error.verifyFailed": "Verification failed",
+  "auth.field.nameRequired": "Name is required",
+  "auth.field.emailRequired": "Email is required",
+  "auth.field.emailInvalid": "Please enter a valid email",
+  "auth.field.emailRequiredSimple": "Please enter your email address",
+  "auth.field.fillAllFields": "Please fill in all fields",
+  "auth.field.passwordMin6": "Password must be at least 6 characters",
+  "auth.field.passwordsMismatch": "Passwords do not match",
+  "auth.field.otp6Required": "Please enter the 6-digit code",
+  "auth.field.otp6RequiredVerify": "Please enter the 6-digit verification code",
 };

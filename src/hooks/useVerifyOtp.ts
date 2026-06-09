@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { verifyRegistrationOtp } from "@/services/auth.service";
 
 /**
@@ -18,6 +19,7 @@ import { verifyRegistrationOtp } from "@/services/auth.service";
 export function useVerifyOtp() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,15 +41,15 @@ export function useVerifyOtp() {
   const handleConfirm = async () => {
     const code = otp.join("");
     if (code.length !== 6) {
-      setError("Please enter the 6-digit code");
+      setError(t("auth.field.otp6Required"));
       return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t("auth.field.passwordMin6"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("auth.field.passwordsMismatch"));
       return;
     }
 
@@ -58,7 +60,7 @@ export function useVerifyOtp() {
       await verifyRegistrationOtp(email, code, password);
       router.push("/register/success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Verification failed");
+      setError(err instanceof Error ? err.message : t("auth.error.verifyFailed"));
       setLoading(false);
     }
   };

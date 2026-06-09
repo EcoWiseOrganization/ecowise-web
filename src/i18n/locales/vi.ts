@@ -1004,4 +1004,17 @@ export const vi = {
   // ── OAuth callback errors ───────────────────────────────────────────────
   "oauth.linkFailed":
     "Không thể liên kết tài khoản Google tự động. Vui lòng đăng nhập bằng email và mật khẩu.",
+
+  // ── Auth-flow validation + generic error copy ───────────────────────────
+  "auth.error.unexpected": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+  "auth.error.verifyFailed": "Xác thực thất bại",
+  "auth.field.nameRequired": "Vui lòng nhập họ tên",
+  "auth.field.emailRequired": "Vui lòng nhập email",
+  "auth.field.emailInvalid": "Email không hợp lệ",
+  "auth.field.emailRequiredSimple": "Vui lòng nhập địa chỉ email",
+  "auth.field.fillAllFields": "Vui lòng điền đầy đủ thông tin",
+  "auth.field.passwordMin6": "Mật khẩu phải có ít nhất 6 ký tự",
+  "auth.field.passwordsMismatch": "Mật khẩu không khớp",
+  "auth.field.otp6Required": "Vui lòng nhập mã 6 chữ số",
+  "auth.field.otp6RequiredVerify": "Vui lòng nhập mã xác thực 6 chữ số",
 };

@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { resetPassword } from "@/services/auth.service";
 
-function validatePasswords(password: string, confirmPassword: string): string | null {
-  if (!password || !confirmPassword) return "Please fill in all fields";
-  if (password.length < 6) return "Password must be at least 6 characters";
-  if (password !== confirmPassword) return "Passwords do not match";
+function validatePasswordsKey(
+  password: string,
+  confirmPassword: string,
+): string | null {
+  if (!password || !confirmPassword) return "auth.field.fillAllFields";
+  if (password.length < 6) return "auth.field.passwordMin6";
+  if (password !== confirmPassword) return "auth.field.passwordsMismatch";
   return null;
 }
 
@@ -23,6 +27,7 @@ function validatePasswords(password: string, confirmPassword: string): string | 
 export function useResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,9 +46,9 @@ export function useResetPassword() {
   }, [router, searchParams]);
 
   const handleReset = async () => {
-    const validationError = validatePasswords(password, confirmPassword);
-    if (validationError) {
-      setError(validationError);
+    const validationKey = validatePasswordsKey(password, confirmPassword);
+    if (validationKey) {
+      setError(t(validationKey));
       return;
     }
 
@@ -54,7 +59,7 @@ export function useResetPassword() {
       await resetPassword(email, password);
       router.push("/forgot-password/success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("auth.error.unexpected"));
     } finally {
       setLoading(false);
     }
