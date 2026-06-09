@@ -1,9 +1,11 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROLE_ADMIN_ID, ROLE_MEMBER_ID } from "@/lib/roles";
+import { sendEmail, orgInviteEmail } from "@/lib/emails";
 import type {
   Organization,
   OrganizationMember,
@@ -209,9 +211,14 @@ export async function addOrgMembersAction(
       if (existingProfile) {
         userId = existingProfile.id;
       } else {
+        // Generate a cryptographically random throwaway password. We never
+        // email it; we just need *some* credential so the auth row exists.
+        // The user activates the account via a recovery link below, which
+        // forces them to set their own password.
+        const tempPassword = randomBytes(32).toString("base64url");
         const { data: authData, error: authError } = await admin.auth.admin.createUser({
           email,
-          password: "123456",
+          password: tempPassword,
           email_confirm: true,
         });
 
@@ -233,6 +240,40 @@ export async function addOrgMembersAction(
           status: "active",
           green_points: 0,
         }, { onConflict: "id" });
+
+        // Fire-and-forget: generate a password-recovery link and email it
+        // to the invitee. If link generation or email delivery fails the
+        // invite still succeeds — the user can recover via the public
+        // forgot-password flow with the same email. We DO NOT block the
+        // batch on email failure.
+        try {
+          const siteUrl =
+            process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
+          const { data: linkData } = await admin.auth.admin.generateLink({
+            type: "recovery",
+            email,
+            options: siteUrl
+              ? { redirectTo: `${siteUrl}/forgot-password/reset` }
+              : undefined,
+          });
+          const setupUrl =
+            linkData?.properties?.action_link ??
+            `${siteUrl || ""}/forgot-password`;
+          const { data: orgRow } = await db
+            .from("Organization")
+            .select("legal_name")
+            .eq("id", orgId)
+            .single();
+          const orgName = orgRow?.legal_name ?? "EcoWise";
+          const tmpl = orgInviteEmail({ orgName, email, setupUrl });
+          await sendEmail({ to: email, subject: tmpl.subject, html: tmpl.html });
+        } catch (emailErr) {
+          console.error(
+            "[addOrgMembersAction] invite email failed for",
+            email,
+            emailErr,
+          );
+        }
       }
 
       const { data: existingMembership } = await db

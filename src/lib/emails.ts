@@ -137,3 +137,26 @@ export function trialEndingEmail(opts: {
     `),
   };
 }
+
+/** Invite-to-org email sent when an Org Admin adds a brand-new user.
+ * Includes a link to the forgot-password flow so the user can set their
+ * own password — we never email a plaintext credential. */
+export function orgInviteEmail(opts: {
+  orgName: string;
+  email: string;
+  setupUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[EcoWise] You've been added to ${opts.orgName}`,
+    html: wrap(`
+      <p>An administrator at <b>${opts.orgName}</b> has added <b>${opts.email}</b> to their EcoWise workspace.</p>
+      <p>Set a password to activate your account:</p>
+      <p>
+        <a href="${opts.setupUrl}" style="display:inline-block;background:#1F8505;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
+          Set my password
+        </a>
+      </p>
+      <p style="font-size:12px;color:#6E726E;">If the button doesn't work, open this link in your browser:<br/>${opts.setupUrl}</p>
+    `),
+  };
+}
