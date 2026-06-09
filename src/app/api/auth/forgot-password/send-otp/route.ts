@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { wrapBrand } from "@/lib/emails";
+import { generateOtp, normaliseEmail, otpExpiry } from "@/lib/otp";
 import nodemailer from "nodemailer";
 
 export async function POST(request: Request) {
-  const { email } = await request.json();
+  const body = await request.json();
+  const email = normaliseEmail(body?.email);
 
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -24,9 +26,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No account found with this email address" }, { status: 404 });
   }
 
-  // Generate 4-digit OTP
-  const otp = Math.floor(1000 + Math.random() * 9000).toString();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  // 6-digit cryptographically random OTP (was Math.random + 4 digits).
+  const otp = generateOtp();
+  const expiresAt = otpExpiry();
 
   const supabase = await createClient();
 

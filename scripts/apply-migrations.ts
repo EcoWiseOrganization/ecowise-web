@@ -90,6 +90,7 @@ async function main() {
     "supabase/migrations/018_emission_benchmarks.sql",
     "supabase/migrations/019_seed_catalog_expansion.sql",
     "supabase/migrations/020_redeem_reward_auth_check.sql",
+    "supabase/migrations/021_otp_lockout.sql",
   ];
 
   const client = new Client({ connectionString: url });

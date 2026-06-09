@@ -3,9 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkIsGoogleOnlyAccount } from "@/services/user.service";
 import { randomAvatarUrl } from "@/lib/avatar";
+import { MAX_ATTEMPTS, normaliseEmail } from "@/lib/otp";
 
 export async function POST(request: Request) {
-  const { email, otp, name, password } = await request.json();
+  const body = await request.json();
+  const email = normaliseEmail(body?.email);
+  const otp = typeof body?.otp === "string" ? body.otp.trim() : "";
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const password = typeof body?.password === "string" ? body.password : "";
 
   if (!email || !otp || !name || !password) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -13,22 +18,46 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
 
-  // Look up the OTP record
+  // Look up by email only so a wrong OTP still locates the row and lets
+  // us increment failed_attempts. Looking up by (email, otp) like the
+  // previous version did meant every wrong guess was just a miss and the
+  // attacker could keep brute-forcing the full 4-digit (now 6-digit) space.
   const { data: otpRecord, error: fetchError } = await supabase
     .from("otp_verifications")
-    .select("*")
+    .select("id, otp, expires_at, failed_attempts")
     .eq("email", email)
-    .eq("otp", otp)
     .single();
 
   if (fetchError || !otpRecord) {
     return NextResponse.json({ error: "Invalid verification code" }, { status: 400 });
   }
 
-  // Check expiry
+  // Expired → clean up and surface the same generic code so we don't leak
+  // which step failed (timing-wise an attacker could still tell, but the
+  // message stays consistent).
   if (new Date(otpRecord.expires_at) < new Date()) {
     await supabase.from("otp_verifications").delete().eq("email", email);
     return NextResponse.json({ error: "Verification code has expired. Please request a new one." }, { status: 400 });
+  }
+
+  // Lockout: once a row has accumulated `MAX_ATTEMPTS` misses we delete it
+  // so the user must request a new code. The attacker has to go through
+  // /send-otp (rate-limited separately) to retry, capping brute-force at
+  // MAX_ATTEMPTS per code-window.
+  if (otpRecord.failed_attempts >= MAX_ATTEMPTS) {
+    await supabase.from("otp_verifications").delete().eq("email", email);
+    return NextResponse.json(
+      { error: "Too many wrong attempts. Please request a new code." },
+      { status: 400 },
+    );
+  }
+
+  if (otpRecord.otp !== otp) {
+    await supabase
+      .from("otp_verifications")
+      .update({ failed_attempts: otpRecord.failed_attempts + 1 })
+      .eq("id", otpRecord.id);
+    return NextResponse.json({ error: "Invalid verification code" }, { status: 400 });
   }
 
   // OTP is valid — double-check for Google-only account before creating user

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_ATTEMPTS, normaliseEmail } from "@/lib/otp";
 import crypto from "crypto";
 
 export async function POST(request: Request) {
-  const { email, otp } = await request.json();
+  const body = await request.json();
+  const email = normaliseEmail(body?.email);
+  const otp = typeof body?.otp === "string" ? body.otp.trim() : "";
 
   if (!email || !otp) {
     return NextResponse.json({ error: "Email and OTP are required" }, { status: 400 });
@@ -11,11 +14,13 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
 
+  // Look up by email only so a wrong OTP still locates the row and lets us
+  // increment failed_attempts. The previous query joined on (email, otp)
+  // which made every miss invisible to lockout.
   const { data: otpRecord, error: fetchError } = await supabase
     .from("otp_verifications")
-    .select("*")
+    .select("id, otp, expires_at, failed_attempts")
     .eq("email", email)
-    .eq("otp", otp)
     .single();
 
   if (fetchError || !otpRecord) {
@@ -25,6 +30,22 @@ export async function POST(request: Request) {
   if (new Date(otpRecord.expires_at) < new Date()) {
     await supabase.from("otp_verifications").delete().eq("email", email);
     return NextResponse.json({ error: "Verification code has expired. Please request a new one." }, { status: 400 });
+  }
+
+  if (otpRecord.failed_attempts >= MAX_ATTEMPTS) {
+    await supabase.from("otp_verifications").delete().eq("email", email);
+    return NextResponse.json(
+      { error: "Too many wrong attempts. Please request a new code." },
+      { status: 400 },
+    );
+  }
+
+  if (otpRecord.otp !== otp) {
+    await supabase
+      .from("otp_verifications")
+      .update({ failed_attempts: otpRecord.failed_attempts + 1 })
+      .eq("id", otpRecord.id);
+    return NextResponse.json({ error: "Invalid verification code" }, { status: 400 });
   }
 
   // Generate a reset token and store it (valid for 10 minutes)
