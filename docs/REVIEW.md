@@ -47,7 +47,19 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
-### Round 2 — High severity (10/10 DONE) · commits on `main`
+### Round 3 — High severity batch B (10/10 DONE) · commits on `main`
+- `bb76245` fix(billing): authorise confirmMockPayment caller against invoice subject
+- `51edd86` fix(billing/cron): idempotent renewal via DB unique constraint (migration 025)
+- `3e49ae2` fix(auth): paginate listUsers — stop silently missing users past 1000
+- `f2bddae` fix(auth/callback): rollback-safe linking + i18n error + URL-error allowlist
+- `261b38c` fix(activity): atomic BR-09 daily-counter via RPC (migration 026)
+- `bf3e075` fix(audit): BR-16 audit log on personal log + target mutations
+- `58f4e4e` fix(hooks/useAuth): construct Supabase client inside the hook body
+- `cd8488c` fix(types): promote User.status + admin types to discriminated unions
+- `6cfd1e1` fix(i18n): translate validation + generic error copy in 5 auth hooks
+- `045a1fc` fix(middleware): cache is_admin in signed cookie (5min TTL)
+
+### Round 2 — High severity batch A (10/10 DONE) · commits on `main`
 - `d12e820` fix(auth): app-layer rate limit on login + send-otp + forgot-send-otp (migration 023)
 - `3bc5269` fix(org/review): scope reviewEmissionLog to org_id + status guards
 - `00cccc3` fix(org/overview): gate getEmployeeActivity to admins (BR-04)
@@ -60,7 +72,7 @@
 - `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
 
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022/023/024 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024/025/026 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.
