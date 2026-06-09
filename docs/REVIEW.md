@@ -47,11 +47,24 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
+### Round 2 — High severity (10/10 DONE) · commits on `main`
+- `d12e820` fix(auth): app-layer rate limit on login + send-otp + forgot-send-otp (migration 023)
+- `3bc5269` fix(org/review): scope reviewEmissionLog to org_id + status guards
+- `00cccc3` fix(org/overview): gate getEmployeeActivity to admins (BR-04)
+- `1835aa1` fix(org/members): soft-delete instead of hard-delete on remove
+- `0b05118` fix(org/events): require org admin + enforce BR-09 max_events on create
+- `9989c5c` fix(public-form): token expiry + whitelist submitted_data (migration 024)
+- `c7c0bd2` fix(admin): enforce requireSystemAdmin once in /admin layout
+- `41d8779` fix(formula-engine): allow commas, cap length, deny escape-hatch idents
+- `0cdeec6` fix(activity): paginate UI + debounce search box
+- `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
+
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.
+5. Form-builder UI ideally surfaces an `expires_at` picker so admins can set the cutoff explicitly (default = event.end_date + 7d is backfilled, but new tokens land NULL until set).
 
 ---
 
