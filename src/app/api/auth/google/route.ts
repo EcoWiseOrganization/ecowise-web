@@ -1,20 +1,22 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveSiteUrl } from "@/lib/site-url";
 
 export async function GET(request: NextRequest) {
-  // Determine the canonical public URL for the redirect target.
-  // Priority:
-  //   1. NEXT_PUBLIC_SITE_URL  (set manually in env — most reliable)
-  //   2. x-forwarded-host header (set by Vercel / reverse proxies)
-  //   3. Fallback to request origin
-  // NOTE: Do NOT use VERCEL_URL — it resolves to the deployment-specific
-  // *.vercel.app URL which may differ from your custom domain.
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (request.headers.get("x-forwarded-host")
-      ? `https://${request.headers.get("x-forwarded-host")}`
-      : null) ??
-    new URL(request.url).origin;
+  // Canonical site URL — `NEXT_PUBLIC_SITE_URL` first, dev hosts via
+  // `x-forwarded-host` only in non-production, and hard-fail in
+  // production if neither is set. See `lib/site-url.ts` for the
+  // security rationale.
+  let siteUrl: string;
+  try {
+    siteUrl = resolveSiteUrl(request);
+  } catch (err) {
+    console.error("[auth/google] resolveSiteUrl failed", err);
+    // Without a trusted site URL we can't build a safe redirect target;
+    // 500 is the right shape rather than silently falling through to a
+    // spoofed host.
+    return new NextResponse("Site URL not configured", { status: 500 });
+  }
 
   const cookiesToSet: {
     name: string;

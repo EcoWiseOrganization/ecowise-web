@@ -67,6 +67,8 @@ function LoginForm() {
   // the login page. Unknown values are ignored.
   const KNOWN_URL_ERRORS = new Set([
     "oauth.linkFailed",
+    "oauth.access_denied",
+    "oauth.server_error",
     "login.error.googleAccountOnly",
     "login.error.invalidCredentials",
     "login.error.emailNotConfirmed",

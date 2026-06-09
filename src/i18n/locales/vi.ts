@@ -1004,6 +1004,10 @@ export const vi = {
   // ── OAuth callback errors ───────────────────────────────────────────────
   "oauth.linkFailed":
     "Không thể liên kết tài khoản Google tự động. Vui lòng đăng nhập bằng email và mật khẩu.",
+  "oauth.access_denied":
+    "Đăng nhập đã bị hủy. Vui lòng thử lại hoặc đăng nhập bằng email + mật khẩu.",
+  "oauth.server_error":
+    "Nhà cung cấp đăng nhập trả về lỗi. Vui lòng thử lại sau ít phút.",
 
   // ── Auth-flow validation + generic error copy ───────────────────────────
   "auth.error.unexpected": "Đã có lỗi xảy ra. Vui lòng thử lại.",

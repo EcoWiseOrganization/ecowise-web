@@ -1005,6 +1005,10 @@ export const en = {
   // ── OAuth callback errors ───────────────────────────────────────────────
   "oauth.linkFailed":
     "We couldn't link your Google account automatically. Please sign in with your email and password instead.",
+  "oauth.access_denied":
+    "Sign-in was cancelled. Please try again or use email + password.",
+  "oauth.server_error":
+    "The sign-in provider returned an error. Please try again in a moment.",
 
   // ── Auth-flow validation + generic error copy ───────────────────────────
   "auth.error.unexpected": "Something went wrong. Please try again.",

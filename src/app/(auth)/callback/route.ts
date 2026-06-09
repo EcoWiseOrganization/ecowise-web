@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getDashboardPath } from "@/services/user.service";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveSiteUrl } from "@/lib/site-url";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,19 +12,38 @@ export async function GET(request: NextRequest) {
   const oauthError = searchParams.get("error");
   const oauthErrorDesc = searchParams.get("error_description");
 
-  // Determine the base URL for redirects, respecting reverse proxies (Vercel, etc.)
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (request.headers.get("x-forwarded-host")
-      ? `https://${request.headers.get("x-forwarded-host")}`
-      : null) ??
-    new URL(request.url).origin;
+  // Canonical site URL via the shared helper. Fails closed in production
+  // when NEXT_PUBLIC_SITE_URL is unset — never trusts x-forwarded-host
+  // there.
+  let siteUrl: string;
+  try {
+    siteUrl = resolveSiteUrl(request);
+  } catch (err) {
+    console.error("[auth/callback] resolveSiteUrl failed", err);
+    return new NextResponse("Site URL not configured", { status: 500 });
+  }
 
-  // If the OAuth provider returned an error, surface it
+  // If the OAuth provider returned an error, surface it through the
+  // login URL — but only via the allowlisted oauth.* keys so an
+  // attacker can't smuggle arbitrary copy. Unknown codes collapse to
+  // the generic "linkFailed" message.
   if (oauthError) {
-    const msg = oauthErrorDesc ?? oauthError;
+    const knownErrorCodes = new Set(["access_denied", "server_error"]);
+    const code = knownErrorCodes.has(oauthError) ? oauthError : null;
+    // Log the raw description for ops; don't ship it into the URL.
+    if (oauthErrorDesc) {
+      console.warn("[auth/callback] OAuth provider error", {
+        oauthError,
+        oauthErrorDesc,
+      });
+    }
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(msg)}`, siteUrl)
+      new URL(
+        code
+          ? `/login?error=oauth.${code}`
+          : `/login?error=oauth.linkFailed`,
+        siteUrl,
+      ),
     );
   }
 
