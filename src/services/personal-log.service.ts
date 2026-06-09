@@ -179,21 +179,54 @@ export async function getPersonalStats(
       | null;
   }>;
 
+  /**
+   * Coerce whatever the DB hands us into the canonical scope string —
+   * the previous version trusted `r.scope` verbatim and indexed
+   * `byScope[r.scope]`. Any drift (lowercase, "scope1", numeric "1")
+   * silently fell out of the totals and never showed up in reports. We
+   * also count anything we can't classify into an `Unclassified`
+   * bucket so the surface area is visible instead of silently zero.
+   */
+  function normaliseScope(
+    raw: string,
+  ): "Scope 1" | "Scope 2" | "Scope 3" | "Unclassified" {
+    const trimmed = raw.trim().toLowerCase().replace(/\s+/g, "");
+    if (trimmed === "scope1" || trimmed === "1") return "Scope 1";
+    if (trimmed === "scope2" || trimmed === "2") return "Scope 2";
+    if (trimmed === "scope3" || trimmed === "3") return "Scope 3";
+    return "Unclassified";
+  }
+
   const total = rows.reduce((s, r) => s + (Number(r.co2e_result) || 0), 0);
-  const byScope = { "Scope 1": 0, "Scope 2": 0, "Scope 3": 0 } as Record<
-    string,
+  const byScope: Record<
+    "Scope 1" | "Scope 2" | "Scope 3" | "Unclassified",
     number
-  >;
+  > = {
+    "Scope 1": 0,
+    "Scope 2": 0,
+    "Scope 3": 0,
+    Unclassified: 0,
+  };
   const byCategory = new Map<string, number>();
+  let unclassifiedCount = 0;
 
   for (const r of rows) {
     const co2 = Number(r.co2e_result) || 0;
-    byScope[r.scope] = (byScope[r.scope] ?? 0) + co2;
+    const bucket = normaliseScope(r.scope);
+    if (bucket === "Unclassified") unclassifiedCount += 1;
+    byScope[bucket] += co2;
     const catObj = Array.isArray(r.EmissionCategories)
       ? r.EmissionCategories[0] ?? null
       : r.EmissionCategories;
     const cat = catObj?.name ?? "Other";
     byCategory.set(cat, (byCategory.get(cat) ?? 0) + co2);
+  }
+
+  if (unclassifiedCount > 0) {
+    console.warn(
+      "[personal-log.getPersonalStats] rows had unrecognised scope value",
+      { userId, count: unclassifiedCount, startDate, endDate },
+    );
   }
 
   return {
