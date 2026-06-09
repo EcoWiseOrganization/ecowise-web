@@ -170,15 +170,36 @@ export async function reviewEmissionLogAction(
     if (decision !== "Verified" && decision !== "Rejected") {
       return { ok: false, error: MSG.INVALID_FORMAT };
     }
-    await reviewEmissionLog(logId, decision, ctx.userId, reason);
+    // reviewEmissionLog now enforces (logId, orgId) scoping itself and
+    // returns a structured outcome so we can branch on "already
+    // verified" / "locked" / "wrong org" without rewriting the log.
+    const outcome = await reviewEmissionLog(
+      logId,
+      orgId,
+      decision,
+      ctx.userId,
+      reason,
+    );
+    if (!outcome.ok) {
+      switch (outcome.reason) {
+        case "not_found":
+        case "wrong_org":
+          return { ok: false, error: "LOG_NOT_FOUND" };
+        case "locked":
+          return { ok: false, error: "LOG_LOCKED" };
+      }
+    }
 
-    // Phase 9: award green points to the log owner on Verified.
-    if (decision === "Verified") {
+    // Phase 9: award green points to the log owner on Verified — but only
+    // on the *transition* into Verified. Without this guard, an admin
+    // re-reviewing the same row would credit the user every click.
+    if (decision === "Verified" && !outcome.alreadyVerified) {
       const db = createServiceClient();
       const { data: log } = await db
         .from("EmissionLogs")
         .select("created_by")
         .eq("id", logId)
+        .eq("org_id", orgId)
         .maybeSingle();
       const owner = (log as { created_by: string | null } | null)?.created_by ?? null;
       if (owner) {

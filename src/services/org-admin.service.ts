@@ -232,13 +232,57 @@ export async function updateOrganization(
 
 export type ReviewDecision = "Verified" | "Rejected";
 
+/**
+ * Possible outcomes of an attempted review. `wrong_org` means the log
+ * exists but belongs to a different tenant — surfaced as `LOG_NOT_FOUND`
+ * to the caller so we never confirm cross-tenant existence; `already_*`
+ * lets the caller decide whether to skip a downstream side-effect
+ * (e.g. don't award points twice).
+ */
+export type ReviewOutcome =
+  | { ok: true; alreadyVerified: boolean }
+  | { ok: false; reason: "not_found" | "wrong_org" | "locked" };
+
+/**
+ * Mark an emission log as Verified or Rejected.
+ *
+ * Hardened in three ways:
+ *   1. `org_id` is REQUIRED and added to the WHERE clause — without it
+ *      an admin of Org A who learned a log id from Org B could flip
+ *      Org B's logs.
+ *   2. We reject Published / Exported logs (BR-07 lock) without writing
+ *      anything.
+ *   3. We tell the caller whether the log was *already* in the target
+ *      Verified state — used by the action layer to skip a duplicate
+ *      `awardPointsForVerifiedLog` call (which would double-credit the
+ *      log owner with green points on every re-review click).
+ */
 export async function reviewEmissionLog(
   logId: string,
+  orgId: string,
   decision: ReviewDecision,
   reviewerUserId: string,
-  reason?: string | null
-): Promise<void> {
+  reason?: string | null,
+): Promise<ReviewOutcome> {
   const db = createServiceClient();
+
+  // Load by id first so we can disambiguate not-found vs wrong-org vs
+  // already-locked, and so we don't write when nothing should happen.
+  const { data: existing } = await db
+    .from("EmissionLogs")
+    .select("id, org_id, status")
+    .eq("id", logId)
+    .maybeSingle();
+
+  if (!existing) return { ok: false, reason: "not_found" };
+  if (existing.org_id !== orgId) return { ok: false, reason: "wrong_org" };
+  if (existing.status === "Published" || existing.status === "Exported") {
+    return { ok: false, reason: "locked" };
+  }
+
+  const alreadyVerified =
+    existing.status === "Verified" && decision === "Verified";
+
   const { error } = await db
     .from("EmissionLogs")
     .update({
@@ -247,8 +291,11 @@ export async function reviewEmissionLog(
       reviewed_at: new Date().toISOString(),
       review_reason: reason ?? null,
     })
-    .eq("id", logId);
+    .eq("id", logId)
+    .eq("org_id", orgId);
   if (error) throw new Error(error.message);
+
+  return { ok: true, alreadyVerified };
 }
 
 export async function getPendingEmissionLogs(orgId: string) {
