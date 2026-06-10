@@ -213,8 +213,43 @@ export async function createMyTargetAction(
     if (!input.name?.trim() || !input.start_date || !input.end_date) {
       return { data: null, error: MSG.REQUIRED_FIELD };
     }
-    if (new Date(input.end_date) <= new Date(input.start_date)) {
+    const start = new Date(input.start_date);
+    const end = new Date(input.end_date);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return { data: null, error: MSG.INVALID_FORMAT };
+    }
+    if (end <= start) {
       return { data: null, error: MSG.DATE_RANGE };
+    }
+    // A target whose `end_date` already lies in the past is unmeetable
+    // by construction — the user can't change historical emissions. We
+    // accept "today" but reject any earlier date. Using midnight UTC of
+    // today as the floor so a near-midnight user in VN doesn't get
+    // blocked from picking the current calendar day.
+    const todayFloor = new Date();
+    todayFloor.setUTCHours(0, 0, 0, 0);
+    if (end < todayFloor) {
+      return { data: null, error: "TARGET_END_DATE_IN_PAST" };
+    }
+    // Cap the active window at 10 years — anything longer is almost
+    // certainly a typo (e.g. 2032 instead of 2026) and silently
+    // accepting it would let bad input poison the progress UI for
+    // years.
+    const MAX_WINDOW_MS = 10 * 365 * 86_400_000;
+    if (end.getTime() - start.getTime() > MAX_WINDOW_MS) {
+      return { data: null, error: "TARGET_WINDOW_TOO_LONG" };
+    }
+    // Baseline / target must be non-negative; target should not
+    // exceed baseline (otherwise the target row describes growth, not
+    // reduction — UC-15 is explicitly about reduction goals).
+    if (!Number.isFinite(input.baseline_co2e) || input.baseline_co2e < 0) {
+      return { data: null, error: MSG.INVALID_FORMAT };
+    }
+    if (!Number.isFinite(input.target_co2e) || input.target_co2e < 0) {
+      return { data: null, error: MSG.INVALID_FORMAT };
+    }
+    if (input.target_co2e > input.baseline_co2e) {
+      return { data: null, error: "INVALID_TARGET_GTE_BASELINE" };
     }
     const data = await createPersonalTarget(ctx.userId, input);
     await writeAuditLog({

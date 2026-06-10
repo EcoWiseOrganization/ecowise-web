@@ -49,7 +49,7 @@
 
 ### Round 7 — Medium severity batch C (in progress) · `main`
 - [x] M-C1 personal-log co2e server-recompute (anti-cheat)
-- [ ] M-C2 target end_date past validation
+- [x] M-C2 target end_date past validation
 - [ ] M-C3 legal_name change resets verification
 - [ ] M-C4 public-form attendee_email server validation
 - [ ] M-C5 honeypot triggers rate-limit counter
