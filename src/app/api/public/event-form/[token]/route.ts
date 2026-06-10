@@ -7,6 +7,7 @@ import {
   type PublicFormSubmission,
 } from "@/lib/event-form";
 import { writeAuditLog } from "@/services/audit.service";
+import { readJsonBodyWithLimit } from "@/lib/json-body";
 import { MSG } from "@/lib/messages";
 
 interface ContextParams {
@@ -15,6 +16,10 @@ interface ContextParams {
 
 const RATE_WINDOW_SEC = 60 * 60; // 1 hour
 const RATE_MAX_PER_IP = 10;
+// Public event-form submissions are small structured JSON (transport
+// mode, distance, diet, etc.) — anything beyond a few KB is hostile or
+// broken.
+const MAX_BODY_BYTES = 16 * 1024;
 
 function ipFrom(req: Request): string | null {
   return (
@@ -110,11 +115,19 @@ export async function POST(req: Request, { params }: ContextParams) {
     );
   }
 
-  // 3. Parse body + validate
-  const raw = await req.json().catch(() => null);
-  if (!raw || typeof raw !== "object") {
+  // 3. Parse body + validate (with explicit size cap)
+  const parsed = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!parsed.ok) {
+    if (parsed.reason === "tooLarge") {
+      return NextResponse.json({ error: "BODY_TOO_LARGE" }, { status: 413 });
+    }
     return NextResponse.json({ error: MSG.INVALID_FORMAT }, { status: 400 });
   }
+  if (!parsed.data || typeof parsed.data !== "object") {
+    return NextResponse.json({ error: MSG.INVALID_FORMAT }, { status: 400 });
+  }
+  const raw = parsed.data as Record<string, unknown>;
+
   // Honeypot
   if (typeof raw.website === "string" && raw.website.trim().length > 0) {
     // Pretend success to keep bots in the dark.
@@ -123,10 +136,10 @@ export async function POST(req: Request, { params }: ContextParams) {
 
   const submission: PublicFormSubmission = {
     attendee_email: typeof raw.attendee_email === "string" ? raw.attendee_email.trim() : undefined,
-    transport_mode: raw.transport_mode,
+    transport_mode: raw.transport_mode as PublicFormSubmission["transport_mode"],
     distance_km: Number(raw.distance_km),
     round_trip: Boolean(raw.round_trip),
-    diet: raw.diet,
+    diet: raw.diet as PublicFormSubmission["diet"],
     meals_count: Number(raw.meals_count ?? 0),
     hotel_nights: raw.hotel_nights !== undefined ? Number(raw.hotel_nights) : undefined,
   };

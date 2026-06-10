@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { createServiceClient } from "@/lib/supabase/service";
 import { consumeContactRateLimit } from "@/lib/rate-limit";
+import { readJsonBodyWithLimit } from "@/lib/json-body";
 import { isEmail, isHoneypotClean, trimToMax } from "@/lib/validators";
 import { writeAuditLog } from "@/services/audit.service";
 import { MSG } from "@/lib/messages";
+
+// 16 KB body cap — even with a generous 5 KB message + name/email/subject
+// we stay well under. Stops a hostile client from tying up runtime
+// memory with multi-MB JSON.
+const MAX_BODY_BYTES = 16 * 1024;
 
 /**
  * POST /api/public/contact
@@ -17,16 +23,26 @@ import { MSG } from "@/lib/messages";
  * - Best-effort email notification to GMAIL_USER.
  */
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object") {
+  const parsed = await readJsonBodyWithLimit(request, MAX_BODY_BYTES);
+  if (!parsed.ok) {
+    if (parsed.reason === "tooLarge") {
+      return NextResponse.json(
+        { error: "BODY_TOO_LARGE" },
+        { status: 413 },
+      );
+    }
     return NextResponse.json({ error: MSG.INVALID_FORMAT }, { status: 400 });
   }
+  if (!parsed.data || typeof parsed.data !== "object") {
+    return NextResponse.json({ error: MSG.INVALID_FORMAT }, { status: 400 });
+  }
+  const body = parsed.data as Record<string, unknown>;
 
   const name = trimToMax(String(body.name ?? ""), 200);
   const email = trimToMax(String(body.email ?? ""), 320);
   const subject = trimToMax(String(body.subject ?? ""), 200);
   const message = trimToMax(String(body.message ?? ""), 5000);
-  const honeypot = body.website;
+  const honeypot = typeof body.website === "string" ? body.website : null;
 
   if (!name || !email || !message) {
     return NextResponse.json({ error: MSG.REQUIRED_FIELD }, { status: 400 });
