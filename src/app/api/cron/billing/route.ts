@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runLifecycleTick } from "@/services/subscription-lifecycle.service";
+import { createServiceClient } from "@/lib/supabase/service";
 import { timingSafeEqual } from "crypto";
 
 /**
@@ -68,7 +69,35 @@ export async function POST(req: Request) {
   const report = await runLifecycleTick(
     renewalOutcome ? { renewalOutcome } : {},
   );
-  return NextResponse.json({ ok: true, report });
+
+  // Sweep the rate-limit tables (migration 029) on every tick. They
+  // accumulate one row per request and never had a cleanup path —
+  // running the purge alongside the lifecycle work piggybacks on the
+  // existing Vercel cron without spinning up another schedule. Errors
+  // are logged but never fail the tick; the billing work is the load-
+  // bearing part of this endpoint.
+  let purgedRateLimits:
+    | {
+        contact_deleted: number;
+        event_form_deleted: number;
+        auth_deleted: number;
+      }
+    | null = null;
+  try {
+    const db = createServiceClient();
+    const { data, error } = await db.rpc("purge_expired_rate_limits", {
+      p_window_hours: 24,
+    });
+    if (error) {
+      console.warn("[cron/billing] purge_expired_rate_limits failed", error);
+    } else if (Array.isArray(data) && data.length > 0) {
+      purgedRateLimits = data[0] as typeof purgedRateLimits;
+    }
+  } catch (err) {
+    console.warn("[cron/billing] purge_expired_rate_limits threw", err);
+  }
+
+  return NextResponse.json({ ok: true, report, purgedRateLimits });
 }
 
 // Vercel cron historically sent GET; modern cron uses POST. We keep GET only
