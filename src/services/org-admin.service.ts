@@ -27,11 +27,19 @@ export async function getOrgMetricsSummary(
     : `${new Date().getFullYear()}-01-01`;
   const yearEnd = year ? `${year}-12-31` : `${new Date().getFullYear()}-12-31`;
 
+  // Only Verified / Published / Exported logs count toward the KPI.
+  // The original query summed every row regardless of review state, so a
+  // pile of Rejected drafts inflated the totalEmissionsKg the overview
+  // card shows next to "Total carbon emissions". `pendingReviews` is
+  // counted separately below from the Pending/Review buckets.
+  const COUNTABLE_LOG_STATUSES = ["Verified", "Published", "Exported"];
+
   const [logs, members, events, pending] = await Promise.all([
     db
       .from("EmissionLogs")
       .select("scope, co2e_result")
       .eq("org_id", orgId)
+      .in("status", COUNTABLE_LOG_STATUSES)
       .gte("reporting_date", yearStart)
       .lte("reporting_date", yearEnd),
     db
