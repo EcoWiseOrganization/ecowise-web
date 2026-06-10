@@ -15,10 +15,10 @@ export function Scope3Composition() {
   const { title, subtitle, methodology, categories, footer } = SCOPE3_COMPOSITION;
 
   return (
-    <div className="p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-8">
+    <div className="p-4 sm:p-6 lg:p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6 lg:gap-8 min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col min-w-0">
           <h2 className="text-[#145A03] text-lg font-extrabold leading-7">
             {title}
           </h2>
@@ -26,7 +26,7 @@ export function Scope3Composition() {
             {subtitle}
           </p>
         </div>
-        <span className="px-3 py-1 bg-[#B8D6B0] rounded-lg border border-[#E2E8F0] text-[#7AB669] text-xs font-bold leading-4">
+        <span className="self-start sm:self-auto shrink-0 px-3 py-1 bg-[#B8D6B0] rounded-lg border border-[#E2E8F0] text-[#7AB669] text-xs font-bold leading-4">
           {methodology}
         </span>
       </div>
@@ -38,19 +38,19 @@ export function Scope3Composition() {
           return (
             <div key={cat.label} className="flex flex-col gap-2">
               {/* Label Row */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Icon sx={{ fontSize: 20, color: "#6E726E" }} />
-                  <span className="text-[#145A03] text-sm font-bold leading-5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon sx={{ fontSize: 20, color: "#6E726E" }} className="shrink-0" />
+                  <span className="text-[#145A03] text-sm font-bold leading-5 truncate">
                     {cat.label}
                   </span>
                   {cat.badge && (
-                    <span className="px-1.5 py-0.5 bg-[#FEF3C7] rounded text-[#D97706] text-[9px] font-extrabold leading-[13.5px]">
+                    <span className="shrink-0 px-1.5 py-0.5 bg-[#FEF3C7] rounded text-[#D97706] text-[9px] font-extrabold leading-[13.5px]">
                       {cat.badge.text}
                     </span>
                   )}
                 </div>
-                <div className="flex items-baseline">
+                <div className="flex items-baseline shrink-0">
                   <span className="text-[#145A03] text-sm font-extrabold leading-5">
                     {cat.value}{" "}
                   </span>
@@ -105,9 +105,9 @@ export function Scope3Composition() {
       </div>
 
       {/* Footer Stats */}
-      <div className="pt-6 border-t border-[#B8D6B0] flex items-start gap-4">
+      <div className="pt-6 border-t border-[#B8D6B0] grid grid-cols-2 sm:flex sm:items-start gap-4">
         {footer.map(({ label, value, color }) => (
-          <div key={label} className="flex-1 flex flex-col">
+          <div key={label} className="sm:flex-1 min-w-0 flex flex-col">
             <span className="text-[#6E726E] text-[10px] font-bold uppercase leading-[15px]">
               {label}
             </span>

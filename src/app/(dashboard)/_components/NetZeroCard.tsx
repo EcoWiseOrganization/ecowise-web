@@ -6,7 +6,7 @@ export function NetZeroCard() {
     NET_ZERO;
 
   return (
-    <div className="p-8 bg-[#79B669] rounded-3xl border border-[#B8D6B0] flex flex-col gap-8">
+    <div className="p-4 sm:p-6 lg:p-8 bg-[#79B669] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6 lg:gap-8 min-w-0">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 bg-[#155A03] rounded-full flex items-center justify-center">
@@ -55,11 +55,11 @@ export function NetZeroCard() {
         </div>
 
         {/* Stat Cards */}
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {stats.map(({ label, value }) => (
             <div
               key={label}
-              className="flex-1 p-4 bg-white/80 rounded-2xl flex flex-col gap-1"
+              className="min-w-0 p-3 sm:p-4 bg-white/80 rounded-2xl flex flex-col gap-1"
             >
               <span className="text-[#3B3D3B] text-[10px] font-bold uppercase leading-[15px]">
                 {label}

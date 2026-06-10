@@ -3,12 +3,12 @@ import { COMPLIANCE } from "../_data/mock";
 
 export function ReportingCompliance() {
   return (
-    <div className="p-6 bg-[#DAEDD5] rounded-3xl border border-[#79B669]">
-      <div className="flex items-start gap-4">
-        <div className="pt-1">
+    <div className="p-4 sm:p-6 bg-[#DAEDD5] rounded-3xl border border-[#79B669] min-w-0">
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className="pt-1 shrink-0">
           <DescriptionIcon sx={{ fontSize: 18, color: "#155A03" }} />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-0">
           <span className="text-[#145A03] text-sm font-bold leading-5">
             {COMPLIANCE.title}
           </span>

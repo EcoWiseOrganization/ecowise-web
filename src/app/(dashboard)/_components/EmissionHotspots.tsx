@@ -4,10 +4,10 @@ export function EmissionHotspots() {
   const { title, subtitle, categories, legend } = EMISSION_HOTSPOTS;
 
   return (
-    <div className="p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-8">
+    <div className="p-4 sm:p-6 lg:p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6 lg:gap-8 min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col min-w-0">
           <h2 className="text-[#145A03] text-lg font-extrabold leading-7">
             {title}
           </h2>
@@ -15,11 +15,11 @@ export function EmissionHotspots() {
             {subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           {legend.map(({ label, color }) => (
             <div key={label} className="flex items-center gap-2">
               <div
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: color }}
               />
               <span className="text-[#7AB669] text-xs font-bold leading-4">
