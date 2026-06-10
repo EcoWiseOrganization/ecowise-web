@@ -101,6 +101,7 @@ async function main() {
     "supabase/migrations/029_rate_limit_cleanup.sql",
     "supabase/migrations/030_medium_batch_b.sql",
     "supabase/migrations/031_data_integrity_constraints.sql",
+    "supabase/migrations/032_emission_factor_source_freeform.sql",
   ];
 
   const client = new Client({ connectionString: url });

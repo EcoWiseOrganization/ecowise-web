@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useId } from "react";
 import ScienceIcon from "@mui/icons-material/Science";
 import { useTranslation } from "react-i18next";
 import type {
@@ -9,8 +9,7 @@ import type {
   CreateEmissionFactorInput,
   EFSource,
 } from "@/types/sustainability";
-
-const EF_SOURCES: EFSource[] = ["MONRE_VN", "IPCC", "DEFRA", "EPA", "Climatiq", "Custom"];
+import { KNOWN_EF_SOURCES } from "@/types/sustainability";
 
 const GWP_CH4 = 27.9;  // IPCC AR6 GWP100
 const GWP_N2O = 273;   // IPCC AR6 GWP100
@@ -22,6 +21,13 @@ const inputCls =
 
 interface EFModalProps {
   categories: EmissionCategory[];
+  /**
+   * All currently-loaded factors. The modal mines them for already-used
+   * source labels and merges them with KNOWN_EF_SOURCES as combobox
+   * suggestions, so the "Custom" source the admin just invented in row
+   * #12 is one click away when filling row #13.
+   */
+  existingFactors: EmissionFactorWithCategory[];
   editTarget: EmissionFactorWithCategory | null;
   loading: boolean;
   onSubmit: (input: CreateEmissionFactorInput) => void;
@@ -54,11 +60,23 @@ const EMPTY_FORM: FormState = {
   notes: "",
 };
 
-export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }: EFModalProps) {
+export function EFModal({ categories, existingFactors, editTarget, loading, onSubmit, onCancel }: EFModalProps) {
   const { t } = useTranslation();
+  const sourceListId = useId();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [autoCalc, setAutoCalc] = useState(true);
+
+  // Combobox suggestions = known sources ∪ sources already in use,
+  // de-duplicated and sorted for a stable list.
+  const sourceSuggestions = useMemo(() => {
+    const set = new Set<string>(KNOWN_EF_SOURCES);
+    for (const f of existingFactors) {
+      const s = f.source_reference?.trim();
+      if (s) set.add(s);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [existingFactors]);
 
   // Pre-fill when editing
   useEffect(() => {
@@ -118,7 +136,7 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
       ch4_value:        parseFloat(form.ch4_value) || 0,
       n2o_value:        parseFloat(form.n2o_value) || 0,
       co2e_total:       parseFloat(form.co2e_total),
-      source_reference: form.source_reference,
+      source_reference: form.source_reference.trim() || "Custom",
       year_valid:       form.year_valid ? parseInt(form.year_valid) : null,
       notes:            form.notes.trim() || null,
     };
@@ -257,11 +275,21 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-[#141514] text-sm font-medium">{t("admin.ef.modal.source")}</label>
-              <select value={form.source_reference} onChange={set("source_reference")} className={`${inputCls} cursor-pointer appearance-none`}>
-                {EF_SOURCES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+              <input
+                type="text"
+                list={sourceListId}
+                value={form.source_reference}
+                onChange={set("source_reference")}
+                placeholder="MONRE_VN"
+                className={inputCls}
+                maxLength={100}
+                autoComplete="off"
+              />
+              <datalist id={sourceListId}>
+                {sourceSuggestions.map((s) => (
+                  <option key={s} value={s} />
                 ))}
-              </select>
+              </datalist>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[#141514] text-sm font-medium">{t("admin.ef.modal.yearValid")}</label>
