@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { reviewEmissionLogAction } from "@/app/actions/org-admin.actions";
+import { Modal } from "@/components/ui/Modal";
 
 interface PendingLog {
   id: string;
@@ -177,79 +178,74 @@ export function ReviewQueue({
         </div>
       )}
 
-      {rejectingId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setRejectingId(null);
-          }}
-        >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-[#155A03] text-base font-semibold">
-              {t("org.review.rejectTitle")}
-            </h3>
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              rows={3}
-              maxLength={500}
-              placeholder={t("org.review.reasonPlaceholder")}
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm resize-none"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setRejectingId(null);
-                  setRejectReason("");
-                }}
-                className="px-4 py-2 text-sm rounded-lg border border-[#E5E7EB]"
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => reject(rejectingId)}
-                disabled={pending}
-                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                {t("org.review.reject")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Full-size evidence preview modal — opens when an admin clicks
-        * the inline thumbnail. ESC / backdrop click closes. */}
-      {previewUrl && (
-        <div
-          onClick={() => setPreviewUrl(null)}
-          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-4 relative"
+      <Modal
+        open={rejectingId !== null}
+        onClose={() => {
+          setRejectingId(null);
+          setRejectReason("");
+        }}
+        ariaLabel={t("org.review.rejectTitle")}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 outline-none"
+      >
+        <h3 className="text-[#155A03] text-base font-semibold">
+          {t("org.review.rejectTitle")}
+        </h3>
+        <textarea
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          rows={3}
+          maxLength={500}
+          placeholder={t("org.review.reasonPlaceholder")}
+          className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm resize-none"
+        />
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setRejectingId(null);
+              setRejectReason("");
+            }}
+            className="px-4 py-2 text-sm rounded-lg border border-[#E5E7EB]"
           >
-            <button
-              type="button"
-              onClick={() => setPreviewUrl(null)}
-              className="absolute top-2 right-2 px-3 py-1 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
-              aria-label={t("common.close", { defaultValue: "Close" })}
-            >
-              ✕
-            </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewUrl}
-              alt={t("org.review.viewEvidence")}
-              className="max-w-full h-auto rounded-lg"
-            />
-          </div>
+            {t("common.cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={() => rejectingId && reject(rejectingId)}
+            disabled={pending}
+            className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {t("org.review.reject")}
+          </button>
         </div>
-      )}
+      </Modal>
+
+      {/* Full-size evidence preview — adopts the shared <Modal>
+        * primitive (focus trap, Esc, role="dialog", aria-label,
+        * focus restoration on close). */}
+      <Modal
+        open={previewUrl !== null}
+        onClose={() => setPreviewUrl(null)}
+        ariaLabel={t("org.review.viewEvidence")}
+        className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-4 relative outline-none"
+      >
+        <button
+          type="button"
+          onClick={() => setPreviewUrl(null)}
+          className="absolute top-2 right-2 px-3 py-1 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+          aria-label={t("common.close", { defaultValue: "Close" })}
+        >
+          ✕
+        </button>
+        {previewUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt={t("org.review.viewEvidence")}
+            className="max-w-full h-auto rounded-lg"
+          />
+        )}
+      </Modal>
     </div>
   );
 }
