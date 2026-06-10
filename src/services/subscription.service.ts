@@ -5,7 +5,7 @@
  */
 
 import "server-only";
-import { createServiceClient } from "@/lib/supabase/service";
+import { createServiceClient, setAuditActor } from "@/lib/supabase/service";
 import {
   buildMockQrPayload,
   generateInvoiceNumber,
@@ -54,6 +54,9 @@ export async function createPlan(
   userId: string
 ): Promise<SubscriptionPlan> {
   const db = createServiceClient();
+  // Attach the admin's user id so the generic audit trigger lands a
+  // proper actor instead of NULL (migration 027 / BR-16).
+  await setAuditActor(db, userId);
   const { data, error } = await db
     .from("SubscriptionPlans")
     .insert({
@@ -77,9 +80,11 @@ export async function createPlan(
 
 export async function updatePlan(
   id: string,
-  input: Partial<UpsertSubscriptionPlanInput>
+  input: Partial<UpsertSubscriptionPlanInput>,
+  actorUserId?: string,
 ): Promise<SubscriptionPlan> {
   const db = createServiceClient();
+  await setAuditActor(db, actorUserId);
   const { data, error } = await db
     .from("SubscriptionPlans")
     .update({
@@ -100,8 +105,12 @@ export async function updatePlan(
   return data as SubscriptionPlan;
 }
 
-export async function archivePlan(id: string): Promise<void> {
+export async function archivePlan(
+  id: string,
+  actorUserId?: string,
+): Promise<void> {
   const db = createServiceClient();
+  await setAuditActor(db, actorUserId);
   await db.from("SubscriptionPlans").update({ status: "Inactive" }).eq("id", id);
 }
 

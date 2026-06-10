@@ -82,8 +82,8 @@ export async function updatePlanAction(
   input: Partial<UpsertSubscriptionPlanInput>
 ): Promise<{ data: SubscriptionPlan | null; error: string | null }> {
   try {
-    await requireSystemAdmin();
-    const data = await updatePlan(id, input);
+    const ctx = await requireSystemAdmin();
+    const data = await updatePlan(id, input, ctx.userId);
     revalidatePath("/admin/subscriptions");
     return { data, error: null };
   } catch (err) {
@@ -96,8 +96,8 @@ export async function archivePlanAction(
   id: string
 ): Promise<{ ok: boolean; error: string | null }> {
   try {
-    await requireSystemAdmin();
-    await archivePlanSvc(id);
+    const ctx = await requireSystemAdmin();
+    await archivePlanSvc(id, ctx.userId);
     revalidatePath("/admin/subscriptions");
     return { ok: true, error: null };
   } catch (err) {
