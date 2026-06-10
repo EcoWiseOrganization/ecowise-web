@@ -293,9 +293,13 @@ export async function awardPointsForVerifiedLog(opts: {
 
 export async function listRewards(): Promise<Reward[]> {
   const db = createServiceClient();
+  // Hide rewards explicitly marked Inactive — they're still reachable
+  // by id for historical Redemption lookups, but shouldn't appear in
+  // the user-facing catalog. Active + LowStock both surface.
   const { data, error } = await db
     .from("Rewards")
     .select("*")
+    .neq("status", "Inactive")
     .order("points_cost", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as Reward[];
