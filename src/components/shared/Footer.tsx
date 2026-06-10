@@ -88,10 +88,10 @@ export function Footer() {
               </Link>
               <Link
                 href={`mailto:${EMAIL}`}
-                className="flex items-center gap-2.5 text-[#79B669] text-sm sm:text-base font-normal no-underline hover:text-[#1F8505] transition-colors"
+                className="flex items-center gap-2.5 text-[#79B669] text-sm font-normal no-underline hover:text-[#1F8505] transition-colors"
               >
-                <EmailIcon sx={{ fontSize: 20 }} />
-                <span className="break-all">{EMAIL}</span>
+                <EmailIcon sx={{ fontSize: 20 }} className="shrink-0" />
+                <span className="whitespace-nowrap">{EMAIL}</span>
               </Link>
             </div>
           </div>
