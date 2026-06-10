@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
 import { EyeSlashIcon } from "@/app/(auth)/_components/EyeSlashIcon";
 import { useResetPassword } from "@/hooks/useResetPassword";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const {
     password, setPassword,
     confirmPassword, setConfirmPassword,
@@ -113,5 +114,13 @@ export default function ResetPasswordPage() {
         {loading ? "Resetting..." : "Reset Password"}
       </button>
     </AuthLayout>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

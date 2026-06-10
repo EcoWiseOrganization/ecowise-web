@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { OtpInput } from "@/app/(auth)/_components/OtpInput";
 import { EyeIcon } from "@/app/(auth)/_components/EyeIcon";
@@ -28,7 +29,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 500,
 };
 
-export default function VerifyPage() {
+function VerifyForm() {
   const {
     otp,
     setOtp,
@@ -145,5 +146,13 @@ export default function VerifyPage() {
         </button>
       </div>
     </AuthLayout>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense>
+      <VerifyForm />
+    </Suspense>
   );
 }
