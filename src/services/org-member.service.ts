@@ -36,6 +36,11 @@ export async function wouldLeaveOrgWithoutAdmin(
 
   if (!target) return false;
   if (target.role_id !== ROLE_ADMIN_ID) return false;
+  // A Pending (or Inactive) admin row isn't providing coverage today, so
+  // removing it can't possibly leave the org without an active admin —
+  // the previous version blocked this case unnecessarily and made
+  // admins unable to revoke an unaccepted invite for an admin role.
+  if (target.status !== "Active") return false;
 
   const { count } = await db
     .from("OrganizationMembers")
