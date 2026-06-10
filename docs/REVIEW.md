@@ -57,7 +57,7 @@
 - [x] M-C7 recommendations matcher coverage — `cfda36e`
 - [x] M-C8 vercel.json security headers — `0b9018b`
 - [x] M-C9 Inter font display:swap — `84cb8ca`
-- [x] M-C10 lib/utils.ts removal + ocr/parser dead vars
+- [x] M-C10 lib/utils.ts removal + ocr/parser dead vars — `c7d1eb6`
 
 ### Round 6 — Medium severity batch B (10/10 DONE, single bundled commit) · `main`
 - M-B1 layout uses `countPendingReviews()` head-only count instead of full metrics summary
