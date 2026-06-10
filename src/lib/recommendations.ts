@@ -25,6 +25,113 @@ export interface Recommendation {
 }
 
 /**
+ * Category→recommendation matcher table. Each entry pairs a list of
+ * lowercase substring aliases (EN + VI) with the recommendation
+ * template + an empirical savings ratio. Order matters: the first
+ * matching alias wins — put more specific aliases above generic ones
+ * (e.g. "refrigerant" before "supply").
+ *
+ * Aliases cover the seeded EmissionCategories from migrations 002
+ * (Electricity, Business Travel, Fuel Combustion, Supply Chain
+ * Spend) plus reasonable future expansions an Org Admin might add
+ * under Phase 11 (Waste, Water, Heat, Refrigerants, Food / Diet).
+ * Anything still unmatched falls through to the general bucket so
+ * recommendations are at least present for every top category.
+ */
+interface MatcherRule {
+  id: string;
+  aliases: string[];
+  titleKey: string;
+  bodyKey: string;
+  savingFraction: number;
+}
+
+const MATCHERS: MatcherRule[] = [
+  {
+    id: "electric",
+    aliases: ["electric", "electricity", "grid", "điện"],
+    titleKey: "reco.electric.title",
+    bodyKey: "reco.electric.body",
+    savingFraction: 0.2,
+  },
+  {
+    id: "travel",
+    aliases: [
+      "travel",
+      "transport",
+      "commute",
+      "flight",
+      "vehicle",
+      "di chuyển",
+      "chuyến bay",
+      "đi lại",
+    ],
+    titleKey: "reco.travel.title",
+    bodyKey: "reco.travel.body",
+    savingFraction: 0.3,
+  },
+  {
+    id: "fuel",
+    aliases: ["fuel", "combustion", "gasoline", "petrol", "diesel", "nhiên liệu", "xăng dầu"],
+    titleKey: "reco.fuel.title",
+    bodyKey: "reco.fuel.body",
+    savingFraction: 0.15,
+  },
+  {
+    id: "diet",
+    aliases: ["food", "diet", "meal", "meat", "ăn", "thực phẩm", "bữa ăn"],
+    titleKey: "reco.diet.title",
+    bodyKey: "reco.diet.body",
+    savingFraction: 0.25,
+  },
+  // "refrigerant" before "supply" so a category named "Refrigerant
+  // Supply" matches the more specific rule.
+  {
+    id: "refrigerant",
+    aliases: ["refrigerant", "hfc", "leak", "môi chất"],
+    titleKey: "reco.refrigerant.title",
+    bodyKey: "reco.refrigerant.body",
+    savingFraction: 0.2,
+  },
+  {
+    id: "waste",
+    aliases: ["waste", "landfill", "trash", "rác", "chất thải"],
+    titleKey: "reco.waste.title",
+    bodyKey: "reco.waste.body",
+    savingFraction: 0.15,
+  },
+  {
+    id: "water",
+    aliases: ["water", "wastewater", "nước"],
+    titleKey: "reco.water.title",
+    bodyKey: "reco.water.body",
+    savingFraction: 0.1,
+  },
+  {
+    id: "heat",
+    aliases: ["heat", "steam", "boiler", "natural gas", "nhiệt", "gas"],
+    titleKey: "reco.heat.title",
+    bodyKey: "reco.heat.body",
+    savingFraction: 0.15,
+  },
+  {
+    id: "supply",
+    aliases: ["supply", "procurement", "spend", "vendor", "chuỗi cung", "mua sắm"],
+    titleKey: "reco.supply.title",
+    bodyKey: "reco.supply.body",
+    savingFraction: 0.1,
+  },
+];
+
+function findMatcher(categoryName: string): MatcherRule | null {
+  const lower = categoryName.toLowerCase();
+  for (const rule of MATCHERS) {
+    if (rule.aliases.some((alias) => lower.includes(alias))) return rule;
+  }
+  return null;
+}
+
+/**
  * Heuristics: top 3 emission-bearing categories generate one or two tailored
  * suggestions each. If no logs exist, return a single onboarding tip.
  */
@@ -48,58 +155,23 @@ export function buildRecommendations(
     .sort((a, b) => b.co2eKg - a.co2eKg)
     .slice(0, 3);
 
-  const result: Recommendation[] = [];
-  for (const c of top) {
-    const lower = c.name.toLowerCase();
-    if (lower.includes("electric") || lower.includes("điện")) {
-      result.push({
-        id: `electric-${c.name}`,
+  return top.map((c) => {
+    const matched = findMatcher(c.name);
+    if (matched) {
+      return {
+        id: `${matched.id}-${c.name}`,
         category: c.name,
-        titleKey: "reco.electric.title",
-        bodyKey: "reco.electric.body",
-        estimatedSavingKg: c.co2eKg * 0.2,
-      });
-    } else if (
-      lower.includes("travel") ||
-      lower.includes("transport") ||
-      lower.includes("di chuyển")
-    ) {
-      result.push({
-        id: `travel-${c.name}`,
-        category: c.name,
-        titleKey: "reco.travel.title",
-        bodyKey: "reco.travel.body",
-        estimatedSavingKg: c.co2eKg * 0.3,
-      });
-    } else if (lower.includes("fuel") || lower.includes("nhiên liệu")) {
-      result.push({
-        id: `fuel-${c.name}`,
-        category: c.name,
-        titleKey: "reco.fuel.title",
-        bodyKey: "reco.fuel.body",
-        estimatedSavingKg: c.co2eKg * 0.15,
-      });
-    } else if (
-      lower.includes("food") ||
-      lower.includes("diet") ||
-      lower.includes("ăn")
-    ) {
-      result.push({
-        id: `diet-${c.name}`,
-        category: c.name,
-        titleKey: "reco.diet.title",
-        bodyKey: "reco.diet.body",
-        estimatedSavingKg: c.co2eKg * 0.25,
-      });
-    } else {
-      result.push({
-        id: `general-${c.name}`,
-        category: c.name,
-        titleKey: "reco.general.title",
-        bodyKey: "reco.general.body",
-        estimatedSavingKg: c.co2eKg * 0.1,
-      });
+        titleKey: matched.titleKey,
+        bodyKey: matched.bodyKey,
+        estimatedSavingKg: c.co2eKg * matched.savingFraction,
+      };
     }
-  }
-  return result;
+    return {
+      id: `general-${c.name}`,
+      category: c.name,
+      titleKey: "reco.general.title",
+      bodyKey: "reco.general.body",
+      estimatedSavingKg: c.co2eKg * 0.1,
+    };
+  });
 }

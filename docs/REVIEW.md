@@ -54,7 +54,7 @@
 - [x] M-C4 public-form attendee_email server validation
 - [x] M-C5 honeypot triggers rate-limit counter
 - [x] M-C6 EventPublicSubmissions IP hashing
-- [ ] M-C7 recommendations matcher coverage
+- [x] M-C7 recommendations matcher coverage
 - [ ] M-C8 vercel.json security headers
 - [ ] M-C9 Inter font display:swap
 - [ ] M-C10 lib/utils.ts removal + ocr/parser dead vars
