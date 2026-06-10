@@ -4,14 +4,19 @@ interface AuthImageProps {
   src: string;
   alt: string;
   /**
-   * Retained for backwards compatibility with existing callers — the
-   * brand logo is now always anchored to the bottom-center of the
-   * image, so this prop has no effect.
+   * Where to anchor the EcoWise logo on the image. "top-*" pins to
+   * top-center, "bottom-*" pins to bottom-center — historically the
+   * `-right` suffix encoded the original corner anchor; we now ignore
+   * the horizontal half and always center the logo.
    */
   logoPosition?: "top-right" | "bottom-right";
 }
 
-export function AuthImage({ src, alt }: AuthImageProps) {
+export function AuthImage({ src, alt, logoPosition = "bottom-right" }: AuthImageProps) {
+  const verticalAnchor: React.CSSProperties = logoPosition === "top-right"
+    ? { top: 40 }
+    : { bottom: 40 };
+
   return (
     <div className="hidden lg:block animate-fade-slide-in-right" style={{ width: 710, position: "relative", flexShrink: 0 }}>
       <Image
@@ -23,7 +28,7 @@ export function AuthImage({ src, alt }: AuthImageProps) {
         priority
       />
       <Image
-        src="/img/logo.png"
+        src="/img/logo-auth.png"
         alt="EcoWise"
         width={260}
         height={58}
@@ -32,11 +37,11 @@ export function AuthImage({ src, alt }: AuthImageProps) {
           position: "absolute",
           zIndex: 1,
           left: "50%",
-          bottom: 40,
           transform: "translateX(-50%)",
           width: 220,
           height: "auto",
           filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.25))",
+          ...verticalAnchor,
         }}
       />
     </div>
