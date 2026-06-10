@@ -1,60 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import type { EmissionCategory } from "@/types/sustainability";
-import type { EmissionFactorWithCategory } from "@/types/sustainability";
-import type { GhgScope } from "@/types/emission-log.types";
-import { getEmissionCategories, getEmissionFactors } from "@/services/sustainability.service";
+import FunctionsIcon from "@mui/icons-material/Functions";
+import type {
+  CalculationTemplateWithRelations,
+  InputFieldSchema,
+} from "@/types/sustainability";
+import { getCalculationTemplates } from "@/services/sustainability.service";
 import { createEmissionLog, uploadEvidence } from "@/services/emissionLog.service";
-import { useOcrDataExtraction } from "@/hooks/useOcrDataExtraction";
+import { FormulaEngine } from "@/lib/formula-engine";
 import { useToast } from "@/components/ui/Toast";
-
-// ── Constants ───────────────────────────────────────────────────────────────
-
-const SCOPES: GhgScope[] = ["Scope 1", "Scope 2", "Scope 3"];
-
-const UNITS = [
-  "kWh", "MWh", "L", "m³", "kg", "tonne",
-  "km", "pkm", "t·km", "MJ", "GJ", "piece", "USD",
-];
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface FormValues {
-  activity_name: string;
-  scope: GhgScope | "";
-  source_type_id: string;
-  reporting_date: string;
-  quantity: string;
-  unit: string;
-  evidence_file: File | null;
-}
-
 interface FormErrors {
+  template?: string;
   activity_name?: string;
-  scope?: string;
-  source_type_id?: string;
-  reporting_date?: string;
-  quantity?: string;
-  unit?: string;
+  evidence?: string;
+  inputs?: Record<string, string>;
 }
-
-const EMPTY_FORM: FormValues = {
-  activity_name: "",
-  scope: "",
-  source_type_id: "",
-  reporting_date: new Date().toISOString().split("T")[0],
-  quantity: "",
-  unit: "",
-  evidence_file: null,
-};
-
-// ── Props ─────────────────────────────────────────────────────────────────────
 
 interface Props {
   orgId: string;
@@ -68,23 +34,22 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
   const { showToast } = useToast();
 
   // Form state
-  const [values, setValues] = useState<FormValues>(EMPTY_FORM);
+  const [activityName, setActivityName] = useState("");
+  const [templateId, setTemplateId] = useState("");
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Data
-  const [categories, setCategories] = useState<EmissionCategory[]>([]);
-  const [factors, setFactors] = useState<EmissionFactorWithCategory[]>([]);
+  const [templates, setTemplates] = useState<CalculationTemplateWithRelations[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
 
   // Animation
   const [visible, setVisible] = useState(false);
 
   // Refs
-  const ocrInputRef = useRef<HTMLInputElement>(null);
   const evidenceInputRef = useRef<HTMLInputElement>(null);
-
-  // OCR hook
-  const { isExtracting, previewUrl, extractFromImage } = useOcrDataExtraction();
 
   // ── Slide-in animation ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -92,37 +57,70 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // ── Fetch categories ───────────────────────────────────────────────────────
+  // ── Fetch calculation templates on mount ──────────────────────────────────
   useEffect(() => {
-    getEmissionCategories().then(setCategories).catch(console.error);
-  }, []);
-
-  // ── Fetch emission factors when source_type changes ────────────────────────
-  useEffect(() => {
-    if (!values.source_type_id) {
-      setFactors([]);
-      return;
-    }
-    getEmissionFactors(values.source_type_id).then(setFactors).catch(console.error);
-  }, [values.source_type_id]);
+    setLoadingTemplates(true);
+    getCalculationTemplates()
+      .then((data) => setTemplates(data.filter((t) => t.default_ef !== null)))
+      .catch((err) => {
+        console.error(err);
+        showToast("Failed to load formulas.", "error");
+      })
+      .finally(() => setLoadingTemplates(false));
+  }, [showToast]);
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  const filteredCategories = values.scope
-    ? categories.filter((c) => c.scope === values.scope)
-    : categories;
 
-  const qty = parseFloat(values.quantity);
-  const efValue = factors[0]?.co2e_total ?? 0;
-  const co2eKg = !isNaN(qty) && qty > 0 && factors.length > 0 ? qty * Number(efValue) : null;
-  const co2eTonne = co2eKg != null ? co2eKg / 1000 : null;
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === templateId) ?? null,
+    [templates, templateId],
+  );
 
-  // Color coding
-  const impact =
-    co2eTonne == null
+  // Inputs the user must fill = template's input_schema minus EF_TOTAL
+  // (resolved server-side from the linked emission factor).
+  const visibleFields: InputFieldSchema[] = useMemo(() => {
+    if (!selectedTemplate) return [];
+    return selectedTemplate.input_schema.filter(
+      (f) => f.field.toUpperCase() !== "EF_TOTAL",
+    );
+  }, [selectedTemplate]);
+
+  // The first numeric field becomes the persisted `quantity` / `unit`
+  // on the EmissionLog row (the schema requires both NOT NULL). All
+  // other inputs are still fed to the formula for the co2e result.
+  const primaryNumericField = useMemo(
+    () => visibleFields.find((f) => f.type === "number") ?? null,
+    [visibleFields],
+  );
+
+  // Live formula evaluation for the right-hand preview.
+  const evaluation = useMemo(() => {
+    if (!selectedTemplate || !selectedTemplate.default_ef) return null;
+    const scope: Record<string, number> = {
+      EF_TOTAL: Number(selectedTemplate.default_ef.co2e_total) || 0,
+    };
+    for (const f of visibleFields) {
+      const raw = inputValues[f.field];
+      const n = raw === undefined || raw === "" ? NaN : Number(raw);
+      if (!Number.isFinite(n)) return null;
+      scope[f.field] = n;
+    }
+    try {
+      const result = FormulaEngine.evaluate(selectedTemplate.formula_string, scope);
+      if (!Number.isFinite(result) || result < 0) return null;
+      return { kg: result, tonnes: result / 1000 };
+    } catch {
+      return null;
+    }
+  }, [selectedTemplate, visibleFields, inputValues]);
+
+  // Impact-level styling for the live preview card.
+  const impact: "neutral" | "low" | "medium" | "high" =
+    evaluation == null
       ? "neutral"
-      : co2eTonne < 0.1
+      : evaluation.tonnes < 0.1
         ? "low"
-        : co2eTonne < 1
+        : evaluation.tonnes < 1
           ? "medium"
           : "high";
 
@@ -131,68 +129,119 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
     low: { bg: "bg-[#DAEDD5]", border: "border-[#79B669]", text: "text-[#155A03]", label: "Low — Within normal range" },
     medium: { bg: "bg-orange-50", border: "border-orange-300", text: "text-orange-600", label: "Medium — Monitor this activity" },
     high: { bg: "bg-red-50", border: "border-red-300", text: "text-red-600", label: "High — Requires attention" },
-  };
+  } as const;
   const style = impactStyles[impact];
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  function set(field: keyof FormValues) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = e.target.value;
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-      if (field === "scope") {
-        setValues((prev) => ({
-          ...prev,
-          scope: value as GhgScope | "",
-          source_type_id: "",
-        }));
-      } else {
-        setValues((prev) => ({ ...prev, [field]: value }));
+  function handleTemplateChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const id = e.target.value;
+    setTemplateId(id);
+    setErrors((prev) => ({ ...prev, template: undefined, inputs: undefined }));
+    // Pre-fill numeric fields with the schema's default_value (if any).
+    const next: Record<string, string> = {};
+    const t = templates.find((x) => x.id === id);
+    if (t) {
+      for (const f of t.input_schema) {
+        if (f.field.toUpperCase() === "EF_TOTAL") continue;
+        if (f.default_value !== undefined && f.default_value !== null) {
+          next[f.field] = String(f.default_value);
+        }
       }
-    };
+    }
+    setInputValues(next);
+  }
+
+  function handleInputChange(field: string, value: string) {
+    setInputValues((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      if (!prev.inputs) return prev;
+      const { [field]: _drop, ...rest } = prev.inputs;
+      return { ...prev, inputs: Object.keys(rest).length ? rest : undefined };
+    });
+  }
+
+  function handleEvidencePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    if (file && !file.type.startsWith("image/")) {
+      setErrors((prev) => ({ ...prev, evidence: "Evidence must be an image file." }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, evidence: undefined }));
+    setEvidenceFile(file);
   }
 
   function validate(): boolean {
     const errs: FormErrors = {};
-    if (!values.activity_name.trim()) errs.activity_name = "Activity name is required.";
-    if (!values.scope) errs.scope = "Please select a scope.";
-    if (!values.source_type_id) errs.source_type_id = "Please select a source type.";
-    if (!values.reporting_date) errs.reporting_date = "Reporting date is required.";
-    if (!values.quantity) {
-      errs.quantity = "Quantity is required.";
-    } else if (isNaN(parseFloat(values.quantity)) || parseFloat(values.quantity) <= 0) {
-      errs.quantity = "Quantity must be greater than 0.";
+    if (!activityName.trim()) errs.activity_name = "Activity name is required.";
+    if (!selectedTemplate) errs.template = "Please select a formula.";
+    if (!evidenceFile) errs.evidence = "Please attach an image as evidence.";
+
+    if (selectedTemplate) {
+      const fieldErrs: Record<string, string> = {};
+      for (const f of visibleFields) {
+        const raw = inputValues[f.field];
+        const required = f.required !== false;
+        if (raw === undefined || raw === "") {
+          if (required) fieldErrs[f.field] = `${f.label} is required.`;
+          continue;
+        }
+        if (f.type === "number") {
+          const n = Number(raw);
+          if (!Number.isFinite(n)) {
+            fieldErrs[f.field] = `${f.label} must be a number.`;
+          } else if (f.min !== undefined && n < f.min) {
+            fieldErrs[f.field] = `${f.label} must be ≥ ${f.min}.`;
+          } else if (f.max !== undefined && n > f.max) {
+            fieldErrs[f.field] = `${f.label} must be ≤ ${f.max}.`;
+          }
+        }
+      }
+      if (Object.keys(fieldErrs).length) errs.inputs = fieldErrs;
     }
-    if (!values.unit) errs.unit = "Unit is required.";
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  async function handleSubmit(keepOpen = false) {
-    if (!validate()) return;
+  async function handleSubmit(keepOpen: boolean) {
+    if (!validate() || !selectedTemplate || !evidenceFile) return;
     setIsSubmitting(true);
 
-    let evidence_url: string | undefined;
-    if (values.evidence_file) {
-      const { url, error } = await uploadEvidence(values.evidence_file, orgId);
-      if (error) {
-        showToast(`File upload failed: ${error}`, "error");
-        setIsSubmitting(false);
-        return;
-      }
-      evidence_url = url ?? undefined;
+    // 1. Upload evidence image.
+    const upload = await uploadEvidence(evidenceFile, orgId);
+    if (upload.error || !upload.url) {
+      showToast(`File upload failed: ${upload.error}`, "error");
+      setIsSubmitting(false);
+      return;
     }
 
+    // 2. Evaluate the formula one more time at submit time.
+    if (evaluation == null) {
+      showToast("Could not evaluate the formula with the given inputs.", "error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 3. Resolve the persisted quantity/unit pair from the primary input.
+    //    Schema requires both NOT NULL with quantity > 0 — fall back to
+    //    the formula result itself if the template has no numeric field.
+    const quantity = primaryNumericField
+      ? Number(inputValues[primaryNumericField.field])
+      : Math.max(evaluation.kg, 0.0001);
+    const unit = primaryNumericField?.unit ?? selectedTemplate.result_unit;
+
+    // 4. Insert the log row. Date defaults to today (Date.now()).
     const { error } = await createEmissionLog({
       org_id: orgId,
-      activity_name: values.activity_name.trim(),
-      scope: values.scope as GhgScope,
-      source_type_id: values.source_type_id || undefined,
-      reporting_date: values.reporting_date,
-      quantity: parseFloat(values.quantity),
-      unit: values.unit,
-      co2e_result: co2eTonne != null ? co2eTonne : undefined,
-      evidence_url,
+      activity_name: activityName.trim(),
+      scope: selectedTemplate.category.scope,
+      source_type_id: selectedTemplate.category_id,
+      reporting_date: new Date().toISOString().split("T")[0],
+      quantity,
+      unit,
+      co2e_result: evaluation.tonnes,
+      evidence_url: upload.url,
     });
 
     setIsSubmitting(false);
@@ -206,31 +255,24 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
     onSaved();
 
     if (keepOpen) {
-      setValues(EMPTY_FORM);
-      setErrors({});
+      resetForm();
     } else {
       handleClose();
     }
   }
 
+  function resetForm() {
+    setActivityName("");
+    setTemplateId("");
+    setInputValues({});
+    setEvidenceFile(null);
+    setErrors({});
+    if (evidenceInputRef.current) evidenceInputRef.current.value = "";
+  }
+
   function handleClose() {
     setVisible(false);
     setTimeout(onClose, 280);
-  }
-
-  async function handleOcrUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const result = await extractFromImage(file);
-    setValues((prev) => ({
-      ...prev,
-      ...(result.activity_name && !prev.activity_name ? { activity_name: result.activity_name } : {}),
-      ...(result.quantity ? { quantity: String(result.quantity) } : {}),
-      ...(result.unit ? { unit: result.unit } : {}),
-    }));
-    showToast("OCR complete — form fields auto-filled.", "success");
-    // Reset the input so the same file can be re-selected
-    if (ocrInputRef.current) ocrInputRef.current.value = "";
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -258,7 +300,7 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
               Add Emission Entry
             </h2>
             <p className="text-[#AAAAAA] text-sm leading-5">
-              Log a new activity emission record for this organization
+              Pick a calculation formula and fill in its inputs
             </p>
           </div>
           <button
@@ -276,64 +318,18 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
           {/* ════ LEFT: Form ════ */}
           <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5 border-r border-[#DAEDD5]">
 
-            {/* OCR Upload Zone */}
-            <div className="rounded-xl border-2 border-dashed border-[#79B669] bg-[#F7FBF5] p-4">
-              <div className="flex items-center gap-2 mb-1.5">
-                <AutoAwesomeIcon sx={{ fontSize: 18, color: "#1F8505" }} />
-                <span className="text-[#155A03] text-sm font-semibold">
-                  Auto-fill from Invoice / Receipt
-                </span>
-              </div>
-              <p className="text-[#AAAAAA] text-xs leading-4 mb-3">
-                Upload a photo of your electricity bill, fuel receipt, or invoice.
-                Our OCR will automatically extract quantity and unit values.
-              </p>
-              <input
-                ref={ocrInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={handleOcrUpload}
-              />
-              {previewUrl && !isExtracting && (
-                <div className="flex items-center gap-1.5 mb-2 text-xs text-[#155A03] font-medium">
-                  <CheckCircleIcon sx={{ fontSize: 14, color: "#1F8505" }} />
-                  Document processed — fields have been auto-filled
-                </div>
-              )}
-              {isExtracting ? (
-                <div className="flex items-center gap-2 text-[#79B669] text-sm">
-                  <div className="w-4 h-4 border-2 border-[#79B669] border-t-transparent rounded-full animate-spin" />
-                  Analyzing document…
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => ocrInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#155A03] text-white text-xs font-semibold rounded-lg border-none cursor-pointer hover:bg-[#1F8505] transition-colors"
-                >
-                  <CloudUploadIcon sx={{ fontSize: 15, color: "white" }} />
-                  Upload Document
-                </button>
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-[#DAEDD5]" />
-              <span className="text-[#AAAAAA] text-xs px-1">or enter manually</span>
-              <div className="flex-1 h-px bg-[#DAEDD5]" />
-            </div>
-
-            {/* Activity Name */}
+            {/* 1 — Activity name */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[#155A03] text-sm font-semibold">
                 Activity Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                value={values.activity_name}
-                onChange={set("activity_name")}
+                value={activityName}
+                onChange={(e) => {
+                  setActivityName(e.target.value);
+                  setErrors((p) => ({ ...p, activity_name: undefined }));
+                }}
                 placeholder="e.g. Warehouse B — Electricity Usage"
                 className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
                   errors.activity_name
@@ -346,158 +342,133 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
               )}
             </div>
 
-            {/* Scope + Source Type */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Scope */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[#155A03] text-sm font-semibold">
-                  Category (Scope) <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={values.scope}
-                  onChange={set("scope")}
-                  className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
-                    errors.scope
-                      ? "border-red-400 bg-red-50"
-                      : "border-[#DAEDD5] focus:border-[#79B669]"
-                  }`}
-                >
-                  <option value="">Select scope…</option>
-                  {SCOPES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                {errors.scope && (
-                  <p className="text-red-500 text-xs">{errors.scope}</p>
-                )}
-              </div>
-
-              {/* Source Type */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[#155A03] text-sm font-semibold">
-                  Source Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={values.source_type_id}
-                  onChange={set("source_type_id")}
-                  disabled={!values.scope}
-                  className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
-                    errors.source_type_id
-                      ? "border-red-400 bg-red-50"
-                      : "border-[#DAEDD5] focus:border-[#79B669]"
-                  } disabled:bg-[#F5F5F5] disabled:text-[#AAAAAA] disabled:cursor-not-allowed`}
-                >
-                  <option value="">
-                    {values.scope ? "Select source type…" : "Select scope first"}
-                  </option>
-                  {filteredCategories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                {errors.source_type_id && (
-                  <p className="text-red-500 text-xs">{errors.source_type_id}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Reporting Date */}
+            {/* 2 — Choose formula */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[#155A03] text-sm font-semibold">
-                Reporting Period <span className="text-red-500">*</span>
+                Formula <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                value={values.reporting_date}
-                onChange={set("reporting_date")}
-                max={new Date().toISOString().split("T")[0]}
+              <select
+                value={templateId}
+                onChange={handleTemplateChange}
+                disabled={loadingTemplates}
                 className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
-                  errors.reporting_date
+                  errors.template
                     ? "border-red-400 bg-red-50"
                     : "border-[#DAEDD5] focus:border-[#79B669]"
-                }`}
-              />
-              {errors.reporting_date && (
-                <p className="text-red-500 text-xs">{errors.reporting_date}</p>
+                } disabled:bg-[#F5F5F5] disabled:text-[#AAAAAA] disabled:cursor-not-allowed`}
+              >
+                <option value="">
+                  {loadingTemplates ? "Loading formulas…" : "Select a formula…"}
+                </option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              {errors.template && (
+                <p className="text-red-500 text-xs">{errors.template}</p>
+              )}
+              {selectedTemplate && (
+                <p className="text-[#AAAAAA] text-xs flex items-center gap-1.5">
+                  <FunctionsIcon sx={{ fontSize: 13 }} />
+                  <span className="font-mono">{selectedTemplate.formula_string}</span>
+                </p>
               )}
             </div>
 
-            {/* Quantity + Unit */}
-            <div className="grid grid-cols-[2fr_1fr] gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[#155A03] text-sm font-semibold">
-                  Quantity <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0.0001"
-                  step="any"
-                  value={values.quantity}
-                  onChange={set("quantity")}
-                  placeholder="0.00"
-                  className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
-                    errors.quantity
-                      ? "border-red-400 bg-red-50"
-                      : "border-[#DAEDD5] focus:border-[#79B669]"
-                  }`}
-                />
-                {errors.quantity && (
-                  <p className="text-red-500 text-xs">{errors.quantity}</p>
-                )}
+            {/* 3 — Dynamic inputs from the formula's input_schema */}
+            {selectedTemplate && visibleFields.length > 0 && (
+              <div className="flex flex-col gap-3 p-4 rounded-xl border border-[#DAEDD5] bg-[#F7FBF5]">
+                <p className="text-[#155A03] text-xs font-bold uppercase tracking-wide">
+                  Formula Inputs
+                </p>
+                {visibleFields.map((f) => {
+                  const err = errors.inputs?.[f.field];
+                  const value = inputValues[f.field] ?? "";
+                  return (
+                    <div key={f.field} className="flex flex-col gap-1">
+                      <label className="text-[#155A03] text-sm font-medium">
+                        {f.label}
+                        {f.required !== false && (
+                          <span className="text-red-500"> *</span>
+                        )}
+                        {f.unit && (
+                          <span className="text-[#AAAAAA] font-normal text-xs ml-1">
+                            ({f.unit})
+                          </span>
+                        )}
+                      </label>
+                      {f.type === "select" ? (
+                        <select
+                          value={value}
+                          onChange={(e) => handleInputChange(f.field, e.target.value)}
+                          className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
+                            err
+                              ? "border-red-400 bg-red-50"
+                              : "border-[#DAEDD5] focus:border-[#79B669]"
+                          }`}
+                        >
+                          <option value="">Select…</option>
+                          {(f.options ?? []).map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="number"
+                          step="any"
+                          min={f.min}
+                          max={f.max}
+                          value={value}
+                          onChange={(e) => handleInputChange(f.field, e.target.value)}
+                          placeholder="0"
+                          className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
+                            err
+                              ? "border-red-400 bg-red-50"
+                              : "border-[#DAEDD5] focus:border-[#79B669]"
+                          }`}
+                        />
+                      )}
+                      {err && <p className="text-red-500 text-xs">{err}</p>}
+                    </div>
+                  );
+                })}
               </div>
+            )}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[#155A03] text-sm font-semibold">
-                  Unit <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={values.unit}
-                  onChange={set("unit")}
-                  className={`h-10 px-3 rounded-lg border text-sm bg-white outline-none transition-colors ${
-                    errors.unit
-                      ? "border-red-400 bg-red-50"
-                      : "border-[#DAEDD5] focus:border-[#79B669]"
-                  }`}
-                >
-                  <option value="">Unit…</option>
-                  {UNITS.map((u) => (
-                    <option key={u} value={u}>{u}</option>
-                  ))}
-                </select>
-                {errors.unit && (
-                  <p className="text-red-500 text-xs">{errors.unit}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Evidence Upload */}
+            {/* 4 — Evidence image */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[#155A03] text-sm font-semibold">
-                Evidence Reference{" "}
-                <span className="text-[#AAAAAA] font-normal text-xs">(optional)</span>
+                Evidence (image) <span className="text-red-500">*</span>
               </label>
               <input
                 ref={evidenceInputRef}
                 type="file"
-                accept="image/*,application/pdf,.xlsx,.csv"
+                accept="image/*"
                 className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] ?? null;
-                  setValues((prev) => ({ ...prev, evidence_file: file }));
-                }}
+                onChange={handleEvidencePick}
               />
               <button
                 type="button"
                 onClick={() => evidenceInputRef.current?.click()}
-                className="h-10 px-3 rounded-lg border border-[#DAEDD5] text-sm text-left flex items-center gap-2 bg-white hover:bg-[#F7FBF5] cursor-pointer transition-colors"
+                className={`h-10 px-3 rounded-lg border text-sm text-left flex items-center gap-2 bg-white hover:bg-[#F7FBF5] cursor-pointer transition-colors ${
+                  errors.evidence ? "border-red-400 bg-red-50" : "border-[#DAEDD5]"
+                }`}
               >
                 <AttachFileIcon sx={{ fontSize: 16, color: "#79B669" }} />
-                <span className={values.evidence_file ? "text-[#155A03]" : "text-[#AAAAAA]"}>
-                  {values.evidence_file ? values.evidence_file.name : "Choose file…"}
+                <span className={evidenceFile ? "text-[#155A03]" : "text-[#AAAAAA]"}>
+                  {evidenceFile ? evidenceFile.name : "Choose image…"}
                 </span>
               </button>
               <p className="text-[#AAAAAA] text-[11px]">
-                Accepted: PDF, JPG, PNG, XLSX, CSV · Max 10 MB
+                Accepted: JPG, PNG, WEBP · Max 10 MB
               </p>
+              {errors.evidence && (
+                <p className="text-red-500 text-xs">{errors.evidence}</p>
+              )}
             </div>
           </div>
 
@@ -520,13 +491,13 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
               <span
                 className={`text-[42px] font-bold tabular-nums leading-none transition-colors duration-300 ${style.text}`}
               >
-                {co2eTonne != null ? co2eTonne.toFixed(4) : "—"}
+                {evaluation ? evaluation.tonnes.toFixed(4) : "—"}
               </span>
               <span className={`text-sm font-bold ${style.text}`}>tCO₂e</span>
               <span className={`text-[11px] ${style.text} opacity-70`}>
-                {co2eKg != null
-                  ? `(${co2eKg.toFixed(2)} kg CO₂e)`
-                  : "Enter quantity & source type"}
+                {evaluation
+                  ? `(${evaluation.kg.toFixed(2)} kg CO₂e)`
+                  : "Pick a formula & fill its inputs"}
               </span>
             </div>
 
@@ -540,54 +511,49 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
               </div>
             )}
 
-            {/* Emission factor info */}
-            {factors.length > 0 && (
+            {/* Formula context */}
+            {selectedTemplate && selectedTemplate.default_ef && (
               <div className="rounded-xl border border-[#DAEDD5] bg-white p-4 flex flex-col gap-2">
                 <p className="text-[10px] font-bold text-[#155A03] uppercase tracking-wide">
                   Emission Factor Used
                 </p>
-                {(() => {
-                  const f = factors[0];
-                  return (
-                    <div className="flex flex-col gap-1.5 text-xs">
-                      <div className="flex justify-between gap-2">
-                        <span className="text-[#AAAAAA]">Factor</span>
-                        <span className="text-[#155A03] font-medium text-right">{f.name}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-[#AAAAAA]">CO₂e / unit</span>
-                        <span className="text-[#155A03] font-semibold">
-                          {Number(f.co2e_total).toFixed(4)} kg
-                        </span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-[#AAAAAA]">Unit</span>
-                        <span className="text-[#155A03] font-medium">{f.unit}</span>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-[#AAAAAA]">Source</span>
-                        <span className="text-[#155A03] font-medium">{f.source_reference}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
+                <div className="flex flex-col gap-1.5 text-xs">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-[#AAAAAA]">Factor</span>
+                    <span className="text-[#155A03] font-medium text-right">
+                      {selectedTemplate.default_ef.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-[#AAAAAA]">CO₂e / unit</span>
+                    <span className="text-[#155A03] font-semibold">
+                      {Number(selectedTemplate.default_ef.co2e_total).toFixed(4)} kg
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-[#AAAAAA]">EF Unit</span>
+                    <span className="text-[#155A03] font-medium">
+                      {selectedTemplate.default_ef.unit}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Scope badge */}
-            {values.scope && (
+            {/* Scope badge — derived from the formula's category */}
+            {selectedTemplate && (
               <div className="rounded-xl border border-[#DAEDD5] bg-white px-4 py-3 flex items-center justify-between">
                 <span className="text-[#AAAAAA] text-xs">Scope</span>
                 <span
                   className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                    values.scope === "Scope 1"
+                    selectedTemplate.category.scope === "Scope 1"
                       ? "bg-[#DAEDD5] text-[#155A03]"
-                      : values.scope === "Scope 2"
+                      : selectedTemplate.category.scope === "Scope 2"
                         ? "bg-blue-100 text-blue-700"
                         : "bg-orange-100 text-orange-700"
                   }`}
                 >
-                  {values.scope}
+                  {selectedTemplate.category.scope}
                 </span>
               </div>
             )}
