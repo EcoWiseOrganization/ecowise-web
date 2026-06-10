@@ -47,6 +47,18 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
+### Round 5 — Medium severity batch A (10/10 DONE) · commits on `main`
+- `cb0e0e2` fix(org/members): exempt non-Active admin rows from last-admin guard
+- `37b06b8` fix(org/overview): exclude Rejected/Draft logs from KPI totals
+- `1ae97ff` fix(roles): replace hardcoded UUID literals with lib/roles imports
+- `482f9c0` fix(hooks/useOcrDataExtraction): revoke previous Object URL on each extract
+- `6ca4091` fix(public-api): cap POST body size at 16 KB on contact + event-form
+- `83968e5` fix(billing): atomic subscribeToPlan + Subscriptions perf/unique indexes (migration 028)
+- `1c7f25d` fix(billing): use crypto.randomInt for invoice number suffix
+- `8438848` fix(rate-limit): purge_expired_rate_limits SQL + sweep on each cron tick (migration 029)
+- `29c278e` fix(ui): shared Modal primitive with focus trap + Esc + role=dialog
+- `3dbbeac` fix(theme): centralise brand greens behind Tailwind 4 theme tokens
+
 ### Round 4 — High severity batch C (10/10 DONE) · commits on `main`
 - `7b63b41` fix(oauth): fail closed in prod + reject error-string injection
 - `16f4ad2` fix(middleware): ?next= deep-link + AUTH_PREFIXES for forgot-password
@@ -83,7 +95,7 @@
 - `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
 
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022/023/024/025/026/027 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024/025/026/027/028/029 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.
