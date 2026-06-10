@@ -47,6 +47,17 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
+### Round 4 — High severity batch C (10/10 DONE) · commits on `main`
+- `7b63b41` fix(oauth): fail closed in prod + reject error-string injection
+- `16f4ad2` fix(middleware): ?next= deep-link + AUTH_PREFIXES for forgot-password
+- `5b31da4` fix(review): inline evidence thumbnail + modal preview
+- `315eb02` fix(billing/checkout): reject stale PaymentIntents before rendering Pay button
+- `9ebf1d9` fix(ocr): per-user rate limit + correct default model + tighten audit
+- `193d3d1` fix(audit): attribute service-role mutations via app.actor_id GUC (migration 027)
+- `db8584c` fix(reports/personal): normalise DB scope value into known buckets
+- `3bf51a8` fix(targets): require confirm before archiving
+- `0ac85b5` fix(billing): subscribeToPlan inserts new sub before cancelling old
+
 ### Round 3 — High severity batch B (10/10 DONE) · commits on `main`
 - `bb76245` fix(billing): authorise confirmMockPayment caller against invoice subject
 - `51edd86` fix(billing/cron): idempotent renewal via DB unique constraint (migration 025)
@@ -72,7 +83,7 @@
 - `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
 
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022/023/024/025/026 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024/025/026/027 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.
