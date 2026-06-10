@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OcrSuggestion } from "@/lib/ocr/types";
 
 export interface OcrExtractedData {
@@ -27,10 +27,32 @@ export function useOcrDataExtraction() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Track the most-recently created Object URL so we can revoke it
+  // before allocating a new one (or on unmount). The previous version
+  // called `URL.createObjectURL(file)` on every extract without ever
+  // revoking — every receipt the user uploaded leaked an entry in the
+  // browser's URL store for the lifetime of the page.
+  const previewUrlRef = useRef<string | null>(null);
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    };
+  }, []);
+
   async function extractFromImage(file: File): Promise<OcrExtractedData> {
     setIsExtracting(true);
     setError(null);
-    setPreviewUrl(URL.createObjectURL(file));
+    // Revoke the previous preview URL before allocating a new one so
+    // back-to-back uploads don't pile up object URLs in memory.
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+    const next = URL.createObjectURL(file);
+    previewUrlRef.current = next;
+    setPreviewUrl(next);
 
     const fd = new FormData();
     fd.append("file", file);
