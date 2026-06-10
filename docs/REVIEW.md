@@ -47,17 +47,17 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
-### Round 7 — Medium severity batch C (in progress) · `main`
-- [x] M-C1 personal-log co2e server-recompute (anti-cheat)
-- [x] M-C2 target end_date past validation
-- [x] M-C3 legal_name change resets verification
-- [x] M-C4 public-form attendee_email server validation
-- [x] M-C5 honeypot triggers rate-limit counter
-- [x] M-C6 EventPublicSubmissions IP hashing
-- [x] M-C7 recommendations matcher coverage
-- [x] M-C8 vercel.json security headers
-- [x] M-C9 Inter font display:swap
-- [ ] M-C10 lib/utils.ts removal + ocr/parser dead vars
+### Round 7 — Medium severity batch C (10/10 DONE) · `main`
+- [x] M-C1 personal-log co2e server-recompute (anti-cheat) — `8c95389`
+- [x] M-C2 target end_date past validation — `e25ef6a`
+- [x] M-C3 legal_name change resets verification — `5a8a402`
+- [x] M-C4 public-form attendee_email server validation — `ca14883`
+- [x] M-C5 honeypot triggers rate-limit counter — `ca14883`
+- [x] M-C6 EventPublicSubmissions IP hashing — `80ab29f`
+- [x] M-C7 recommendations matcher coverage — `cfda36e`
+- [x] M-C8 vercel.json security headers — `0b9018b`
+- [x] M-C9 Inter font display:swap — `84cb8ca`
+- [x] M-C10 lib/utils.ts removal + ocr/parser dead vars
 
 ### Round 6 — Medium severity batch B (10/10 DONE, single bundled commit) · `main`
 - M-B1 layout uses `countPendingReviews()` head-only count instead of full metrics summary

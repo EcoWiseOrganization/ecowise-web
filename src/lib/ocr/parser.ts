@@ -6,6 +6,7 @@
  * line-by-line "key: value" extraction.
  */
 
+import { todayLocalISO } from "@/lib/dates";
 import type { OcrField, OcrSuggestion } from "./types";
 
 /** Try to parse a JSON block fenced with ```json. */
@@ -114,21 +115,29 @@ function parseDate(raw: string): string | null {
   const m1 = /^(\d{2})[\/.-](\d{2})[\/.-](\d{4})$/.exec(raw);
   if (m1) {
     const [, a, b, y] = m1;
-    // If a > 12, assume DD/MM
-    const dd = Number(a) > 12 ? a : a;
-    const mm = Number(a) > 12 ? b : b;
-    const day = Number(a) > 12 ? a : a;
-    void [dd, mm, day];
-    // Heuristic: prefer DD/MM/YYYY for VN locale; mm = b, dd = a
-    return `${y}-${b.padStart(2, "0")}-${a.padStart(2, "0")}`;
+    // VN locale receipts use DD/MM/YYYY. The only way the heuristic
+    // bails to MM/DD is when `b > 12` (so `b` cannot be a month and
+    // we know `a` must be the month). Otherwise we default to the
+    // VN convention since this is an EcoWise-VN-first product.
+    //
+    // (Previous version computed three ternaries that all assigned
+    // `a` to themselves and then `void`-ed the result — dead code,
+    // removed.)
+    const monthFirst = Number(b) > 12;
+    const day = monthFirst ? b : a;
+    const mon = monthFirst ? a : b;
+    return `${y}-${mon.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
   const m2 = /^(\d{4})[\/.-](\d{2})[\/.-](\d{2})$/.exec(raw);
   if (m2) {
     const [, y, mm, dd] = m2;
     return `${y}-${mm}-${dd}`;
   }
-  // Last resort: Date.parse
+  // Last resort: Date.parse, projected through the user's calendar
+  // tz. UTC `.toISOString().slice(0, 10)` would land "2026-03-04
+  // 23:30 ICT" on `2026-03-04` (good) but `2026-03-04 00:30 ICT` on
+  // `2026-03-03` (wrong by a day).
   const t = Date.parse(raw);
-  if (!Number.isNaN(t)) return new Date(t).toISOString().slice(0, 10);
+  if (!Number.isNaN(t)) return todayLocalISO(new Date(t));
   return null;
 }
