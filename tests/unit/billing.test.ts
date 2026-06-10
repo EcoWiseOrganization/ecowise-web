@@ -9,9 +9,9 @@ import {
 } from "@/lib/billing";
 
 describe("generateInvoiceNumber", () => {
-  it("matches INV-YYYYMMDD-XXXXXX format", () => {
+  it("matches INV-YYYYMMDD-XXXXXXXX format", () => {
     const n = generateInvoiceNumber(new Date("2026-05-11T00:00:00Z"));
-    expect(n).toMatch(/^INV-20260511-[0-9A-Z]{6}$/);
+    expect(n).toMatch(/^INV-20260511-[0-9A-Z]{8}$/);
   });
 
   it("two consecutive numbers differ", () => {
