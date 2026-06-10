@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { comparePeriodsAction } from "@/app/actions/personal-carbon.actions";
+import { shiftLocalDays, todayLocalISO } from "@/lib/dates";
 
 interface ComparisonResult {
   a: { total: number; logCount: number; start: string; end: string };
@@ -11,23 +12,16 @@ interface ComparisonResult {
   deltaPct: number;
 }
 
-function fmt(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
 export function CompareView() {
   const { t } = useTranslation();
 
-  const [aStart, setAStart] = useState(() =>
-    fmt(new Date(Date.now() - 60 * 86_400_000))
-  );
-  const [aEnd, setAEnd] = useState(() =>
-    fmt(new Date(Date.now() - 30 * 86_400_000))
-  );
-  const [bStart, setBStart] = useState(() =>
-    fmt(new Date(Date.now() - 30 * 86_400_000))
-  );
-  const [bEnd, setBEnd] = useState(() => fmt(new Date()));
+  // Default windows are user-facing calendar dates — project through
+  // the local tz so a near-midnight click doesn't shift the period
+  // edge.
+  const [aStart, setAStart] = useState(() => shiftLocalDays(-60));
+  const [aEnd, setAEnd] = useState(() => shiftLocalDays(-30));
+  const [bStart, setBStart] = useState(() => shiftLocalDays(-30));
+  const [bEnd, setBEnd] = useState(() => todayLocalISO());
   const [result, setResult] = useState<ComparisonResult | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);

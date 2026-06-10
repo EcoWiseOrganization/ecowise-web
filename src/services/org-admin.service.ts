@@ -74,6 +74,22 @@ export async function getOrgMetricsSummary(
   };
 }
 
+/**
+ * Lightweight count of Pending/Review emission logs for the org. Used by
+ * the org layout to populate the "needs review" badge in the tab bar
+ * without paying for the full `getOrgMetricsSummary` rollup (4 sub-queries
+ * across EmissionLogs / OrganizationMembers / Events on every navigation).
+ */
+export async function countPendingReviews(orgId: string): Promise<number> {
+  const db = createServiceClient();
+  const { count } = await db
+    .from("EmissionLogs")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .in("status", ["Pending", "Review"]);
+  return count ?? 0;
+}
+
 // ── Employee activity rollup ──────────────────────────────────────────────
 
 export async function getEmployeeActivity(
@@ -249,25 +265,86 @@ export async function getEventCapacity(orgId: string): Promise<InviteCapacity> {
 
 // ── Update profile (UC-26) ────────────────────────────────────────────────
 
+/**
+ * Server-side validation for org settings updates. The client form
+ * (`OrgSettingsForm`) caps lengths and uses `type="email" | "url"` for
+ * a hint, but a crafted server-action call can bypass both — so we
+ * re-validate here. Each rule throws a typed error code the action
+ * layer maps back to a translation key.
+ *
+ *   • Email — RFC-ish shape + max 320 chars (the RFC 5321 cap).
+ *   • URL — must parse + be http/https + max 500 chars (longer URLs
+ *     are typically tracking junk and break audit log readability).
+ *   • Free-text fields — trimmed + per-field length cap so a long
+ *     paste can't blow past UI bounds or cookie/audit budgets.
+ */
+const EMAIL_MAX_LEN = 320;
+const URL_MAX_LEN = 500;
+const LEGAL_NAME_MAX_LEN = 200;
+const INDUSTRY_MAX_LEN = 100;
+const ADDRESS_MAX_LEN = 500;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateOrgEmail(raw: string): string {
+  const v = raw.trim();
+  if (v.length === 0) return "";
+  if (v.length > EMAIL_MAX_LEN) throw new Error("EMAIL_TOO_LONG");
+  if (!EMAIL_RE.test(v)) throw new Error("INVALID_EMAIL");
+  return v.toLowerCase();
+}
+
+function validateHttpUrl(raw: string, field: "website" | "logo"): string {
+  const v = raw.trim();
+  if (v.length === 0) return "";
+  if (v.length > URL_MAX_LEN) {
+    throw new Error(field === "website" ? "WEBSITE_TOO_LONG" : "LOGO_URL_TOO_LONG");
+  }
+  try {
+    const u = new URL(v);
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      throw new Error(field === "website" ? "INVALID_WEBSITE" : "INVALID_LOGO_URL");
+    }
+  } catch {
+    throw new Error(field === "website" ? "INVALID_WEBSITE" : "INVALID_LOGO_URL");
+  }
+  return v;
+}
+
 export async function updateOrganization(
   orgId: string,
   input: UpdateOrganizationInput
 ): Promise<Organization> {
   const db = createServiceClient();
   const patch: Record<string, unknown> = {};
-  if (typeof input.legal_name === "string")
-    patch.legal_name = input.legal_name.trim();
+  if (typeof input.legal_name === "string") {
+    const v = input.legal_name.trim();
+    if (v.length === 0) throw new Error("LEGAL_NAME_REQUIRED");
+    if (v.length > LEGAL_NAME_MAX_LEN) throw new Error("LEGAL_NAME_TOO_LONG");
+    patch.legal_name = v;
+  }
   if (typeof input.org_type === "string") patch.org_type = input.org_type;
-  if (typeof input.industry === "string")
-    patch.industry = input.industry.trim() || null;
-  if (typeof input.website_url === "string")
-    patch.website_url = input.website_url.trim() || null;
-  if (typeof input.address === "string")
-    patch.address = input.address.trim() || null;
-  if (typeof input.contact_email === "string")
-    patch.contact_email = input.contact_email.trim() || null;
-  if (typeof input.logo_url === "string")
-    patch.logo_url = input.logo_url.trim() || null;
+  if (typeof input.industry === "string") {
+    const v = input.industry.trim();
+    if (v.length > INDUSTRY_MAX_LEN) throw new Error("INDUSTRY_TOO_LONG");
+    patch.industry = v || null;
+  }
+  if (typeof input.website_url === "string") {
+    const v = validateHttpUrl(input.website_url, "website");
+    patch.website_url = v || null;
+  }
+  if (typeof input.address === "string") {
+    const v = input.address.trim();
+    if (v.length > ADDRESS_MAX_LEN) throw new Error("ADDRESS_TOO_LONG");
+    patch.address = v || null;
+  }
+  if (typeof input.contact_email === "string") {
+    const v = validateOrgEmail(input.contact_email);
+    patch.contact_email = v || null;
+  }
+  if (typeof input.logo_url === "string") {
+    const v = validateHttpUrl(input.logo_url, "logo");
+    patch.logo_url = v || null;
+  }
 
   if (Object.keys(patch).length === 0) {
     const { data } = await db

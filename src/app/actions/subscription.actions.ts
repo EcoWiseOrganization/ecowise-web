@@ -49,13 +49,39 @@ import type {
 
 // ── Plan CRUD (System Admin only) ─────────────────────────────────────────
 
-export async function listPlansAction(target?: "B2B" | "B2C"): Promise<{
+/**
+ * Returns subscription plans for the billing UI. End-users get only the
+ * Active catalog (current pricing tiers). System admins can opt in to
+ * the full set (Active + Inactive) so they can see grandfathered
+ * historical plans on the /admin/subscriptions screen. The
+ * `includeInactive` toggle is admin-gated server-side — a caller
+ * without the system-admin role gets the Active list regardless of the
+ * flag value, so the action can't be coerced into leaking archived
+ * plan metadata.
+ */
+export async function listPlansAction(
+  target?: "B2B" | "B2C",
+  opts?: { includeInactive?: boolean }
+): Promise<{
   data: SubscriptionPlan[];
   error: string | null;
 }> {
   try {
     await requireSession();
-    const data = await listPlans(target);
+    let includeInactive = false;
+    if (opts?.includeInactive) {
+      try {
+        await requireSystemAdmin();
+        includeInactive = true;
+      } catch {
+        // Non-admin caller asked for the full catalog — silently
+        // collapse to the public (Active-only) list rather than
+        // throwing, so the regular billing screen still works
+        // when an admin-only flag accidentally rides along.
+        includeInactive = false;
+      }
+    }
+    const data = await listPlans(target, { includeInactive });
     return { data, error: null };
   } catch (err) {
     if (err instanceof AuthError) return { data: [], error: err.code };

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getPersonalStatsAction } from "@/app/actions/personal-carbon.actions";
 import { exportPersonalReportAction } from "@/app/actions/reports.actions";
 import { triggerBase64Download } from "@/lib/download";
+import { todayLocalISO } from "@/lib/dates";
 import type { ReportFormat } from "@/types/report.types";
 
 type Stats = {
@@ -29,9 +30,12 @@ function rangeFor(period: (typeof PERIODS)[number]["value"]): {
   if (period === "month") start.setMonth(end.getMonth() - 1);
   else if (period === "quarter") start.setMonth(end.getMonth() - 3);
   else start.setFullYear(end.getFullYear() - 1);
+  // Date-only boundaries are projected through the user's calendar tz
+  // so a "last month" report from a VN user starting at 23:30 UTC+7
+  // doesn't grab the wrong start day.
   return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
+    start: todayLocalISO(start),
+    end: todayLocalISO(end),
   };
 }
 

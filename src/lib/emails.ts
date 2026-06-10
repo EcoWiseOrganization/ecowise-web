@@ -1,10 +1,39 @@
 import "server-only";
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 interface EmailEnvelope {
   to: string;
   subject: string;
   html: string;
+}
+
+/**
+ * Module-cached SMTP transporter. Nodemailer's `createTransport` opens
+ * a fresh TLS handshake (~200-400ms) per call — fine for one-off sends
+ * but expensive when a burst of signup OTPs / billing renewals all
+ * fire within the same Node process. The transporter is keyed on the
+ * `(user, pass)` pair so a credential rotation transparently swaps to
+ * a new instance without us holding a stale connection.
+ *
+ * `pool: true` lets nodemailer reuse the underlying TCP connection
+ * across messages; the modest concurrency caps prevent us from
+ * tripping Gmail's per-account rate limits.
+ */
+let cachedTransporter: Transporter | null = null;
+let cachedKey = "";
+
+function getTransporter(user: string, pass: string): Transporter {
+  const key = `${user}|${pass}`;
+  if (cachedTransporter && cachedKey === key) return cachedTransporter;
+  cachedTransporter = nodemailer.createTransport({
+    service: "gmail",
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+    auth: { user, pass },
+  });
+  cachedKey = key;
+  return cachedTransporter;
 }
 
 /**
@@ -21,13 +50,10 @@ export async function sendEmail(envelope: EmailEnvelope): Promise<boolean> {
     return false;
   }
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
+    const transporter = getTransporter(
+      process.env.GMAIL_USER,
+      process.env.GMAIL_APP_PASSWORD,
+    );
     await transporter.sendMail({
       from: `"EcoWise" <${process.env.GMAIL_USER}>`,
       to: envelope.to,

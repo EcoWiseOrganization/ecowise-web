@@ -13,7 +13,10 @@ api.interceptors.response.use(
   },
 );
 
-async function post<T extends ApiResponse>(url: string, body: Record<string, string>): Promise<T> {
+async function post<T extends ApiResponse>(
+  url: string,
+  body: Record<string, string>,
+): Promise<T> {
   // `withCredentials: true` so the forgot-password reset-token httpOnly
   // cookie set on /verify-otp is sent along with the /reset request.
   const { data } = await api.post<T>(url, body, { withCredentials: true });

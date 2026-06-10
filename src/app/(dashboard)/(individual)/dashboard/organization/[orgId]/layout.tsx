@@ -5,7 +5,7 @@ import {
   getOrganizationByIdServer,
   getMyMembershipServer,
 } from "@/app/actions/organization.actions";
-import { getOrgMetricsSummary } from "@/services/org-admin.service";
+import { countPendingReviews } from "@/services/org-admin.service";
 import { OrgTabs } from "./_components/OrgTabs";
 
 interface OrgLayoutProps {
@@ -32,11 +32,12 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
 
   const isAdmin = membership.role_id === ROLE_ADMIN_ID;
 
-  let pendingReviews = 0;
-  if (isAdmin) {
-    const m = await getOrgMetricsSummary(orgId);
-    pendingReviews = m.pendingReviews;
-  }
+  // The layout only needs the pending-review badge count — calling the
+  // full `getOrgMetricsSummary` here paid for 4 extra queries
+  // (EmissionLogs sums per scope + members + events) on every nav
+  // inside the org subtree. `countPendingReviews` is a single
+  // head-only count.
+  const pendingReviews = isAdmin ? await countPendingReviews(orgId) : 0;
 
   return (
     <>

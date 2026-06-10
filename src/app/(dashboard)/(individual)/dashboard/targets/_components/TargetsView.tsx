@@ -8,6 +8,7 @@ import {
   getActiveTargetAction,
   listMyTargetsAction,
 } from "@/app/actions/personal-carbon.actions";
+import { shiftLocalDays, todayLocalISO } from "@/lib/dates";
 import type {
   CarbonTarget,
   CarbonTargetWithProgress,
@@ -236,10 +237,8 @@ function NewTargetForm({
   const [name, setName] = useState("");
   const [baseline, setBaseline] = useState("");
   const [target, setTarget] = useState("");
-  const [start, setStart] = useState(() => new Date().toISOString().slice(0, 10));
-  const [end, setEnd] = useState(() =>
-    new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10)
-  );
+  const [start, setStart] = useState(() => todayLocalISO());
+  const [end, setEnd] = useState(() => shiftLocalDays(365));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -90,25 +90,32 @@ export async function POST(req: Request, { params }: ContextParams) {
     return NextResponse.json({ error: "FORM_CLOSED" }, { status: 403 });
   }
 
-  // 2. Rate limit per (token, ip)
-  const cutoff = new Date(Date.now() - RATE_WINDOW_SEC * 1000).toISOString();
+  // 2. Rate limit per (token, ip) — atomic via the
+  // `consume_event_form_rate_limit` RPC (migration 030). The previous
+  // SELECT-then-INSERT pattern was race-prone: N parallel submissions
+  // could each observe count < max and then each insert a row,
+  // bypassing the cap. The RPC takes a transaction-scoped advisory
+  // lock keyed on (token, ip) so submissions for the same bucket
+  // serialise while different buckets stay independent.
   const ipKey = ip && ip.trim().length > 0 ? ip : "anonymous";
-  const { data: recentRows } = await db
-    .from("EventPublicFormRateLimits")
-    .select("created_at")
-    .eq("token", token)
-    .eq("ip_address", ipKey)
-    .gte("created_at", cutoff);
-  if ((recentRows?.length ?? 0) >= RATE_MAX_PER_IP) {
-    const earliest = (recentRows ?? [])
-      .map((r) => new Date((r as { created_at: string }).created_at).getTime())
-      .sort((a, b) => a - b)[0];
-    const retryAfter = earliest
-      ? Math.max(
-          1,
-          Math.ceil((earliest + RATE_WINDOW_SEC * 1000 - Date.now()) / 1000)
-        )
-      : RATE_WINDOW_SEC;
+  const { data: rlRows, error: rlErr } = await db.rpc(
+    "consume_event_form_rate_limit",
+    {
+      p_token: token,
+      p_ip: ipKey,
+      p_max: RATE_MAX_PER_IP,
+      p_window_sec: RATE_WINDOW_SEC,
+    },
+  );
+  if (rlErr) {
+    console.error("[event-form] rate-limit RPC failed", rlErr.message);
+    return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
+  }
+  const rl = Array.isArray(rlRows) ? rlRows[0] : rlRows;
+  const allowed = (rl as { allowed?: boolean } | null)?.allowed === true;
+  if (!allowed) {
+    const retryAfter =
+      (rl as { retry_after_sec?: number } | null)?.retry_after_sec ?? RATE_WINDOW_SEC;
     return NextResponse.json(
       { error: "RATE_LIMITED", retryAfterSec: retryAfter },
       { status: 429, headers: { "Retry-After": String(retryAfter) } }
@@ -214,11 +221,8 @@ export async function POST(req: Request, { params }: ContextParams) {
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 
-  await db.from("EventPublicFormRateLimits").insert({
-    token,
-    ip_address: ipKey,
-  });
-
+  // The rate-limit row is now inserted atomically by
+  // `consume_event_form_rate_limit` above — no second insert here.
   await writeAuditLog({
     action: "event_public_form_submitted",
     resourceType: "event_public_submission",

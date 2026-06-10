@@ -19,10 +19,10 @@ import {
 } from "@/lib/auth/roles";
 import { writeAuditLog } from "@/services/audit.service";
 import {
+  adjustPoints,
   completeChallenge,
   deleteChallenge,
   deleteReward,
-  earnPoints,
   getChallenge,
   getReward,
   joinChallenge,
@@ -326,28 +326,41 @@ export async function getMyPointHistoryAction(): Promise<{
 }
 
 /**
- * Admin convenience: manual point adjustment (e.g. customer-support credit).
+ * Admin convenience: manual point adjustment (e.g. customer-support credit
+ * OR claw-back on abuse). Accepts a signed delta — positive credits,
+ * negative deducts. The underlying `adjust_green_points` RPC (migration
+ * 030) takes a row-level lock on the user and floors the resulting
+ * balance at 0, so an over-deduction claw-back only removes what's
+ * actually available rather than going negative.
+ *
+ * Prior behaviour: this action forwarded to `earn_green_points`, which
+ * hard-rejects any `points <= 0` — admins had no path to revoke abusive
+ * credits without raw DB access.
  */
 export async function adjustPointsAction(opts: {
   userId: string;
+  /** Signed delta. Positive = credit, negative = claw-back. */
   points: number;
   reason: string;
 }): Promise<{ ok: boolean; error: string | null }> {
   try {
     const ctx = await requireSystemAdmin();
-    const id = await earnPoints({
+    if (!Number.isFinite(opts.points) || Math.trunc(opts.points) === 0) {
+      return { ok: false, error: "ZERO_DELTA" };
+    }
+    const res = await adjustPoints({
       userId: opts.userId,
-      points: opts.points,
+      delta: Math.trunc(opts.points),
       reason: opts.reason || "Admin adjustment",
       relatedType: "admin_adjustment",
     });
-    if (!id) return { ok: false, error: "POINT_AWARD_FAILED" };
+    if (res.error) return { ok: false, error: res.error };
     await writeAuditLog({
       action: "points_adjusted",
       resourceType: "user",
       resourceId: opts.userId,
       actorUserId: ctx.userId,
-      newValue: { points: opts.points, reason: opts.reason },
+      newValue: { delta: Math.trunc(opts.points), reason: opts.reason },
     });
     return { ok: true, error: null };
   } catch (err) {

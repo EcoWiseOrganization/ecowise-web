@@ -47,6 +47,18 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
+### Round 6 — Medium severity batch B (10/10 DONE, single bundled commit) · `main`
+- M-B1 layout uses `countPendingReviews()` head-only count instead of full metrics summary
+- M-B2 `searchOrganizations` escapes PostgREST `.or()` filter chars + length-caps search term
+- M-B3 `adjustPointsAction` accepts signed delta via new `adjust_green_points` RPC (mig 030)
+- M-B4 `redeem_reward` sets `SoldOut` at stock=0; `LowStock` reserved for 0<stock<5 (mig 030)
+- M-B5 public-form rate-limit atomic via `consume_event_form_rate_limit` advisory lock (mig 030)
+- M-B6 `updateOrganization` validates email/url/length server-side with typed error codes
+- M-B7 `listPlansAction` admin-gates the `includeInactive` flag; public callers see Active only
+- M-B8 `lib/dates.ts` (LOCAL_TZ Asia/Ho_Chi_Minh) — activity logger, report range, targets, compare adopt local tz
+- M-B9 `ApiResponse` becomes discriminated union (`{success: true} | {success: false; error}`)
+- M-B10 nodemailer transporter cached module-level with `pool: true` + connection caps
+
 ### Round 5 — Medium severity batch A (10/10 DONE) · commits on `main`
 - `cb0e0e2` fix(org/members): exempt non-Active admin rows from last-admin guard
 - `37b06b8` fix(org/overview): exclude Rejected/Draft logs from KPI totals
@@ -95,7 +107,7 @@
 - `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
 
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022/023/024/025/026/027/028/029 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024/025/026/027/028/029/030 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.

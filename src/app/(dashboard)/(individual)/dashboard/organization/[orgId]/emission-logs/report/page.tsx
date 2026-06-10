@@ -6,6 +6,7 @@ import {
   getMyMembershipServer,
 } from "@/app/actions/organization.actions";
 import { getOrgArchives } from "@/services/reports.service";
+import { localMonthEndISO, localMonthStartISO } from "@/lib/dates";
 import { OrgReportView } from "./_components/OrgReportView";
 import type { ReportArchive } from "@/types/report.types";
 
@@ -31,9 +32,10 @@ export default async function OrgReportPage({ params }: PageProps) {
   }
 
   const isAdmin = membership.role_id === ROLE_ADMIN_ID;
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+  // Month-bounds in the user's calendar tz so the report range matches
+  // "this month" as the user sees it, not the server's UTC view.
+  const start = localMonthStartISO();
+  const end = localMonthEndISO();
 
   return (
     <OrgReportView

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePersonalActivity } from "@/hooks/usePersonalActivity";
+import { todayLocalISO } from "@/lib/dates";
 import type { GhgScope } from "@/types/emission-log.types";
 
 const SCOPES: GhgScope[] = ["Scope 1", "Scope 2", "Scope 3"];
@@ -67,7 +68,7 @@ export function ActivityLogger() {
   }>({
     activity_name: "",
     scope: "Scope 1",
-    reporting_date: new Date().toISOString().slice(0, 10),
+    reporting_date: todayLocalISO(),
     quantity: "",
     unit: "kWh",
     co2e_result: "",

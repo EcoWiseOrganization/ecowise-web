@@ -99,6 +99,7 @@ async function main() {
     "supabase/migrations/027_audit_actor_context.sql",
     "supabase/migrations/028_subscription_indexes.sql",
     "supabase/migrations/029_rate_limit_cleanup.sql",
+    "supabase/migrations/030_medium_batch_b.sql",
   ];
 
   const client = new Client({ connectionString: url });

@@ -27,13 +27,20 @@ import type {
 
 // ── Plans ─────────────────────────────────────────────────────────────────
 
-export async function listPlans(target?: "B2B" | "B2C"): Promise<SubscriptionPlan[]> {
+export async function listPlans(
+  target?: "B2B" | "B2C",
+  opts?: { includeInactive?: boolean }
+): Promise<SubscriptionPlan[]> {
   const db = createServiceClient();
   let q = db
     .from("SubscriptionPlans")
     .select("*")
     .order("base_price_usd", { ascending: true });
   if (target) q = q.eq("target_customer", target);
+  // End-user billing pages should only see Active plans — Inactive rows
+  // are price-experiment / grandfathered tiers that admins keep around
+  // for historical subscriptions but don't want exposed in the picker.
+  if (!opts?.includeInactive) q = q.eq("status", "Active");
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as SubscriptionPlan[];

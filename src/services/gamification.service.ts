@@ -219,6 +219,39 @@ export async function completeChallenge(opts: {
 
 // ── Points (earn / spend) ────────────────────────────────────────────────
 
+/**
+ * Admin-side signed adjustment via `adjust_green_points` (migration 030).
+ * Returns the GreenPointLogs row id on success, or null on RPC failure.
+ * Negative deltas are floored against the user's current balance — the
+ * RPC will never push `User.green_points` below 0.
+ */
+export async function adjustPoints(opts: {
+  userId: string;
+  delta: number;
+  reason: string;
+  relatedId?: string | null;
+  relatedType?: string | null;
+}): Promise<{ logId: string | null; error: string | null }> {
+  if (opts.delta === 0) return { logId: null, error: "ZERO_DELTA" };
+  const db = createServiceClient();
+  const { data, error } = await db.rpc("adjust_green_points", {
+    p_user_id: opts.userId,
+    p_delta: Math.trunc(opts.delta),
+    p_reason: opts.reason,
+    p_related_id: opts.relatedId ?? null,
+    p_related_type: opts.relatedType ?? null,
+  });
+  if (error) {
+    const msg = (error.message ?? "").toUpperCase();
+    if (msg.includes("USER_NOT_FOUND")) return { logId: null, error: "USER_NOT_FOUND" };
+    if (msg.includes("BALANCE_ZERO")) return { logId: null, error: "BALANCE_ZERO" };
+    if (msg.includes("ZERO_DELTA")) return { logId: null, error: "ZERO_DELTA" };
+    console.error("[gamification] adjust_green_points failed", error.message);
+    return { logId: null, error: "POINT_ADJUST_FAILED" };
+  }
+  return { logId: (data as string | null) ?? null, error: null };
+}
+
 export async function earnPoints(opts: {
   userId: string;
   points: number;

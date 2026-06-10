@@ -96,6 +96,23 @@ export async function getPendingEmissionLogsAction(orgId: string) {
 
 // ── Mutations (admin only) ────────────────────────────────────────────────
 
+// Validation codes thrown by `updateOrganization` — kept in sync with
+// `src/services/org-admin.service.ts` validators. The action layer
+// passes them through verbatim so the form can translate via
+// `error.<CODE>` keys.
+const ORG_UPDATE_VALIDATION_CODES = new Set([
+  "LEGAL_NAME_REQUIRED",
+  "LEGAL_NAME_TOO_LONG",
+  "INDUSTRY_TOO_LONG",
+  "ADDRESS_TOO_LONG",
+  "EMAIL_TOO_LONG",
+  "INVALID_EMAIL",
+  "WEBSITE_TOO_LONG",
+  "INVALID_WEBSITE",
+  "LOGO_URL_TOO_LONG",
+  "INVALID_LOGO_URL",
+]);
+
 export async function updateOrgAction(
   orgId: string,
   input: UpdateOrganizationInput
@@ -108,7 +125,14 @@ export async function updateOrgAction(
     return { data, error: null };
   } catch (err) {
     if (err instanceof AuthError) return { data: null, error: err.code };
-    return { data: null, error: err instanceof Error ? err.message : "unknown" };
+    const msg = err instanceof Error ? err.message : "unknown";
+    // Surface known validation codes as-is so the form can render a
+    // localised message; anything else is collapsed to "unknown" to
+    // avoid leaking DB error text.
+    if (ORG_UPDATE_VALIDATION_CODES.has(msg)) {
+      return { data: null, error: msg };
+    }
+    return { data: null, error: "unknown" };
   }
 }
 

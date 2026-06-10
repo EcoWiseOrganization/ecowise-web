@@ -11,7 +11,11 @@ export default async function AdminSubscriptionsPage() {
     throw err;
   }
 
-  const plans = await listPlans();
+  // System-admin catalog view: include Inactive (grandfathered) plans
+  // so admins can still see + edit historical pricing tiers. Public
+  // billing pages call `listPlans(target)` without the flag and only
+  // see Active rows.
+  const plans = await listPlans(undefined, { includeInactive: true });
 
   return (
     <div className="flex flex-col gap-6 pt-6">
