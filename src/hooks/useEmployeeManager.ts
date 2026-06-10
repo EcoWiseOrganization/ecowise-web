@@ -6,6 +6,7 @@ import {
   updateMemberRoleAction,
   removeMemberAction,
 } from "@/app/actions/org-admin.actions";
+import { ROLE_ADMIN_ID, ROLE_MEMBER_ID } from "@/lib/roles";
 import type {
   EmployeeActivityRow,
   MemberRole,
@@ -47,8 +48,8 @@ export function useEmployeeManager(orgId: string, initial: MembershipRow[]) {
                   ...r,
                   role_id:
                     newRole === "Organization Admin"
-                      ? "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                      : "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+                      ? ROLE_ADMIN_ID
+                      : ROLE_MEMBER_ID,
                 }
               : r
           )

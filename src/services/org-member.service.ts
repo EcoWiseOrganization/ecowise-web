@@ -7,14 +7,13 @@
 
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
-import { ROLE_ADMIN_ID } from "@/lib/roles";
+import { ROLE_ADMIN_ID, ROLE_MEMBER_ID } from "@/lib/roles";
 import type { MemberRole, MemberStatus } from "@/types/organization.types";
 
 /** Translate the friendly role label used in the UI back into the role_id UUID. */
 export function roleIdFromLabel(role: MemberRole): string {
   if (role === "Organization Admin") return ROLE_ADMIN_ID;
-  // Default member role id (matches src/lib/roles.ts ROLE_MEMBER_ID)
-  return "b2c3d4e5-f6a7-8901-bcde-f12345678901";
+  return ROLE_MEMBER_ID;
 }
 
 /**

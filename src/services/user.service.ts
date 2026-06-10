@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createServiceClient } from "@/lib/supabase/service";
 import { tierFromPoints } from "@/lib/profile";
+import { ROLE_ADMIN_ID } from "@/lib/roles";
 import type {
   SustainabilityStats,
   UpdateProfileInput,
@@ -311,8 +312,6 @@ export async function isOnlyAdminOfAnyOrg(
   userId: string
 ): Promise<{ blocked: boolean; orgIds: string[] }> {
   const db = createServiceClient();
-
-  const ROLE_ADMIN_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
   // 1) orgs in which user is currently an active admin
   const { data: myAdminMemberships, error: e1 } = await db
