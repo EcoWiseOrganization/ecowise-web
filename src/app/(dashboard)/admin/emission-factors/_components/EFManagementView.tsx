@@ -139,6 +139,7 @@ export function EFManagementView({ initialFactors, categories }: EFManagementVie
       {modalOpen && (
         <EFModal
           categories={categories}
+          existingFactors={factors}
           editTarget={editTarget}
           loading={loading}
           onSubmit={editTarget ? handleEdit : handleCreate}

@@ -13,14 +13,24 @@ export type Scope = "Scope 1" | "Scope 2" | "Scope 3";
 /** GHG Protocol calculation method */
 export type CalculationMethod = "Activity-based" | "Spend-based" | "Hybrid";
 
-/** Recognised emission factor data sources */
-export type EFSource =
-  | "MONRE_VN"  // Bộ Tài Nguyên Môi Trường Việt Nam
-  | "IPCC"      // IPCC AR6
-  | "DEFRA"     // UK DEFRA
-  | "EPA"       // US EPA
-  | "Climatiq"  // Climatiq cloud database
-  | "Custom";   // Admin-defined
+/**
+ * Emission factor source label. Free-form text in the DB (VARCHAR(100))
+ * since migration 032 — admins can register novel regulators / studies
+ * at EF-creation time. The string union below tracks the well-known
+ * values that ship as combobox suggestions; any other string is also
+ * accepted by the type and the DB.
+ */
+export type EFSource = string;
+
+/** Standard sources surfaced as suggestions in the admin EF combobox. */
+export const KNOWN_EF_SOURCES = [
+  "MONRE_VN",  // Bộ Tài Nguyên Môi Trường Việt Nam
+  "IPCC",      // IPCC AR6
+  "DEFRA",     // UK DEFRA
+  "EPA",       // US EPA
+  "Climatiq",  // Climatiq cloud database
+  "Custom",    // Admin-defined
+] as const;
 
 // ── Input Schema (JSONB stored in CalculationTemplates.input_schema) ────────
 
