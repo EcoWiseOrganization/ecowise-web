@@ -268,6 +268,11 @@ export const en = {
   "common.breadcrumb.organizations": "Organizations",
   "common.comingSoon": "Coming soon",
   "common.loading": "Loading…",
+  "common.aria.openMenu": "Open menu",
+  "common.aria.closeMenu": "Close menu",
+  "common.aria.dismiss": "Dismiss",
+  "common.aria.selectLanguage": "Select language",
+  "common.alt.logo": "EcoWise logo",
 
   // Phase 1 — Settings tabs
   "settings.tabs.profile": "Profile",
@@ -561,6 +566,8 @@ export const en = {
   "compare.delta": "Difference (B − A)",
   "compare.reduced": "reduced",
   "compare.increased": "increased",
+  "compare.pctNotApplicable": "% n/a (baseline period had no activity)",
+  "error.COMPARE_PERIODS_OVERLAP": "Period A and Period B overlap — pick non-overlapping ranges so the delta is meaningful.",
 
   // Phase 5 — Form builder
   "publicForm.builder.title": "Public Event Form",

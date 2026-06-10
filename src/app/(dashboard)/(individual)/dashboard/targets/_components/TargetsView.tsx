@@ -145,7 +145,13 @@ function ActiveTargetCard({
   archiving: boolean;
 }) {
   const { t } = useTranslation();
-  const pct = Math.max(0, Math.min(100, Math.round(target.progress_pct * 100)));
+  // The progress bar can't exceed 100% (no room in the track), but we
+  // surface the raw % above it so a user beating the goal sees the
+  // "over-achievement" number instead of a flat 100%. Treat negative
+  // weirdness (data drift) as 0%.
+  const rawPct = Math.max(0, Math.round(target.progress_pct * 100));
+  const barPct = Math.min(100, rawPct);
+  const overshot = rawPct > 100;
   const elapsedPct =
     target.total_days > 0
       ? Math.round((target.elapsed_days / target.total_days) * 100)
@@ -189,12 +195,14 @@ function ActiveTargetCard({
       <div>
         <div className="flex justify-between text-xs mb-1">
           <span>{t("targets.progress")}</span>
-          <span className="font-semibold">{pct}%</span>
+          <span className={`font-semibold ${overshot ? "text-[#1F8505]" : ""}`}>
+            {rawPct}%{overshot ? " ✨" : ""}
+          </span>
         </div>
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
           <div
             className={`h-full ${target.on_track ? "bg-[#1F8505]" : "bg-red-500"}`}
-            style={{ width: `${pct}%` }}
+            style={{ width: `${barPct}%` }}
           />
         </div>
       </div>

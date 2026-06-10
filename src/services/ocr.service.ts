@@ -80,18 +80,30 @@ async function runAnthropic(input: RunInput): Promise<OcrResult> {
   });
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`anthropic_error_${res.status}: ${body.slice(0, 200)}`);
+    // Don't surface the upstream body — Anthropic error responses can
+    // echo back fragments of the prompt or the request body, which
+    // then land verbatim in /admin/audit-logs.newValue when the route
+    // wraps this throw. Just preserve the status code; the server log
+    // (not the audit trail) is the right place for raw debug text.
+    console.error(
+      `[ocr] anthropic returned ${res.status}`,
+      (await res.text()).slice(0, 500),
+    );
+    throw new Error(`anthropic_error_${res.status}`);
   }
   const json = (await res.json()) as {
     content?: Array<{ type: string; text?: string }>;
   };
   const text =
     (json.content ?? []).find((c) => c.type === "text")?.text ?? "";
+  // Clamp the raw provider response so an unbounded reply (model
+  // misbehaving, prompt-injection echo) can't ride through into the
+  // form fields. 8 KB is generous for our schema (six short fields).
+  const safeText = text.length > 8192 ? text.slice(0, 8192) : text;
   return {
     provider: "anthropic",
-    raw: text,
-    fields: extractFields(text),
+    raw: safeText,
+    fields: extractFields(safeText),
   };
 }
 

@@ -384,6 +384,15 @@ export async function simulateFailedRenewal(
   if (!subRow) return { ok: false, error: "SUBSCRIPTION_NOT_FOUND" };
 
   const sub = (subRow as unknown) as SubWithPlan;
+  // Status guard — a Canceled / Suspended subscription has already
+  // been terminated by the lifecycle pipeline; force-running the
+  // failure path against it produces a dangling PendingPayment
+  // invoice + retry_count bump for a row no one is paying for.
+  // BR-10 retries only apply while the sub is collecting (Trial,
+  // Active, PastDue).
+  if (!["Trial", "Active", "PastDue"].includes(sub.status)) {
+    return { ok: false, error: "SUBSCRIPTION_NOT_COLLECTING" };
+  }
   const result = await attemptRenewal(sub, new Date(), false);
 
   // After incrementing, also evaluate force termination if cap is hit.

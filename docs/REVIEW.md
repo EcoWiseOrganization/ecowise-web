@@ -47,6 +47,25 @@
 - `fa16370` feat(billing): server-side B2C feature gating + initial enforcement
 - `e89d5db` fix(i18n): wire billing/challenges/rewards/leaderboard to t()
 
+### Round 8 — Medium + Low cross-cutting batch D (17 items, single bundled commit) · `main`
+- [x] M-D1 aria-labels translated (Header open/close menu, Toast dismiss, LanguageSwitcher select-language) + role=listbox + aria-haspopup/expanded
+- [x] M-D2 logo alt text translated (Header + Footer + Header mobile drawer)
+- [x] M-D3 Footer remount fix — stable `titleKey` instead of translated string as object key
+- [x] M-D4 `<html lang>` synced with active i18n locale on every language change
+- [x] M-D5 `metadata.alternates.languages` declared (en + vi)
+- [x] M-D6 `next.config.ts`: `poweredByHeader: false`, `images.remotePatterns` (dicebear / Supabase / Google), `optimizePackageImports: @mui/icons-material`
+- [x] M-D7 `tsconfig.json` target: ES2017 → ES2022
+- [x] M-D8 CompareView — period overlap rejected client-side; baseline-zero shows `% n/a` instead of misleading 0%
+- [x] M-D9 `simulateFailedRenewal` — status guard rejects Canceled/Suspended subs (only Trial/Active/PastDue collect)
+- [x] M-D10 `rotateFormToken` — drop dead `db.rpc("uuid_generate_v4")` path; use `crypto.randomUUID()` directly
+- [x] M-D11 `getOrganizationMembers` — broken `role` column → `role_id`
+- [x] M-D12 `mailto:` href sanitized for `\r\n\t<>,;` + format guard (header-injection safe)
+- [x] M-D13 Migration 031 — `Subscriptions.retry_count >= 0` CHECK + `Rewards` BEFORE-UPDATE trigger snaps status to SoldOut/LowStock/Active on stock crossings + reconciliation
+- [x] M-D14 Targets — progress % can show >100% with ✨ overshoot label; bar still clamps to 100%
+- [x] M-D15 OCR — anthropic error body no longer flows to audit log; raw output clamped at 8KB before parsing
+- [x] M-D16 VI placeholder leaks → t() with EN defaultValue (FormulaBuilderForm name+description, InputSchemaBuilder label, EFModal notes)
+- [x] M-D17 ActivityLogger — empty vs filter-no-match distinguished
+
 ### Round 7 — Medium severity batch C (10/10 DONE) · `main`
 - [x] M-C1 personal-log co2e server-recompute (anti-cheat) — `8c95389`
 - [x] M-C2 target end_date past validation — `e25ef6a`
@@ -119,7 +138,7 @@
 - `87eb5e2` fix(challenges): batch org-scoped query, kill N+1
 
 ### Manual deployment steps still required
-1. Apply migrations 020/021/022/023/024/025/026/027/028/029/030 via `npx tsx scripts/apply-migrations.ts`.
+1. Apply migrations 020/021/022/023/024/025/026/027/028/029/030/031 via `npx tsx scripts/apply-migrations.ts`.
 2. Set `CRON_SECRET` in Vercel env — production now fails closed without it.
 3. Verify SMTP creds (`GMAIL_USER` / `GMAIL_APP_PASSWORD`) so org-invite recovery email actually delivers.
 4. Product decision on remaining B2C gates (compare, leaderboard, expanded challenges) — see "Unresolved questions" §3.

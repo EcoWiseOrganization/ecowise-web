@@ -111,7 +111,7 @@ export function Header() {
             <Link href="/">
               <Image
                 src="/img/logo.png"
-                alt="EcoWise Logo"
+                alt={t("common.alt.logo")}
                 width={174}
                 height={39}
                 priority
@@ -152,7 +152,7 @@ export function Header() {
             <button
               className="lg:hidden p-1.5 text-[#79B669] border border-[#DAEDD5] rounded-lg bg-white cursor-pointer"
               onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
+              aria-label={t("common.aria.openMenu")}
             >
               <MenuIcon sx={{ fontSize: 24 }} />
             </button>
@@ -171,11 +171,11 @@ export function Header() {
           {/* Drawer */}
           <div className="fixed top-0 right-0 h-full w-[280px] bg-white z-50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.12)] lg:hidden animate-fade-slide-in-right">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#DAEDD5]">
-              <Image src="/img/logo.png" alt="EcoWise Logo" width={120} height={27} className="h-auto" />
+              <Image src="/img/logo.png" alt={t("common.alt.logo")} width={120} height={27} className="h-auto" />
               <button
                 onClick={() => setMobileOpen(false)}
                 className="p-1 text-[#79B669] bg-transparent border-none cursor-pointer"
-                aria-label="Close menu"
+                aria-label={t("common.aria.closeMenu")}
               >
                 <CloseIcon sx={{ fontSize: 24 }} />
               </button>

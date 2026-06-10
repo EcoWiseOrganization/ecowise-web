@@ -11,7 +11,7 @@ export function LanguageSwitcher({
   onClose?: () => void;
   direction?: "up" | "down";
 }) {
-  const { i18n: i18nInstance } = useTranslation();
+  const { i18n: i18nInstance, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const currentLang = i18nInstance.language === "vi" ? "VI" : "EN";
@@ -38,7 +38,9 @@ export function LanguageSwitcher({
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 text-[#79B669] hover:text-[#1F8505] transition-colors bg-transparent border-none cursor-pointer p-0"
-        aria-label="Select language"
+        aria-label={t("common.aria.selectLanguage")}
+        aria-haspopup="listbox"
+        aria-expanded={open}
       >
         <LanguageIcon sx={{ fontSize: 22 }} />
         <span className="text-sm font-medium">{currentLang}</span>
@@ -46,6 +48,8 @@ export function LanguageSwitcher({
 
       {open && (
         <div
+          role="listbox"
+          aria-label={t("common.aria.selectLanguage")}
           className={`absolute left-0 w-40 bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-[#DAEDD5] py-1 z-[60] ${
             direction === "up" ? "bottom-full mb-2" : "top-full mt-2"
           }`}

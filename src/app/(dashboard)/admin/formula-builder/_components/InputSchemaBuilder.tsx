@@ -84,7 +84,9 @@ export function InputSchemaBuilder({ fields, onChange }: InputSchemaBuilderProps
               </label>
               <input
                 type="text"
-                placeholder="e.g. Điện năng tiêu thụ"
+                placeholder={t("admin.formula.schema.displayLabelPlaceholder", {
+                  defaultValue: "e.g. Electricity consumption",
+                })}
                 value={field.label}
                 onChange={(e) => updateField(i, { label: e.target.value })}
                 className={inputCls}

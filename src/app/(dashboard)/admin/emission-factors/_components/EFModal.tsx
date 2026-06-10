@@ -284,7 +284,10 @@ export function EFModal({ categories, editTarget, loading, onSubmit, onCancel }:
               value={form.notes}
               onChange={set("notes")}
               rows={2}
-              placeholder="e.g. Quyết định 01/2022/QĐ-TTg – MONRE Vietnam"
+              placeholder={t("admin.ef.modal.notesPlaceholder", {
+                defaultValue:
+                  "e.g. MONRE Vietnam Decision 01/2022/QĐ-TTg, citation, methodology…",
+              })}
               className="w-full px-3 py-2.5 rounded-xl border border-[#DAEDD5] bg-white text-[#141514] text-sm placeholder:text-[#AAAAAA] focus:outline-none focus:border-[#79B669] focus:ring-2 focus:ring-[#79B669]/20 transition-colors resize-none"
             />
           </div>

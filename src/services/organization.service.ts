@@ -98,13 +98,18 @@ export async function getOrganizationMembers(
 ): Promise<OrganizationMemberWithUser[]> {
   const supabase = createClient();
 
+  // Column name is `role_id`, not `role` — the previous shape would
+  // PostgREST-400 the moment any caller used this function. The
+  // browser-side helper currently has no callers (org dashboard
+  // reads via the server-only `org-member.service.ts`), but keeping
+  // a broken query around is a footgun for anyone who imports it.
   const { data, error } = await supabase
     .from("OrganizationMembers")
     .select(`
       id,
       org_id,
       user_id,
-      role,
+      role_id,
       status,
       created_at,
       user:User ( id, full_name, user_name, email )

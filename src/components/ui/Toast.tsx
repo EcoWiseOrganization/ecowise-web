@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
@@ -77,6 +78,8 @@ function ToastItem({
   item: ToastItem;
   onDismiss: (id: string) => void;
 }) {
+  const { t } = useTranslation();
+  const dismissLabel = t("common.aria.dismiss");
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -107,7 +110,7 @@ function ToastItem({
       <button
         onClick={() => onDismiss(item.id)}
         className="mt-0.5 shrink-0 text-[#AAAAAA] hover:text-[#3B3D3B] bg-transparent border-none cursor-pointer p-0"
-        aria-label="Dismiss"
+        aria-label={dismissLabel}
       >
         <CloseIcon sx={{ fontSize: 16 }} />
       </button>

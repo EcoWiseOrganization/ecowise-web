@@ -174,7 +174,9 @@ export function FormulaBuilderForm({
           </label>
           <input
             type="text"
-            placeholder="e.g. Điện năng tiêu thụ (kWh)"
+            placeholder={t("admin.formula.form.namePlaceholder", {
+              defaultValue: "e.g. Electricity consumption (kWh)",
+            })}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={inputCls}
@@ -190,7 +192,9 @@ export function FormulaBuilderForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            placeholder="Mô tả ngắn về template này và khi nào dùng…"
+            placeholder={t("admin.formula.form.descriptionPlaceholder", {
+              defaultValue: "Short description of this template and when to use it…",
+            })}
             className="w-full px-3 py-2.5 rounded-xl border border-[#DAEDD5] bg-white text-[#141514] text-sm placeholder:text-[#AAAAAA] focus:outline-none focus:border-[#79B669] focus:ring-2 focus:ring-[#79B669]/20 transition-colors resize-none"
           />
         </div>

@@ -92,16 +92,14 @@ export async function rotateFormToken(
   formId: string
 ): Promise<EventPublicForm> {
   const db = createServiceClient();
-  // Generate new uuid via SQL default by clearing column? Use update with raw uuid via Postgres function.
-  const { data, error } = await db.rpc("uuid_generate_v4").single();
-  // Fallback if RPC unavailable.
-  let newToken: string;
-  if (error || !data) {
-    // Use Web Crypto on the runtime
-    newToken = crypto.randomUUID();
-  } else {
-    newToken = data as unknown as string;
-  }
+  // Generate the new token in-process. The previous implementation
+  // first called `db.rpc("uuid_generate_v4")` and fell back to
+  // `crypto.randomUUID()` — but `uuid_generate_v4` isn't exposed as
+  // a Postgres RPC by default on Supabase, so the RPC ALWAYS errored
+  // and the fallback was the actual code path. Web Crypto's
+  // `randomUUID()` is cryptographically strong + universally
+  // available on Node 19+ / edge / browsers, so we use it directly.
+  const newToken = crypto.randomUUID();
   const { data: row, error: updateErr } = await db
     .from("EventPublicForms")
     .update({ token: newToken })

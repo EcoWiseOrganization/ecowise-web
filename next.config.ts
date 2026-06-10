@@ -56,6 +56,31 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Strip `X-Powered-By: Next.js` from every response — it's a free
+  // fingerprint that helps an attacker pick the right exploit catalog
+  // and gives us nothing in return.
+  poweredByHeader: false,
+  experimental: {
+    // The codebase imports MUI icons one-by-one
+    // (`import Menu from "@mui/icons-material/Menu"`). Next's
+    // `optimizePackageImports` rewrites barrel-style imports to
+    // those direct paths automatically — declaring the package here
+    // also short-circuits the icon barrel for the few imports that
+    // do go through `@mui/icons-material` root. Cuts cold-start
+    // bundle size noticeably for the dashboard chunks.
+    optimizePackageImports: ["@mui/icons-material"],
+  },
+  images: {
+    // Whitelist external image hosts we actually use so `next/image`
+    // can optimise them. dicebear powers the default avatar (see
+    // `lib/avatar.ts`); Supabase Storage signed URLs cover evidence
+    // photos uploaded from the activity logger.
+    remotePatterns: [
+      { protocol: "https", hostname: "api.dicebear.com" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+    ],
+  },
   async headers() {
     return [
       {

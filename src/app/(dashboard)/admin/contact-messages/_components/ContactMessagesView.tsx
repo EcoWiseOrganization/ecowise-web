@@ -4,6 +4,22 @@ import { useState, useTransition } from "react";
 import { setContactMessageStatusAction } from "@/app/actions/admin.actions";
 import type { ContactMessageRow } from "@/types/admin.types";
 
+/**
+ * Build a safe `mailto:` href. Stripping CR / LF / SP from the email
+ * blocks RFC 5322 header injection — without this, a crafted email
+ * like `attacker@x.com%0aCc:victim@x.com` would forge a Cc header
+ * once the OS mail client URL-decoded the value. Anything that
+ * doesn't look like a plausible email after stripping returns `#`,
+ * which renders the button visually but does nothing on click.
+ */
+function buildMailtoHref(rawEmail: string | null, rawSubject: string | null): string {
+  if (!rawEmail) return "#";
+  const cleaned = rawEmail.replace(/[\r\n\t\s,;<>]/g, "");
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(cleaned)) return "#";
+  const subject = encodeURIComponent(`Re: ${rawSubject ?? ""}`.trim());
+  return `mailto:${cleaned}?subject=${subject}`;
+}
+
 const STATUS_OPTIONS: ContactMessageRow["status"][] = [
   "new",
   "read",
@@ -88,7 +104,7 @@ export function ContactMessagesView({ initial }: { initial: ContactMessageRow[] 
                   </button>
                 ))}
                 <a
-                  href={`mailto:${m.email}?subject=Re: ${encodeURIComponent(m.subject ?? "")}`}
+                  href={buildMailtoHref(m.email, m.subject)}
                   className="text-xs px-2 py-1 rounded-lg bg-[#155A03] text-white"
                 >
                   Reply

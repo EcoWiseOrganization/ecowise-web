@@ -300,7 +300,20 @@ export function ActivityLogger() {
             {logs.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-3 py-6 text-center text-[#AAAAAA]">
-                  {t("activity.empty")}
+                  {/*
+                    * Distinguish "no data" from "filtered out nothing"
+                    * — both hit this branch but the user's next action
+                    * is different (log first activity vs. clear the
+                    * filter). The empty-set fallback shows up only
+                    * when the user hasn't typed a search and has no
+                    * scope / status filter active.
+                    */}
+                  {filters.search?.trim() || filters.scope || filters.status
+                    ? t("activity.emptyFiltered", {
+                        defaultValue:
+                          "No activity matches the current filters. Try clearing them.",
+                      })
+                    : t("activity.empty")}
                 </td>
               </tr>
             ) : (

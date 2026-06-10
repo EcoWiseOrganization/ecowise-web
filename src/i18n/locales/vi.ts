@@ -269,6 +269,11 @@ export const vi = {
   "common.breadcrumb.organizations": "Tổ Chức",
   "common.comingSoon": "Sắp ra mắt",
   "common.loading": "Đang tải…",
+  "common.aria.openMenu": "Mở menu",
+  "common.aria.closeMenu": "Đóng menu",
+  "common.aria.dismiss": "Đóng",
+  "common.aria.selectLanguage": "Chọn ngôn ngữ",
+  "common.alt.logo": "Logo EcoWise",
 
   // Phase 1 — Settings tabs
   "settings.tabs.profile": "Hồ Sơ",
@@ -562,6 +567,8 @@ export const vi = {
   "compare.delta": "Chênh lệch (B − A)",
   "compare.reduced": "giảm",
   "compare.increased": "tăng",
+  "compare.pctNotApplicable": "% n/a (giai đoạn gốc chưa có hoạt động)",
+  "error.COMPARE_PERIODS_OVERLAP": "Giai đoạn A và B chồng lấp — chọn khoảng không giao nhau để so sánh có ý nghĩa.",
 
   // Phase 5 — Form builder
   "publicForm.builder.title": "Form sự kiện công khai",

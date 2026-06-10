@@ -20,26 +20,39 @@ const SOCIAL_LINKS = [
 export function Footer() {
   const { t } = useTranslation();
 
-  const FOOTER_LINKS: Record<string, { labelKey: string; href: string }[]> = {
-    [t("footer.aboutUs")]: [
-      { labelKey: "footer.companyOverview", href: "/about" },
-      { labelKey: "footer.missionVision", href: "/about#mission" },
-      { labelKey: "footer.sustainabilityCommitment", href: "/about#vision" },
-      { labelKey: "footer.partners", href: "/about" },
-    ],
-    [t("footer.services")]: [
-      { labelKey: "footer.carbonMeasurement", href: "/services" },
-      { labelKey: "footer.emissionAnalysis", href: "/services" },
-      { labelKey: "footer.carbonReporting", href: "/services" },
-      { labelKey: "footer.netZeroConsulting", href: "/services" },
-    ],
-    [t("footer.products")]: [
-      { labelKey: "footer.websitePlatform", href: "/services" },
-      { labelKey: "footer.mobileApp", href: "/services" },
-      { labelKey: "footer.enterpriseDashboard", href: "/services" },
-      { labelKey: "footer.apiIntegration", href: "/contact" },
-    ],
-  };
+  // Use stable i18n keys as `titleKey` instead of translated strings as
+  // object KEYS. The previous shape (`[t("footer.aboutUs")]: [...]`) made
+  // React see a fresh `Record` shape every time the language switched —
+  // the link columns remounted, losing focus state and flashing.
+  const FOOTER_SECTIONS: { titleKey: string; links: { labelKey: string; href: string }[] }[] = [
+    {
+      titleKey: "footer.aboutUs",
+      links: [
+        { labelKey: "footer.companyOverview", href: "/about" },
+        { labelKey: "footer.missionVision", href: "/about#mission" },
+        { labelKey: "footer.sustainabilityCommitment", href: "/about#vision" },
+        { labelKey: "footer.partners", href: "/about" },
+      ],
+    },
+    {
+      titleKey: "footer.services",
+      links: [
+        { labelKey: "footer.carbonMeasurement", href: "/services" },
+        { labelKey: "footer.emissionAnalysis", href: "/services" },
+        { labelKey: "footer.carbonReporting", href: "/services" },
+        { labelKey: "footer.netZeroConsulting", href: "/services" },
+      ],
+    },
+    {
+      titleKey: "footer.products",
+      links: [
+        { labelKey: "footer.websitePlatform", href: "/services" },
+        { labelKey: "footer.mobileApp", href: "/services" },
+        { labelKey: "footer.enterpriseDashboard", href: "/services" },
+        { labelKey: "footer.apiIntegration", href: "/contact" },
+      ],
+    },
+  ];
 
   return (
     <footer id="contact" className="w-full bg-white shadow-[0px_-2px_4px_rgba(218,237,213,0.25)] border-t border-[#DAEDD5]">
@@ -51,7 +64,7 @@ export function Footer() {
           <div className="w-full sm:w-[220px] lg:w-[240px] flex flex-col gap-8 lg:gap-[68px] shrink-0">
             <Image
               src="/img/logo.png"
-              alt="EcoWise Logo"
+              alt={t("common.alt.logo")}
               width={260}
               height={58}
               className="w-[160px] sm:w-[200px] lg:w-[240px] h-auto"
@@ -85,13 +98,13 @@ export function Footer() {
 
           {/* Link Columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 w-full sm:w-auto sm:ml-auto lg:mr-2">
-            {Object.entries(FOOTER_LINKS).map(([title, links]) => (
-              <div key={title} className="flex flex-col gap-3 sm:gap-4">
+            {FOOTER_SECTIONS.map((section) => (
+              <div key={section.titleKey} className="flex flex-col gap-3 sm:gap-4">
                 <h4 className="text-[#1F8505] text-sm sm:text-base font-semibold leading-6 whitespace-nowrap">
-                  {title}
+                  {t(section.titleKey)}
                 </h4>
                 <div className="flex flex-col gap-1.5 sm:gap-2">
-                  {links.map((link) => (
+                  {section.links.map((link) => (
                     <Link
                       key={link.labelKey}
                       href={link.href}

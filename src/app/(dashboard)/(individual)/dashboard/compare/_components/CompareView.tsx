@@ -32,6 +32,17 @@ export function CompareView() {
       setError("MSG22");
       return;
     }
+    // Overlapping A/B periods make the delta meaningless — same data
+    // is partially counted on both sides. Reject before the round
+    // trip so the user gets an immediate, specific reason.
+    const aS = new Date(aStart).getTime();
+    const aE = new Date(aEnd).getTime();
+    const bS = new Date(bStart).getTime();
+    const bE = new Date(bEnd).getTime();
+    if (aS <= bE && bS <= aE) {
+      setError("COMPARE_PERIODS_OVERLAP");
+      return;
+    }
     startTransition(async () => {
       const res = await comparePeriodsAction({ aStart, aEnd, bStart, bEnd });
       if (res.error || !res.data) {
@@ -115,7 +126,11 @@ export function CompareView() {
             total={result.b.total}
             logCount={result.b.logCount}
           />
-          <DeltaCard delta={result.deltaKg} pct={result.deltaPct} />
+          <DeltaCard
+            delta={result.deltaKg}
+            pct={result.deltaPct}
+            baselineZero={result.a.total === 0}
+          />
         </div>
       )}
     </div>
@@ -154,7 +169,15 @@ function PeriodCard({
   );
 }
 
-function DeltaCard({ delta, pct }: { delta: number; pct: number }) {
+function DeltaCard({
+  delta,
+  pct,
+  baselineZero,
+}: {
+  delta: number;
+  pct: number;
+  baselineZero?: boolean;
+}) {
   const { t } = useTranslation();
   const reduced = delta < 0;
   return (
@@ -175,8 +198,18 @@ function DeltaCard({ delta, pct }: { delta: number; pct: number }) {
         {delta.toFixed(2)} kg
       </div>
       <div className="text-sm mt-1">
-        {pct >= 0 ? "+" : ""}
-        {pct.toFixed(1)}% {reduced ? t("compare.reduced") : t("compare.increased")}
+        {baselineZero ? (
+          // No baseline → "X% reduction" is misleading (anything ÷ 0
+          // is undefined). Show the absolute delta instead and label
+          // the percentage explicitly as not-applicable.
+          <span className="text-[#6E726E]">{t("compare.pctNotApplicable")}</span>
+        ) : (
+          <>
+            {pct >= 0 ? "+" : ""}
+            {pct.toFixed(1)}%{" "}
+            {reduced ? t("compare.reduced") : t("compare.increased")}
+          </>
+        )}
       </div>
     </div>
   );

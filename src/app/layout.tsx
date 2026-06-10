@@ -29,6 +29,18 @@ export const metadata: Metadata = {
   title: "EcoWise - Carbon Footprint Management",
   description:
     "EcoWise helps you track, manage, and reduce your carbon footprint for a sustainable future.",
+  // Tell search engines the two supported locales — surfaces VN
+  // language pages in vi-VN search results without a separate URL
+  // path scheme. We don't have per-locale subroutes (i18n is
+  // client-side), so both `vi` and `en` point at the same
+  // canonical URL set — the alternates block just declares the
+  // language the same content is available in.
+  alternates: {
+    languages: {
+      en: "/",
+      vi: "/",
+    },
+  },
 };
 
 export default function RootLayout({
