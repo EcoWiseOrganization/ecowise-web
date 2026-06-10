@@ -97,6 +97,7 @@ async function main() {
     "supabase/migrations/025_invoice_idempotency.sql",
     "supabase/migrations/026_daily_counter_rpc.sql",
     "supabase/migrations/027_audit_actor_context.sql",
+    "supabase/migrations/028_subscription_indexes.sql",
   ];
 
   const client = new Client({ connectionString: url });

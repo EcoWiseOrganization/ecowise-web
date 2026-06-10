@@ -189,61 +189,46 @@ export async function subscribeToPlan(opts: {
   const trialEnd = inTrial
     ? new Date(start.getTime() + plan.trial_days * 86_400_000)
     : null;
+  const newStatus = inTrial
+    ? "Trial"
+    : plan.base_price_usd === 0
+      ? "Active"
+      : "PastDue";
 
-  // Insert the NEW subscription first. The previous version cancelled
-  // the old sub before inserting — if the insert then failed (DB hiccup,
-  // plan archived, etc.) the user was left with NO active subscription
-  // and a partial state to recover by hand.
-  //
-  // By inserting first we briefly have two active subs in the worst
-  // case, which the cron / RLS / billing UI all tolerate. We then cancel
-  // the previous one; failure to cancel is logged + flagged for cleanup
-  // but never bubbles up as a failed checkout.
-  const { data: subRow, error: subErr } = await db
+  // Cancel-then-insert inside a single SQL transaction via the atomic
+  // RPC added in migration 028. This combines with the partial unique
+  // index (one active sub per subject) so:
+  //   - A failed insert rolls back the cancel — the subject never ends
+  //     up with zero active subs (the C10 concern).
+  //   - Two concurrent subscribes can't both leave a live sub — the
+  //     index makes the second insert fail with 23505, which we surface
+  //     as the same error the rest of the chain handles.
+  const { data: newSubId, error: rpcErr } = await db.rpc(
+    "subscribe_to_plan_atomic",
+    {
+      p_subject_type: opts.subjectType,
+      p_subject_id: opts.subjectId,
+      p_plan_id: opts.planId,
+      p_status: newStatus,
+      p_period_start: start.toISOString(),
+      p_period_end: end.toISOString(),
+      p_trial_end: trialEnd ? trialEnd.toISOString() : null,
+      p_billing_email: opts.billing?.billing_email ?? null,
+      p_billing_company: opts.billing?.billing_company_name ?? null,
+      p_billing_address: opts.billing?.billing_address ?? null,
+      p_billing_vat_id: opts.billing?.billing_vat_id ?? null,
+      p_created_by: opts.userId,
+    },
+  );
+  if (rpcErr) throw new Error(rpcErr.message);
+  if (!newSubId) throw new Error("SUBSCRIBE_FAILED");
+  const { data: subRow, error: fetchErr } = await db
     .from("Subscriptions")
-    .insert({
-      subject_type: opts.subjectType,
-      subject_id: opts.subjectId,
-      plan_id: opts.planId,
-      status: inTrial ? "Trial" : plan.base_price_usd === 0 ? "Active" : "PastDue",
-      current_period_start: start.toISOString(),
-      current_period_end: end.toISOString(),
-      trial_end: trialEnd ? trialEnd.toISOString() : null,
-      auto_renew: true,
-      billing_email: opts.billing?.billing_email ?? null,
-      billing_company_name: opts.billing?.billing_company_name ?? null,
-      billing_address: opts.billing?.billing_address ?? null,
-      billing_vat_id: opts.billing?.billing_vat_id ?? null,
-      created_by: opts.userId,
-    })
     .select()
+    .eq("id", newSubId as string)
     .single();
-  if (subErr) throw new Error(subErr.message);
+  if (fetchErr || !subRow) throw new Error(fetchErr?.message ?? "SUBSCRIBE_FETCH_FAILED");
   const subscription = subRow as Subscription;
-
-  // Now retire any prior active/trial sub. We exclude the row we just
-  // inserted from the predicate so a transient read of our own row
-  // doesn't get clobbered.
-  const { error: cancelErr } = await db
-    .from("Subscriptions")
-    .update({ status: "Canceled", canceled_at: new Date().toISOString() })
-    .eq("subject_type", opts.subjectType)
-    .eq("subject_id", opts.subjectId)
-    .neq("id", subscription.id)
-    .in("status", ["Trial", "Active", "PastDue"]);
-  if (cancelErr) {
-    // Don't roll back the new sub — the user has a valid subscription
-    // either way. Log so ops can sweep the duplicate.
-    console.error(
-      "[subscription.subscribeToPlan] failed to cancel prior subscription",
-      {
-        subjectType: opts.subjectType,
-        subjectId: opts.subjectId,
-        newSubId: subscription.id,
-        error: cancelErr.message,
-      },
-    );
-  }
 
   // Free plan → no invoice, immediately Active.
   if (plan.base_price_usd === 0) {
