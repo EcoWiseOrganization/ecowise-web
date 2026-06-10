@@ -30,6 +30,10 @@ export function ReviewQueue({
   const [error, setError] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  // Tracks the evidence image the admin clicked through to see full-size.
+  // Inline preview matters because Supabase Storage signed URLs typically
+  // expire before an admin clicks the original "View evidence" link.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const verify = (logId: string) => {
     setError(null);
@@ -119,14 +123,35 @@ export function ReviewQueue({
                   </td>
                   <td className="px-2 py-3 text-right space-x-2">
                     {log.evidence_url && (
-                      <a
-                        href={log.evidence_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-[#1F8505] hover:underline"
-                      >
-                        {t("org.review.viewEvidence")}
-                      </a>
+                      <>
+                        {/* Inline thumbnail — Storage signed URLs expire
+                          * before an admin gets around to clicking the
+                          * "View" link, so we render the image directly.
+                          * The link still opens a full-size version in a
+                          * new tab if the signed URL is still valid. */}
+                        <button
+                          type="button"
+                          onClick={() => setPreviewUrl(log.evidence_url!)}
+                          className="inline-block align-middle mr-1"
+                          aria-label={t("org.review.viewEvidence")}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={log.evidence_url}
+                            alt={t("org.review.viewEvidence")}
+                            className="inline-block h-8 w-8 object-cover rounded border border-[#DAEDD5]"
+                            loading="lazy"
+                          />
+                        </button>
+                        <a
+                          href={log.evidence_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-[#1F8505] hover:underline"
+                        >
+                          {t("org.review.viewEvidence")}
+                        </a>
+                      </>
                     )}
                     <button
                       type="button"
@@ -191,6 +216,37 @@ export function ReviewQueue({
                 {t("org.review.reject")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-size evidence preview modal — opens when an admin clicks
+        * the inline thumbnail. ESC / backdrop click closes. */}
+      {previewUrl && (
+        <div
+          onClick={() => setPreviewUrl(null)}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-4 relative"
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewUrl(null)}
+              className="absolute top-2 right-2 px-3 py-1 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+              aria-label={t("common.close", { defaultValue: "Close" })}
+            >
+              ✕
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt={t("org.review.viewEvidence")}
+              className="max-w-full h-auto rounded-lg"
+            />
           </div>
         </div>
       )}
