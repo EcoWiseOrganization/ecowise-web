@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * Brand palette
+ *
+ * Tailwind 4 reads `@theme` directives at build time and exposes each
+ * `--color-<name>` token as a `bg-<name>` / `text-<name>` / `border-<name>`
+ * utility. Centralising the EcoWise greens here gives us:
+ *
+ *   - bg-brand-50         hover backgrounds (was `bg-[#f0f9ed]`)
+ *   - bg-brand-100        muted callouts   (was `bg-[#DAEDD5]`, `bg-[#F0FDF4]`)
+ *   - text-brand-300      decorative tints (was `text-[#B8D6B0]`)
+ *   - text-brand-500      mid greens       (was `text-[#79B669]`)
+ *   - bg-brand-600        primary fills    (was `bg-[#1F8505]`)
+ *   - text-brand-700      headings         (was `text-[#155A03]`)
+ *   - text-neutral-fg     body copy        (was `text-[#3B3D3B]`)
+ *   - text-neutral-muted  secondary copy   (was `text-[#6E726E]`, `#AAAAAA`)
+ *
+ * A handful of literal `#xxx` values are still scattered through legacy
+ * components — they keep working unchanged. New code (and gradual
+ * refactors) should reach for these tokens so a brand-colour change
+ * lands in one place instead of ~150 hex literals.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-brand-50:  #f0f9ed;
+  --color-brand-100: #DAEDD5;
+  --color-brand-200: #B8D6B0;
+  --color-brand-300: #95C289;
+  --color-brand-400: #79B669;
+  --color-brand-500: #1F8505;
+  --color-brand-600: #176d04;
+  --color-brand-700: #155A03;
+  --color-neutral-fg:    #3B3D3B;
+  --color-neutral-muted: #6E726E;
+  --color-neutral-soft:  #AAAAAA;
+}
+
 html {
   scroll-behavior: smooth;
 }
