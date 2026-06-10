@@ -4,6 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { consumeContactRateLimit } from "@/lib/rate-limit";
 import { readJsonBodyWithLimit } from "@/lib/json-body";
 import { isEmail, isHoneypotClean, trimToMax } from "@/lib/validators";
+import { hashIpForStorage } from "@/lib/ip-hash";
 import { writeAuditLog } from "@/services/audit.service";
 import { MSG } from "@/lib/messages";
 
@@ -84,6 +85,11 @@ export async function POST(request: Request) {
 
   // ── Persist ────────────────────────────────────────────────────────────
   const ua = request.headers.get("user-agent");
+  // Store an HMAC of the IP, not the raw value — ContactMessages can
+  // sit untouched for months/years and the (email + raw IP) pair is
+  // a textbook re-identification footprint. The hash still enables
+  // abuse correlation across submissions.
+  const ipHash = hashIpForStorage(ip);
   const db = createServiceClient();
   const { data, error } = await db
     .from("ContactMessages")
@@ -92,7 +98,7 @@ export async function POST(request: Request) {
       email,
       subject: subject || null,
       message,
-      ip_address: ip,
+      ip_address: ipHash,
       user_agent: ua,
       status: "new",
     })
@@ -109,7 +115,7 @@ export async function POST(request: Request) {
     resourceType: "contact_message",
     resourceId: (data as { id: string }).id,
     newValue: { email, hasSubject: Boolean(subject) },
-    ipAddress: ip,
+    ipAddress: ipHash,
     userAgent: ua,
     actorRole: "guest",
   });

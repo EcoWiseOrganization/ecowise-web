@@ -53,7 +53,7 @@
 - [x] M-C3 legal_name change resets verification
 - [x] M-C4 public-form attendee_email server validation
 - [x] M-C5 honeypot triggers rate-limit counter
-- [ ] M-C6 EventPublicSubmissions IP hashing
+- [x] M-C6 EventPublicSubmissions IP hashing
 - [ ] M-C7 recommendations matcher coverage
 - [ ] M-C8 vercel.json security headers
 - [ ] M-C9 Inter font display:swap

@@ -8,6 +8,7 @@ import {
 } from "@/lib/event-form";
 import { writeAuditLog } from "@/services/audit.service";
 import { readJsonBodyWithLimit } from "@/lib/json-body";
+import { hashIpForStorage } from "@/lib/ip-hash";
 import { MSG } from "@/lib/messages";
 
 interface ContextParams {
@@ -200,6 +201,14 @@ export async function POST(req: Request, { params }: ContextParams) {
     hotel_nights: submission.hotel_nights ?? null,
   } satisfies Record<string, unknown>;
 
+  // Store a peppered HMAC of the IP instead of the raw address —
+  // EventPublicSubmissions is retained for the lifetime of the event
+  // (analytics, abuse review) and raw IPs paired with attendee_email
+  // are a PII liability under most privacy regimes. The hash still
+  // supports SQL-equality abuse correlation ("same hash submitting
+  // across orgs"); it just stops the table from being a long-term
+  // re-identification source.
+  const ipHash = hashIpForStorage(ip);
   const { data: subRow, error: subErr } = await db
     .from("EventPublicSubmissions")
     .insert({
@@ -210,7 +219,7 @@ export async function POST(req: Request, { params }: ContextParams) {
       submitted_data: safeSubmittedData,
       computed_co2e: co2e,
       emission_log_id: (emissionLog as { id: string }).id,
-      ip_address: ip,
+      ip_address: ipHash,
       user_agent: ua,
     })
     .select("id")
@@ -229,7 +238,7 @@ export async function POST(req: Request, { params }: ContextParams) {
     resourceId: (subRow as { id: string }).id,
     orgId: form.org_id,
     actorRole: "guest",
-    ipAddress: ip,
+    ipAddress: ipHash,
     userAgent: ua,
     newValue: { computed_co2e: co2e, transport: submission.transport_mode },
   });
