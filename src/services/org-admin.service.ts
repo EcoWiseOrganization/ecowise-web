@@ -315,12 +315,35 @@ export async function updateOrganization(
   input: UpdateOrganizationInput
 ): Promise<Organization> {
   const db = createServiceClient();
+  // Pre-fetch the current row so we can detect identity-affecting
+  // changes (legal_name, tax_code) — these MUST reset the verification
+  // status so a Verified org renaming itself cannot masquerade as a
+  // pre-vetted entity to its own attendees / partners.
+  const { data: currentRaw } = await db
+    .from("Organization")
+    .select("legal_name, verification_status")
+    .eq("id", orgId)
+    .maybeSingle();
+  const current = currentRaw as
+    | { legal_name: string | null; verification_status: string | null }
+    | null;
+
   const patch: Record<string, unknown> = {};
+  let resetVerification = false;
   if (typeof input.legal_name === "string") {
     const v = input.legal_name.trim();
     if (v.length === 0) throw new Error("LEGAL_NAME_REQUIRED");
     if (v.length > LEGAL_NAME_MAX_LEN) throw new Error("LEGAL_NAME_TOO_LONG");
     patch.legal_name = v;
+    // Only reset when the name actually changes AND the org is
+    // currently Verified — Pending stays Pending; Suspended stays
+    // Suspended (an admin action overrides any auto-reset path).
+    if (
+      current?.verification_status === "Verified" &&
+      (current.legal_name ?? "") !== v
+    ) {
+      resetVerification = true;
+    }
   }
   if (typeof input.org_type === "string") patch.org_type = input.org_type;
   if (typeof input.industry === "string") {
@@ -353,6 +376,10 @@ export async function updateOrganization(
       .eq("id", orgId)
       .single();
     return data as Organization;
+  }
+
+  if (resetVerification) {
+    patch.verification_status = "Pending";
   }
 
   const { data, error } = await db
