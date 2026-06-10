@@ -56,7 +56,7 @@
 - [x] M-C6 EventPublicSubmissions IP hashing
 - [x] M-C7 recommendations matcher coverage
 - [x] M-C8 vercel.json security headers
-- [ ] M-C9 Inter font display:swap
+- [x] M-C9 Inter font display:swap
 - [ ] M-C10 lib/utils.ts removal + ocr/parser dead vars
 
 ### Round 6 — Medium severity batch B (10/10 DONE, single bundled commit) · `main`
