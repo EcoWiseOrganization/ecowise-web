@@ -51,12 +51,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: MSG.INVALID_FORMAT }, { status: 400 });
   }
 
-  // Honeypot — pretend success to avoid leaking detection logic to bots.
-  if (!isHoneypotClean(honeypot)) {
-    return NextResponse.json({ ok: true }, { status: 200 });
-  }
-
-  // ── Rate limit ─────────────────────────────────────────────────────────
+  // ── Rate limit (BEFORE honeypot) ─────────────────────────────────────
+  //
+  // The honeypot path used to return `ok: true` immediately, BEFORE
+  // consuming the rate-limit token. That gave bots an unlimited
+  // budget to hammer the endpoint as long as they kept the trap field
+  // populated — useful for DB connection-pool exhaustion or for
+  // probing whether the endpoint exists at all without showing up in
+  // /admin/contact-messages.
+  //
+  // Consuming the bucket first means honeypot-triggering bots get
+  // 429-ed after the same N requests as a real client. The
+  // "pretend-success" response below still leaks no detection
+  // signal, but the cost-per-attempt is now bounded.
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
@@ -68,6 +75,11 @@ export async function POST(request: Request) {
       { error: "RATE_LIMITED", retryAfterSec: limited.retryAfterSec },
       { status: 429, headers: { "Retry-After": String(limited.retryAfterSec ?? 60) } }
     );
+  }
+
+  // Honeypot — pretend success to avoid leaking detection logic to bots.
+  if (!isHoneypotClean(honeypot)) {
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 
   // ── Persist ────────────────────────────────────────────────────────────

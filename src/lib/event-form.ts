@@ -140,6 +140,10 @@ export interface ValidationResult {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// RFC 5321 caps a path at 254 chars (256 minus 2 quote characters);
+// we keep the 320 budget used elsewhere as a safe over-spec to match
+// `validateOrgEmail`. Anything longer is either garbage or hostile.
+const ATTENDEE_EMAIL_MAX_LEN = 320;
 
 export function validateSubmission(
   s: Partial<PublicFormSubmission>
@@ -166,8 +170,18 @@ export function validateSubmission(
       return { ok: false, errorCode: "NIGHTS_RANGE" };
     }
   }
-  if (s.attendee_email && !EMAIL_RE.test(s.attendee_email)) {
-    return { ok: false, errorCode: "INVALID_FORMAT" };
+  if (s.attendee_email) {
+    // Optional field — when absent we let the row through anonymously.
+    // When present it must look like an email AND fit inside the cap
+    // so a 1MB string can't ride into the EventPublicSubmissions
+    // table / audit log payload.
+    if (
+      typeof s.attendee_email !== "string" ||
+      s.attendee_email.length > ATTENDEE_EMAIL_MAX_LEN ||
+      !EMAIL_RE.test(s.attendee_email)
+    ) {
+      return { ok: false, errorCode: "INVALID_FORMAT" };
+    }
   }
   return { ok: true };
 }
