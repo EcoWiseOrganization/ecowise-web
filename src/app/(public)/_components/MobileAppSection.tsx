@@ -44,38 +44,18 @@ export function MobileAppSection() {
             </div>
           </div>
 
-          {/* Phone Mockup — hidden on mobile, visible md+ */}
-          <div className="hidden md:flex justify-center lg:absolute lg:right-[40px] lg:top-[20px] lg:[perspective:1200px]">
-            <div className="lg:[transform:rotateY(-16deg)_rotateX(2deg)_rotateZ(14deg)] lg:[transform-style:preserve-3d]">
-              <div className="relative w-[220px] sm:w-[260px] lg:w-[300px] h-[450px] sm:h-[530px] lg:h-[610px] bg-[#1a1a1a] rounded-[40px] lg:rounded-[48px] p-[10px] lg:p-[12px] shadow-[20px_30px_80px_rgba(0,0,0,0.35),-5px_-5px_20px_rgba(255,255,255,0.05)] border-[3px] border-[#333]">
-                <div className="absolute left-0 top-[60px] bottom-[60px] w-[3px] bg-gradient-to-b from-transparent via-[#555] to-transparent rounded-full" />
-                <div className="absolute top-[12px] left-1/2 -translate-x-1/2 w-[90px] lg:w-[100px] h-[28px] lg:h-[30px] bg-[#1a1a1a] rounded-b-[16px] z-20">
-                  <div className="absolute right-[18px] top-[9px] w-[9px] h-[9px] rounded-full bg-[#0a0a0a] border border-[#333]" />
-                </div>
-                <div className="relative w-full h-full rounded-[32px] lg:rounded-[36px] overflow-hidden">
-                  <Image
-                    src="/img/home/iphone.png"
-                    alt="Phone screen"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <Image
-                      src="/img/logo.png"
-                      alt="EcoWise Logo"
-                      width={140}
-                      height={40}
-                      className="brightness-0 invert opacity-90 drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)] lg:w-[160px]"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent z-10 pointer-events-none" />
-                </div>
-              </div>
-              <div className="absolute right-[-4px] top-[130px] w-[4px] h-[65px] bg-[#333] rounded-r-sm shadow-[2px_0_4px_rgba(0,0,0,0.3)]" />
-              <div className="absolute left-[-4px] top-[110px] w-[4px] h-[28px] bg-[#333] rounded-l-sm shadow-[-2px_0_4px_rgba(0,0,0,0.3)]" />
-              <div className="absolute left-[-4px] top-[150px] w-[4px] h-[55px] bg-[#333] rounded-l-sm shadow-[-2px_0_4px_rgba(0,0,0,0.3)]" />
-              <div className="absolute left-[-4px] top-[215px] w-[4px] h-[55px] bg-[#333] rounded-l-sm shadow-[-2px_0_4px_rgba(0,0,0,0.3)]" />
-            </div>
+          {/* Phone Mockup — hidden on mobile, visible md+. The PNG already
+              contains the full device frame, screen content, and shadow,
+              so it's rendered directly without an overlay. */}
+          <div className="hidden md:flex justify-center lg:absolute lg:right-[-200px] lg:top-[-20px]">
+            <Image
+              src="/img/home/iphone2.png"
+              alt={t("mobile.title")}
+              width={1000}
+              height={1000}
+              priority
+              className="w-[520px] lg:w-[840px] h-auto object-contain"
+            />
           </div>
         </div>
       </div>
