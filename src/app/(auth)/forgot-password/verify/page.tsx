@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { AuthLayout } from "@/app/(auth)/_components/AuthLayout";
 import { OtpInput } from "@/app/(auth)/_components/OtpInput";
 import { useForgotPasswordVerify } from "@/hooks/useForgotPasswordVerify";
 
-export default function ForgotPasswordVerifyPage() {
+function ForgotPasswordVerifyForm() {
   const { otp, setOtp, error, loading, email, handleConfirm } = useForgotPasswordVerify();
 
   if (!email) return null;
@@ -43,5 +44,13 @@ export default function ForgotPasswordVerifyPage() {
         {loading ? "Verifying..." : "Confirm"}
       </button>
     </AuthLayout>
+  );
+}
+
+export default function ForgotPasswordVerifyPage() {
+  return (
+    <Suspense>
+      <ForgotPasswordVerifyForm />
+    </Suspense>
   );
 }
