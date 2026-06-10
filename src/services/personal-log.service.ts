@@ -66,6 +66,67 @@ async function tryIncrementTodayLogCount(
   return { allowed, newCount };
 }
 
+// ── CO₂e integrity (anti-cheat) ──────────────────────────────────────────
+
+/**
+ * Personal-log CO₂e value is gameable: the client picks the number and the
+ * green-points / leaderboard reward verified logs at a flat rate per row.
+ * Without a server-side check, a malicious user could log `quantity=1
+ * kWh` with `co2e_result=0.0001 kg` to claim the points without actually
+ * tracking real activity, OR inflate `co2e_result` to skew the
+ * leaderboard for ego-driven users.
+ *
+ * Two-tier validation:
+ *
+ *   1. If the user picked a catalogued source (`source_type_id`
+ *      references an EmissionFactor), we IGNORE the client's
+ *      `co2e_result` and recompute as `quantity × ef.co2e_total`. The
+ *      catalog is system-managed; the client cannot tamper with the
+ *      multiplier.
+ *
+ *   2. If the user typed a free-form source (no factor selected), the
+ *      client-supplied value is accepted but capped at a sane upper
+ *      bound (10,000 kgCO₂e per single row). A passenger-car driving
+ *      a full year at average UK kWh emissions is ~3,200 kg — 10,000
+ *      gives 3× headroom for outliers without enabling leaderboard
+ *      blowouts.
+ *
+ * Returns the recomputed (or trusted) value the caller should persist.
+ */
+const PERSONAL_LOG_CO2E_MAX_KG = 10_000;
+
+async function resolveTrustedCo2e(
+  quantity: number,
+  sourceTypeId: string | null | undefined,
+  clientCo2e: number | null | undefined,
+): Promise<number | null> {
+  if (sourceTypeId) {
+    const db = createServiceClient();
+    const { data: ef } = await db
+      .from("EmissionFactors")
+      .select("co2e_total, is_active")
+      .eq("id", sourceTypeId)
+      .maybeSingle();
+    const row = ef as { co2e_total: number | null; is_active: boolean | null } | null;
+    if (!row || row.is_active === false) {
+      // Unknown / archived factor — fall through to the capped client
+      // path rather than failing the insert. The factor may have been
+      // archived after the client picked it.
+      return clampClientCo2e(clientCo2e);
+    }
+    const factor = Number(row.co2e_total) || 0;
+    return Math.max(0, quantity * factor);
+  }
+  return clampClientCo2e(clientCo2e);
+}
+
+function clampClientCo2e(raw: number | null | undefined): number | null {
+  if (raw === null || raw === undefined) return null;
+  const v = Number(raw);
+  if (!Number.isFinite(v) || v < 0) return 0;
+  return Math.min(v, PERSONAL_LOG_CO2E_MAX_KG);
+}
+
 // ── Create / list / update / delete personal logs ─────────────────────────
 
 export async function createPersonalLog(
@@ -83,6 +144,13 @@ export async function createPersonalLog(
   }
 
   const db = createServiceClient();
+  // Server-recompute / clamp before insert so a tampered client payload
+  // cannot inflate or zero out CO₂e for leaderboard / points gaming.
+  const trustedCo2e = await resolveTrustedCo2e(
+    Number(input.quantity) || 0,
+    input.source_type_id ?? null,
+    input.co2e_result,
+  );
   const { data, error } = await db
     .from("EmissionLogs")
     .insert({
@@ -93,7 +161,7 @@ export async function createPersonalLog(
       reporting_date: input.reporting_date,
       quantity: input.quantity,
       unit: input.unit,
-      co2e_result: input.co2e_result ?? null,
+      co2e_result: trustedCo2e,
       status: input.status ?? "Pending",
       evidence_url: input.evidence_url ?? null,
       created_by: userId,
@@ -257,18 +325,34 @@ export async function updatePersonalLog(
   if (!row || row.org_id !== null || row.created_by !== userId) {
     throw new Error("FORBIDDEN");
   }
+  // Mirror the create-side anti-cheat: if the patch carries a quantity
+  // (or source_type_id) we recompute / clamp before persisting. When a
+  // patch omits both we leave co2e_result alone — explicit nulls still
+  // collapse the column.
+  const willTouchCo2e =
+    patch.co2e_result !== undefined ||
+    patch.quantity !== undefined ||
+    patch.source_type_id !== undefined;
+  const nextCo2e = willTouchCo2e
+    ? await resolveTrustedCo2e(
+        Number(patch.quantity) || 0,
+        patch.source_type_id ?? null,
+        patch.co2e_result,
+      )
+    : undefined;
+  const updatePatch: Record<string, unknown> = {
+    activity_name: patch.activity_name,
+    scope: patch.scope,
+    source_type_id: patch.source_type_id ?? null,
+    reporting_date: patch.reporting_date,
+    quantity: patch.quantity,
+    unit: patch.unit,
+    evidence_url: patch.evidence_url ?? null,
+  };
+  if (willTouchCo2e) updatePatch.co2e_result = nextCo2e;
   const { error } = await db
     .from("EmissionLogs")
-    .update({
-      activity_name: patch.activity_name,
-      scope: patch.scope,
-      source_type_id: patch.source_type_id ?? null,
-      reporting_date: patch.reporting_date,
-      quantity: patch.quantity,
-      unit: patch.unit,
-      co2e_result: patch.co2e_result ?? null,
-      evidence_url: patch.evidence_url ?? null,
-    })
+    .update(updatePatch)
     .eq("id", logId);
   if (error) throw new Error(error.message);
 }
