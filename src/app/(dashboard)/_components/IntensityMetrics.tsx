@@ -8,7 +8,7 @@ export function IntensityMetrics() {
   const { t } = useTranslation();
 
   return (
-    <div className="p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6">
+    <div className="p-4 sm:p-6 lg:p-8 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-3xl border border-[#B8D6B0] flex flex-col gap-6 min-w-0">
       {/* Header */}
       <div className="flex items-center gap-2">
         <BarChartIcon sx={{ fontSize: 20, color: "#155A03" }} />

@@ -51,20 +51,20 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Individual / mock dashboard */}
-          <div className="flex gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
             <TotalFootprintCard />
             <Scope1Card />
             <Scope2Card />
             <Scope3Card />
           </div>
 
-          <div className="grid grid-cols-[1fr_auto] gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_482px] gap-6">
             <div className="flex flex-col gap-6 min-w-0">
               <EmissionHotspots />
               <Scope3Composition />
               <RecentEntries />
             </div>
-            <div className="w-[482px] flex flex-col gap-6">
+            <div className="w-full flex flex-col gap-6 min-w-0">
               <NetZeroCard />
               <IntensityMetrics />
               <ReportingCompliance />

@@ -5,18 +5,18 @@ export function TotalFootprintCard() {
   const { totalFootprint } = SUMMARY_STATS;
 
   return (
-    <div className="flex-1 p-6 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden rounded-2xl border border-[#B8D6B0] flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-[#3B3D3B] text-xs font-bold uppercase leading-4 tracking-[0.6px]">
+    <div className="min-w-0 p-4 sm:p-6 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden rounded-2xl border border-[#B8D6B0] flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[#3B3D3B] text-xs font-bold uppercase leading-4 tracking-[0.6px] truncate">
           Total Footprint
         </span>
-        <span className="px-2 py-1 bg-[#79B669] rounded-full text-white text-[10px] font-bold leading-[15px]">
+        <span className="shrink-0 px-2 py-1 bg-[#79B669] rounded-full text-white text-[10px] font-bold leading-[15px]">
           {totalFootprint.change}
         </span>
       </div>
 
-      <div className="flex items-baseline gap-2">
-        <span className="text-[#1F8505] text-4xl font-extrabold leading-10">
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <span className="text-[#1F8505] text-2xl sm:text-3xl xl:text-4xl font-extrabold leading-tight">
           {totalFootprint.value}
         </span>
         <span className="text-[#AAAAAA] text-base font-bold leading-6">
