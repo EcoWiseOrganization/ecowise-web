@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSystemAdmin, AuthError } from "@/lib/auth/roles";
 import { listPlans } from "@/services/subscription.service";
+import { PageHeader } from "../_components/PageHeader";
+import { T } from "@/components/shared/TranslatedText";
 
 export default async function AdminSubscriptionsPage() {
   try {
@@ -18,19 +20,17 @@ export default async function AdminSubscriptionsPage() {
   const plans = await listPlans(undefined, { includeInactive: true });
 
   return (
-    <div className="flex flex-col gap-6 pt-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[#155A03] text-2xl font-bold">Subscription Plans</h1>
-          <p className="text-sm text-[#6E726E]">
-            Manage B2B and B2C plans and their feature matrix.
-          </p>
-        </div>
+        <PageHeader
+          titleKey="admin.subscriptions.title"
+          subtitleKey="admin.subscriptions.subtitle"
+        />
         <Link
           href="/admin/subscriptions/new"
           className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold"
         >
-          New plan
+          <T k="admin.subscriptions.newPlan" />
         </Link>
       </div>
 
@@ -38,23 +38,23 @@ export default async function AdminSubscriptionsPage() {
         <table className="w-full text-sm">
           <thead className="text-left text-[#6E726E] text-xs uppercase">
             <tr className="border-b border-gray-100">
-              <th className="px-3 py-2">Code</th>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Target</th>
-              <th className="px-3 py-2">Cycle</th>
-              <th className="px-3 py-2">Price</th>
-              <th className="px-3 py-2">Trial</th>
-              <th className="px-3 py-2">Max users</th>
-              <th className="px-3 py-2">Max events</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Actions</th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.code" fallback="Code" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.name" fallback="Name" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.target" fallback="Target" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.cycle" fallback="Cycle" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.price" fallback="Price" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.trial" fallback="Trial" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.maxUsers" fallback="Max users" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.maxEvents" fallback="Max events" /></th>
+              <th className="px-3 py-2"><T k="admin.subscriptions.col.status" fallback="Status" /></th>
+              <th className="px-3 py-2 text-right"><T k="admin.subscriptions.col.actions" fallback="Actions" /></th>
             </tr>
           </thead>
           <tbody>
             {plans.length === 0 ? (
               <tr>
                 <td colSpan={10} className="px-3 py-6 text-center text-[#AAAAAA]">
-                  No plans yet.
+                  <T k="admin.subscriptions.empty" fallback="No plans yet." />
                 </td>
               </tr>
             ) : (
@@ -90,7 +90,7 @@ export default async function AdminSubscriptionsPage() {
                       href={`/admin/subscriptions/${p.id}/edit`}
                       className="text-[#1F8505] text-xs hover:underline"
                     >
-                      Edit
+                      <T k="common.edit" fallback="Edit" />
                     </Link>
                   </td>
                 </tr>

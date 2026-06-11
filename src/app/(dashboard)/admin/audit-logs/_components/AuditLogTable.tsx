@@ -78,7 +78,7 @@ export function AuditLogTable({ initial, initialCount }: Props) {
       <div className="bg-white border border-[#DAEDD5] rounded-2xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <input
           type="text"
-          placeholder="Action contains…"
+          placeholder={t("admin.auditLogs.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
@@ -88,41 +88,41 @@ export function AuditLogTable({ initial, initialCount }: Props) {
           onChange={(e) => setActorRole(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
         >
-          <option value="">All actors</option>
-          <option value="system_admin">System admin</option>
-          <option value="org_admin">Org admin</option>
-          <option value="employee">Employee</option>
-          <option value="individual">Individual</option>
-          <option value="guest">Guest</option>
-          <option value="system">System</option>
+          <option value="">{t("admin.auditLogs.filterAllActors")}</option>
+          <option value="system_admin">{t("admin.auditLogs.actor.system_admin")}</option>
+          <option value="org_admin">{t("admin.auditLogs.actor.org_admin")}</option>
+          <option value="employee">{t("admin.auditLogs.actor.employee")}</option>
+          <option value="individual">{t("admin.auditLogs.actor.individual")}</option>
+          <option value="guest">{t("admin.auditLogs.actor.guest")}</option>
+          <option value="system">{t("admin.auditLogs.actor.system")}</option>
         </select>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
         >
-          <option value="">All statuses</option>
-          <option value="success">Success</option>
-          <option value="failure">Failure</option>
-          <option value="warning">Warning</option>
+          <option value="">{t("admin.auditLogs.filterAllStatuses")}</option>
+          <option value="success">{t("admin.auditLogs.status.success")}</option>
+          <option value="failure">{t("admin.auditLogs.status.failure")}</option>
+          <option value="warning">{t("admin.auditLogs.status.warning")}</option>
         </select>
         <select
           value={resourceType}
           onChange={(e) => setResourceType(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
         >
-          <option value="">All resources</option>
-          <option value="auth">Auth</option>
-          <option value="organization">Organization</option>
-          <option value="organization_member">Organization member</option>
-          <option value="event">Event</option>
-          <option value="emission_log">Emission log</option>
-          <option value="emission_factor">Emission factor</option>
-          <option value="subscription">Subscription</option>
-          <option value="invoice">Invoice</option>
-          <option value="challenge">Challenge</option>
-          <option value="reward">Reward</option>
-          <option value="report">Report</option>
+          <option value="">{t("admin.auditLogs.filterAllResources")}</option>
+          <option value="auth">{t("admin.auditLogs.resource.auth")}</option>
+          <option value="organization">{t("admin.auditLogs.resource.organization")}</option>
+          <option value="organization_member">{t("admin.auditLogs.resource.organization_member")}</option>
+          <option value="event">{t("admin.auditLogs.resource.event")}</option>
+          <option value="emission_log">{t("admin.auditLogs.resource.emission_log")}</option>
+          <option value="emission_factor">{t("admin.auditLogs.resource.emission_factor")}</option>
+          <option value="subscription">{t("admin.auditLogs.resource.subscription")}</option>
+          <option value="invoice">{t("admin.auditLogs.resource.invoice")}</option>
+          <option value="challenge">{t("admin.auditLogs.resource.challenge")}</option>
+          <option value="reward">{t("admin.auditLogs.resource.reward")}</option>
+          <option value="report">{t("admin.auditLogs.resource.report")}</option>
         </select>
         <input
           type="date"
@@ -145,14 +145,14 @@ export function AuditLogTable({ initial, initialCount }: Props) {
           disabled={pending}
           className="px-4 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
         >
-          {pending ? "Searching…" : t("admin.audit.search")}
+          {pending ? t("common.searching") : t("admin.audit.search")}
         </button>
         <button
           type="button"
           onClick={downloadCsv}
           className="px-4 py-2 rounded-lg border border-[#DAEDD5] text-[#1F8505] text-sm font-semibold"
         >
-          Download CSV
+          {t("admin.auditLogs.downloadCsv")}
         </button>
       </div>
 
@@ -166,19 +166,19 @@ export function AuditLogTable({ initial, initialCount }: Props) {
         <table className="w-full text-sm">
           <thead className="text-left text-[#6E726E] text-xs uppercase">
             <tr className="border-b border-gray-100">
-              <th className="px-3 py-2">When</th>
-              <th className="px-3 py-2">Action</th>
-              <th className="px-3 py-2">Resource</th>
-              <th className="px-3 py-2">Actor</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">IP</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.time")}</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.action")}</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.resource")}</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.actor")}</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.status")}</th>
+              <th className="px-3 py-2">{t("admin.auditLogs.col.ip")}</th>
             </tr>
           </thead>
           <tbody>
             {logs.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-3 py-6 text-center text-[#AAAAAA]">
-                  No audit entries match your filters.
+                  {t("admin.auditLogs.empty")}
                 </td>
               </tr>
             ) : (
@@ -233,7 +233,11 @@ export function AuditLogTable({ initial, initialCount }: Props) {
 
       <div className="flex justify-between items-center text-sm">
         <span className="text-[#6E726E]">
-          {count.toLocaleString()} entries · page {page} / {totalPages}
+          {t("admin.auditLogs.pagerSummary", {
+            count,
+            page,
+            total: totalPages,
+          })}
         </span>
         <div className="flex gap-2">
           <button
@@ -242,7 +246,7 @@ export function AuditLogTable({ initial, initialCount }: Props) {
             onClick={() => apply(page - 1)}
             className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm disabled:opacity-50"
           >
-            Prev
+            {t("common.previous")}
           </button>
           <button
             type="button"
@@ -250,13 +254,13 @@ export function AuditLogTable({ initial, initialCount }: Props) {
             onClick={() => apply(page + 1)}
             className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm disabled:opacity-50"
           >
-            Next
+            {t("common.next")}
           </button>
         </div>
       </div>
 
       <p className="text-xs text-[#AAAAAA]">
-        BR-16: audit logs are immutable. This view is read-only.
+        {t("admin.auditLogs.immutableHint")}
       </p>
     </div>
   );

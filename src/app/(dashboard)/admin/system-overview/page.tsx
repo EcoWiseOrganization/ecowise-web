@@ -7,6 +7,8 @@ import {
   getPlatformMetrics,
 } from "@/services/admin-metrics.service";
 import { searchAuditLogs } from "@/services/audit.service";
+import { PageHeader } from "../_components/PageHeader";
+import { T } from "@/components/shared/TranslatedText";
 
 export default async function SystemOverviewPage() {
   try {
@@ -35,48 +37,46 @@ export default async function SystemOverviewPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6 pt-6">
-      <div>
-        <h1 className="text-[#155A03] text-2xl font-bold">System Overview</h1>
-        <p className="text-sm text-[#6E726E]">
-          Platform-wide health and growth metrics.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        titleKey="admin.systemOverview.title"
+        subtitleKey="admin.systemOverview.subtitle"
+      />
 
       {/* Metric tiles */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Tile label="Organizations" value={metrics.totalOrgs.toLocaleString()} />
-        <Tile label="Active users" value={metrics.activeUsers.toLocaleString()} />
+        <Tile labelKey="admin.systemOverview.tile.organizations" value={metrics.totalOrgs.toLocaleString()} />
+        <Tile labelKey="admin.systemOverview.tile.activeUsers" value={metrics.activeUsers.toLocaleString()} />
         <Tile
-          label="Activity logs"
+          labelKey="admin.systemOverview.tile.activityLogs"
           value={metrics.totalEmissionLogs.toLocaleString()}
         />
-        <Tile label="CO₂e tracked" value={fmtKg(metrics.totalCo2eKg)} />
+        <Tile labelKey="admin.systemOverview.tile.co2eTracked" value={fmtKg(metrics.totalCo2eKg)} />
         <Tile
-          label="Revenue (this month)"
+          labelKey="admin.systemOverview.tile.revenue"
           value={`$${metrics.monthlyRevenueUsd.toFixed(2)}`}
         />
         <Tile
-          label="Open emission reviews"
+          labelKey="admin.systemOverview.tile.openReviews"
           value={metrics.openIssuesCount.toLocaleString()}
           accent={metrics.openIssuesCount > 0 ? "alert" : undefined}
         />
         <Tile
-          label="Pending contact"
+          labelKey="admin.systemOverview.tile.pendingContact"
           value={metrics.pendingContactMessages.toLocaleString()}
           accent={metrics.pendingContactMessages > 0 ? "alert" : undefined}
         />
-        <Tile label="Months in trend" value={String(growth.length)} />
+        <Tile labelKey="admin.systemOverview.tile.monthsInTrend" value={String(growth.length)} />
       </section>
 
       {/* Growth trend (12 months) */}
       <section className="bg-white border border-[#DAEDD5] rounded-2xl p-6">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-[#155A03] text-lg font-semibold">
-            Growth Trend — last 12 months
+            <T k="admin.systemOverview.growthTitle" />
           </h2>
           <span className="text-xs text-[#AAAAAA]">
-            New users · orgs · emission logs
+            <T k="admin.systemOverview.growthLegend" />
           </span>
         </div>
         <div className="grid grid-cols-12 gap-2">
@@ -102,17 +102,19 @@ export default async function SystemOverviewPage() {
       {/* Emissions by sector */}
       <section className="bg-white border border-[#DAEDD5] rounded-2xl p-6">
         <h2 className="text-[#155A03] text-lg font-semibold mb-3">
-          Emissions by Sector
+          <T k="admin.systemOverview.sectorsTitle" />
         </h2>
         {sectors.length === 0 ? (
-          <p className="text-sm text-[#AAAAAA]">No sector data yet.</p>
+          <p className="text-sm text-[#AAAAAA]">
+            <T k="admin.systemOverview.sectorsEmpty" />
+          </p>
         ) : (
           <table className="w-full text-sm">
             <thead className="text-left text-[#6E726E] text-xs uppercase">
               <tr className="border-b border-gray-100">
-                <th className="px-2 py-2">Industry</th>
-                <th className="px-2 py-2">Organizations</th>
-                <th className="px-2 py-2">Total CO₂e</th>
+                <th className="px-2 py-2"><T k="admin.systemOverview.sectorsCol.industry" /></th>
+                <th className="px-2 py-2"><T k="admin.systemOverview.sectorsCol.organizations" /></th>
+                <th className="px-2 py-2"><T k="admin.systemOverview.sectorsCol.totalCo2e" /></th>
               </tr>
             </thead>
             <tbody>
@@ -134,17 +136,19 @@ export default async function SystemOverviewPage() {
       <section className="bg-white border border-[#DAEDD5] rounded-2xl p-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[#155A03] text-lg font-semibold">
-            Recent System Audit
+            <T k="admin.systemOverview.auditTitle" />
           </h2>
           <Link
             href="/admin/audit-logs"
             className="text-sm text-[#1F8505] hover:underline"
           >
-            View all →
+            <T k="admin.systemOverview.viewAllAudit" />
           </Link>
         </div>
         {recentAudits.length === 0 ? (
-          <p className="text-sm text-[#AAAAAA]">No audit entries yet.</p>
+          <p className="text-sm text-[#AAAAAA]">
+            <T k="admin.systemOverview.auditEmpty" />
+          </p>
         ) : (
           <ul className="space-y-1 text-sm">
             {recentAudits.map((a) => (
@@ -171,11 +175,11 @@ export default async function SystemOverviewPage() {
 }
 
 function Tile({
-  label,
+  labelKey,
   value,
   accent,
 }: {
-  label: string;
+  labelKey: string;
   value: string;
   accent?: "alert";
 }) {
@@ -186,7 +190,7 @@ function Tile({
       }`}
     >
       <div className="text-[10px] uppercase tracking-wide text-[#6E726E]">
-        {label}
+        <T k={labelKey} />
       </div>
       <div className="text-xl font-bold text-[#155A03] mt-1">{value}</div>
     </div>
