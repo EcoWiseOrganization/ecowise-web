@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { requireSystemAdmin, AuthError } from "@/lib/auth/roles";
 import { listRewards } from "@/services/gamification.service";
 import { deleteRewardAction } from "@/app/actions/gamification.actions";
+import { PageHeader } from "../_components/PageHeader";
+import { T } from "@/components/shared/TranslatedText";
 
 export default async function AdminRewardsPage() {
   try {
@@ -13,19 +15,17 @@ export default async function AdminRewardsPage() {
   }
   const rewards = await listRewards();
   return (
-    <div className="flex flex-col gap-6 pt-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[#155A03] text-2xl font-bold">Reward Catalog</h1>
-          <p className="text-sm text-[#6E726E]">
-            Curate items individuals can redeem with green points.
-          </p>
-        </div>
+        <PageHeader
+          titleKey="admin.rewards.title"
+          subtitleKey="admin.rewards.subtitle"
+        />
         <Link
           href="/admin/rewards/new"
           className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold"
         >
-          New reward
+          <T k="admin.rewards.newReward" />
         </Link>
       </div>
 
@@ -33,12 +33,12 @@ export default async function AdminRewardsPage() {
         <table className="w-full text-sm">
           <thead className="text-left text-[#6E726E] text-xs uppercase">
             <tr className="border-b border-gray-100">
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Category</th>
-              <th className="px-3 py-2">Points</th>
-              <th className="px-3 py-2">Stock</th>
-              <th className="px-3 py-2">Fulfillment</th>
-              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.name" fallback="Name" /></th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.category" fallback="Category" /></th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.points" fallback="Points" /></th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.stock" fallback="Stock" /></th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.fulfillment" fallback="Fulfillment" /></th>
+              <th className="px-3 py-2"><T k="admin.rewards.col.status" fallback="Status" /></th>
               <th className="px-3 py-2 text-right" />
             </tr>
           </thead>
@@ -46,7 +46,7 @@ export default async function AdminRewardsPage() {
             {rewards.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-3 py-6 text-center text-[#AAAAAA]">
-                  No rewards yet.
+                  <T k="admin.rewards.empty" fallback="No rewards yet." />
                 </td>
               </tr>
             ) : (
@@ -77,7 +77,7 @@ export default async function AdminRewardsPage() {
                       href={`/admin/rewards/${r.id}/edit`}
                       className="text-[#1F8505] text-xs hover:underline"
                     >
-                      Edit
+                      <T k="common.edit" fallback="Edit" />
                     </Link>
                     <form
                       action={async () => {
@@ -90,7 +90,7 @@ export default async function AdminRewardsPage() {
                         type="submit"
                         className="text-red-600 text-xs hover:underline"
                       >
-                        Archive
+                        <T k="common.archive" fallback="Archive" />
                       </button>
                     </form>
                   </td>

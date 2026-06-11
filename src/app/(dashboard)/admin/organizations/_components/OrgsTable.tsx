@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { searchOrganizationsAction } from "@/app/actions/admin.actions";
 import type { AdminOrganizationRow } from "@/types/admin.types";
 
@@ -17,6 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function OrgsTable({ initial, initialCount }: Props) {
+  const { t } = useTranslation();
   const [orgs, setOrgs] = useState<AdminOrganizationRow[]>(initial);
   const [count, setCount] = useState(initialCount);
   const [page, setPage] = useState(1);
@@ -51,7 +53,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
       <div className="bg-white border border-[#DAEDD5] rounded-2xl p-4 grid grid-cols-1 md:grid-cols-3 gap-2">
         <input
           type="search"
-          placeholder="Search legal name / tax / email…"
+          placeholder={t("admin.organizations.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="md:col-span-2 px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
@@ -61,10 +63,10 @@ export function OrgsTable({ initial, initialCount }: Props) {
           onChange={(e) => setVerification(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
         >
-          <option value="">All verification statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="Verified">Verified</option>
-          <option value="Suspended">Suspended</option>
+          <option value="">{t("admin.organizations.filterAll")}</option>
+          <option value="Pending">{t("admin.organizations.filterPending")}</option>
+          <option value="Verified">{t("admin.organizations.filterVerified")}</option>
+          <option value="Suspended">{t("admin.organizations.filterSuspended")}</option>
         </select>
       </div>
 
@@ -74,7 +76,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
         disabled={pending}
         className="self-start px-4 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
       >
-        {pending ? "Searching…" : "Search"}
+        {pending ? t("common.searching") : t("common.search")}
       </button>
 
       {error && (
@@ -87,13 +89,13 @@ export function OrgsTable({ initial, initialCount }: Props) {
         <table className="w-full text-sm">
           <thead className="text-left text-[#6E726E] text-xs uppercase">
             <tr className="border-b border-gray-100">
-              <th className="px-3 py-2">Legal name</th>
-              <th className="px-3 py-2">Tax code</th>
-              <th className="px-3 py-2">Type</th>
-              <th className="px-3 py-2">Industry</th>
-              <th className="px-3 py-2">Members</th>
-              <th className="px-3 py-2">Subscription</th>
-              <th className="px-3 py-2">Verification</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.name")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.taxId")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.type")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.industry")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.members")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.subscription")}</th>
+              <th className="px-3 py-2">{t("admin.organizations.col.status")}</th>
               <th className="px-3 py-2 text-right" />
             </tr>
           </thead>
@@ -104,7 +106,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
                   colSpan={8}
                   className="px-3 py-6 text-center text-[#AAAAAA]"
                 >
-                  No organizations.
+                  {t("admin.organizations.empty")}
                 </td>
               </tr>
             ) : (
@@ -140,7 +142,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
                       href={`/admin/organizations/${o.id}`}
                       className="text-[#1F8505] text-xs hover:underline"
                     >
-                      View
+                      {t("admin.organizations.viewDetail")}
                     </Link>
                   </td>
                 </tr>
@@ -152,7 +154,11 @@ export function OrgsTable({ initial, initialCount }: Props) {
 
       <div className="flex justify-between items-center text-sm">
         <span className="text-[#6E726E]">
-          {count.toLocaleString()} orgs · page {page} / {totalPages}
+          {t("admin.organizations.pagerSummary", {
+            count,
+            page,
+            total: totalPages,
+          })}
         </span>
         <div className="flex gap-2">
           <button
@@ -161,7 +167,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
             onClick={() => apply(page - 1)}
             className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm disabled:opacity-50"
           >
-            Prev
+            {t("common.previous")}
           </button>
           <button
             type="button"
@@ -169,7 +175,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
             onClick={() => apply(page + 1)}
             className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm disabled:opacity-50"
           >
-            Next
+            {t("common.next")}
           </button>
         </div>
       </div>
