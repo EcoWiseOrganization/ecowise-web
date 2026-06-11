@@ -6,6 +6,7 @@ import {
   deletePersonalLogAction,
   getDailyLogQuotaAction,
   getPersonalLogsAction,
+  updatePersonalLogAction,
 } from "@/app/actions/personal-carbon.actions";
 import type {
   CreateEmissionLogInput,
@@ -72,6 +73,25 @@ export function usePersonalActivity(initialFilters: EmissionLogFilters = {}) {
     [refresh]
   );
 
+  const update = useCallback(
+    async (
+      logId: string,
+      patch: Partial<Omit<CreateEmissionLogInput, "org_id">>,
+    ) => {
+      setSubmitting(true);
+      setError(null);
+      const res = await updatePersonalLogAction(logId, patch);
+      setSubmitting(false);
+      if (!res.ok) {
+        setError(res.error ?? "unknown");
+        return { ok: false, error: res.error ?? "unknown" };
+      }
+      await refresh();
+      return { ok: true, error: null };
+    },
+    [refresh]
+  );
+
   const remove = useCallback(
     async (logId: string) => {
       setError(null);
@@ -97,6 +117,7 @@ export function usePersonalActivity(initialFilters: EmissionLogFilters = {}) {
     setFilters,
     refresh,
     create,
+    update,
     remove,
   };
 }

@@ -27,6 +27,7 @@ export function ActivityLogger() {
     filters,
     setFilters,
     create,
+    update,
     remove,
     refresh,
   } = usePersonalActivity({ pageSize: PAGE_SIZE, page: 1 });
@@ -63,6 +64,8 @@ export function ActivityLogger() {
   };
 
   const [showForm, setShowForm] = useState(false);
+  // null = creating, string = editing the log with this id.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [templates, setTemplates] = useState<CalculationTemplateWithRelations[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [templateId, setTemplateId] = useState("");
@@ -72,16 +75,18 @@ export function ActivityLogger() {
   const remainingQuota = Math.max(0, quota.limit - quota.used);
   const atLimit = remainingQuota <= 0;
 
-  // Pull formulas lazily — only when the user actually opens the form.
+  // Pre-load formulas on mount — the Edit-action path needs them to
+  // match log.source_type_id → template, and we don't want a flash of
+  // empty dropdown when the user opens the form for the first time.
   // Templates without a default_ef can't resolve EF_TOTAL, so skip them.
   useEffect(() => {
-    if (!showForm || templates.length || templatesLoading) return;
+    if (templates.length || templatesLoading) return;
     setTemplatesLoading(true);
     getCalculationTemplates()
       .then((rows) => setTemplates(rows.filter((t) => t.default_ef !== null)))
       .catch((e) => console.error(e))
       .finally(() => setTemplatesLoading(false));
-  }, [showForm, templates.length, templatesLoading]);
+  }, [templates.length, templatesLoading]);
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === templateId) ?? null,
@@ -128,9 +133,45 @@ export function ActivityLogger() {
   }, [selectedTemplate, visibleFields, inputValues]);
 
   function resetForm() {
+    setEditingId(null);
     setTemplateId("");
     setDescription("");
     setInputValues({});
+  }
+
+  // Edit flow — open the same form pre-filled with what we can recover
+  // from the stored log row. The schema doesn't persist the full
+  // input_schema values, so only the primary numeric field is restored;
+  // other formula inputs start blank and the user re-enters them. We
+  // intentionally re-use the create form rather than a separate modal
+  // so the formula/scope/co2e logic stays in one place.
+  function startEdit(log: (typeof logs)[number]) {
+    if (log.status === "Published" || log.status === "Exported") return;
+    const tmpl =
+      templates.find((x) => x.category_id === log.source_type_id) ?? null;
+    setEditingId(log.id);
+    setDescription(log.activity_name);
+    setTemplateId(tmpl?.id ?? "");
+
+    if (tmpl) {
+      const next: Record<string, string> = {};
+      const visible = tmpl.input_schema.filter(
+        (f) => f.field.toUpperCase() !== "EF_TOTAL",
+      );
+      const primary = visible.find((f) => f.type === "number") ?? null;
+      for (const f of visible) {
+        if (f.default_value !== undefined && f.default_value !== null) {
+          next[f.field] = String(f.default_value);
+        }
+      }
+      if (primary) next[primary.field] = String(log.quantity);
+      setInputValues(next);
+    } else {
+      setInputValues({});
+    }
+
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleTemplateChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -163,9 +204,13 @@ export function ActivityLogger() {
       ? Number(inputValues[primaryNumericField.field])
       : Math.max(evaluation.kg, 0.0001);
     if (!Number.isFinite(quantity) || quantity <= 0) return;
-    const unit = primaryNumericField?.unit ?? selectedTemplate.result_unit;
+    // `||` (not `??`) so an empty-string unit from a partially-seeded
+    // input_schema still falls back through to result_unit and finally
+    // a hard default — the EmissionLog row requires a non-null unit.
+    const unit =
+      primaryNumericField?.unit || selectedTemplate.result_unit || "unit";
 
-    const res = await create({
+    const payload = {
       activity_name: description.trim(),
       scope: selectedTemplate.category.scope as GhgScope,
       source_type_id: selectedTemplate.category_id,
@@ -173,8 +218,11 @@ export function ActivityLogger() {
       quantity,
       unit,
       co2e_result: evaluation.tonnes,
-      status: "Pending",
-    });
+      status: "Pending" as const,
+    };
+    const res = editingId
+      ? await update(editingId, payload)
+      : await create(payload);
     if (res.ok) {
       setShowForm(false);
       resetForm();
@@ -202,8 +250,15 @@ export function ActivityLogger() {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm((s) => !s)}
-          disabled={atLimit}
+          onClick={() => {
+            if (showForm) {
+              setShowForm(false);
+              resetForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
+          disabled={atLimit && !editingId}
           className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {showForm ? t("common.cancel") : t("activity.addEntry")}
@@ -221,6 +276,14 @@ export function ActivityLogger() {
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl border border-[#DAEDD5] p-6 flex flex-col gap-4"
         >
+          {editingId && (
+            <div className="rounded-lg border border-[#FDE68A] bg-[#FEF3C7] px-3 py-2 text-xs text-[#92400E]">
+              <span className="font-semibold">{t("activity.editingTitle")}</span>
+              {" — "}
+              {t("activity.editingHint")}
+            </div>
+          )}
+
           {/* 1 — Pick a formula */}
           <Field label={t("activity.field.formula")}>
             <select
@@ -275,11 +338,15 @@ export function ActivityLogger() {
               </p>
               {visibleFields.map((f) => {
                 const value = inputValues[f.field] ?? "";
+                // Skip the unit suffix when the label already ends in
+                // parens — most VN seeds embed the unit there.
+                const labelHasUnitSuffix = /\([^()]+\)\s*$/.test(f.label);
+                const displayLabel =
+                  !f.unit || labelHasUnitSuffix
+                    ? f.label
+                    : `${f.label} (${f.unit})`;
                 return (
-                  <Field
-                    key={f.field}
-                    label={`${f.label}${f.unit ? ` (${f.unit})` : ""}`}
-                  >
+                  <Field key={f.field} label={displayLabel}>
                     {f.type === "select" ? (
                       <select
                         value={value}
@@ -438,19 +505,33 @@ export function ActivityLogger() {
                     </span>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => remove(log.id)}
-                      className="text-xs text-red-600 hover:underline"
-                      disabled={log.status === "Published" || log.status === "Exported"}
-                      title={
-                        log.status === "Published" || log.status === "Exported"
-                          ? t("activity.lockedHint")
-                          : undefined
-                      }
-                    >
-                      {t("activity.delete")}
-                    </button>
+                    {(() => {
+                      const locked =
+                        log.status === "Published" || log.status === "Exported";
+                      const lockTitle = locked ? t("activity.lockedHint") : undefined;
+                      return (
+                        <div className="flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => startEdit(log)}
+                            className="text-xs text-[#1F8505] hover:underline"
+                            disabled={locked}
+                            title={lockTitle}
+                          >
+                            {t("activity.edit")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => remove(log.id)}
+                            className="text-xs text-red-600 hover:underline"
+                            disabled={locked}
+                            title={lockTitle}
+                          >
+                            {t("activity.delete")}
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))

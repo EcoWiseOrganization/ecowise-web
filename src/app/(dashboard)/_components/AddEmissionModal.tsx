@@ -229,7 +229,11 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
     const quantity = primaryNumericField
       ? Number(inputValues[primaryNumericField.field])
       : Math.max(evaluation.kg, 0.0001);
-    const unit = primaryNumericField?.unit ?? selectedTemplate.result_unit;
+    // `||` (not `??`) so an empty-string unit from a partially-seeded
+    // input_schema falls back through to result_unit, then to a hard
+    // default — EmissionLog.unit is NOT NULL.
+    const unit =
+      primaryNumericField?.unit || selectedTemplate.result_unit || "unit";
 
     // 4. Insert the log row. Date defaults to today (Date.now()).
     const { error } = await createEmissionLog({
@@ -386,6 +390,10 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
                 {visibleFields.map((f) => {
                   const err = errors.inputs?.[f.field];
                   const value = inputValues[f.field] ?? "";
+                  // Skip the unit suffix when the label already ends
+                  // in parens — most VN seeds embed the unit there
+                  // (e.g. "Khoảng cách bay (km)").
+                  const labelHasUnitSuffix = /\([^()]+\)\s*$/.test(f.label);
                   return (
                     <div key={f.field} className="flex flex-col gap-1">
                       <label className="text-[#155A03] text-sm font-medium">
@@ -393,7 +401,7 @@ export function AddEmissionModal({ orgId, onClose, onSaved }: Props) {
                         {f.required !== false && (
                           <span className="text-red-500"> *</span>
                         )}
-                        {f.unit && (
+                        {f.unit && !labelHasUnitSuffix && (
                           <span className="text-[#AAAAAA] font-normal text-xs ml-1">
                             ({f.unit})
                           </span>

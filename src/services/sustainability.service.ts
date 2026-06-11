@@ -40,7 +40,13 @@ function normalizeInputSchema(raw: unknown): InputFieldSchema[] {
       const field = String(item.field ?? item.key ?? "");
       const label = String(item.label ?? field);
       const type = item.type === "select" ? "select" : "number";
-      const unit = typeof item.unit === "string" ? item.unit : "";
+      // Some seeds store the unit only inside the label, e.g.
+      // "Khoảng cách bay (km)". Fall back to extracting whatever is in
+      // the trailing parens so the EmissionLog `unit` column (NOT NULL)
+      // still gets a meaningful value at submit time.
+      const explicitUnit = typeof item.unit === "string" ? item.unit.trim() : "";
+      const labelTail = label.match(/\(([^()]+)\)\s*$/);
+      const unit = explicitUnit || (labelTail ? labelTail[1].trim() : "");
       const required = typeof item.required === "boolean" ? item.required : true;
       const min = typeof item.min === "number" ? item.min : undefined;
       const max = typeof item.max === "number" ? item.max : undefined;
