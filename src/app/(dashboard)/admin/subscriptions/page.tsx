@@ -82,7 +82,7 @@ export default async function AdminSubscriptionsPage() {
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      {p.status}
+                      <T k={`admin.planForm.status${p.status}`} fallback={p.status} />
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right">

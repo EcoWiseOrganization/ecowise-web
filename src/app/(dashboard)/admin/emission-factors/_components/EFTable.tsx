@@ -104,7 +104,7 @@ export function EFTable({ factors, onEdit, onDelete }: EFTableProps) {
                     </button>
                     <button
                       onClick={() => onDelete(ef.id, ef.name)}
-                      title="Archive"
+                      title={t("common.archive")}
                       className="p-1.5 rounded-lg text-[#AAAAAA] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <ArchiveIcon sx={{ fontSize: 16 }} />

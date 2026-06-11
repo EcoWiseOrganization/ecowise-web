@@ -134,7 +134,7 @@ export function OrgsTable({ initial, initialCount }: Props) {
                         "bg-gray-100"
                       }`}
                     >
-                      {o.verification_status ?? "Pending"}
+                      {t(`admin.organizations.filter${o.verification_status ?? "Pending"}`)}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right">

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { upsertChallengeAction } from "@/app/actions/gamification.actions";
 import type {
   Challenge,
@@ -28,6 +29,7 @@ const STATUSES: ChallengeStatus[] = [
 const VERIFY: ChallengeVerification[] = ["Honor", "Photo", "Auto"];
 
 export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
       className="bg-white border border-[#DAEDD5] rounded-2xl p-6 max-w-3xl space-y-4"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Name">
+        <Field label={t("admin.challengeForm.name")}>
           <input
             type="text"
             value={name}
@@ -103,7 +105,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Category">
+        <Field label={t("admin.challengeForm.category")}>
           <input
             type="text"
             value={category}
@@ -113,7 +115,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Target audience">
+        <Field label={t("admin.challengeForm.targetAudience")}>
           <input
             type="text"
             value={targetAudience}
@@ -122,7 +124,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Points reward">
+        <Field label={t("admin.challengeForm.pointsReward")}>
           <input
             type="number"
             min={0}
@@ -131,7 +133,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Duration (days)">
+        <Field label={t("admin.challengeForm.duration")}>
           <input
             type="number"
             min={1}
@@ -140,7 +142,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Required activities">
+        <Field label={t("admin.challengeForm.requiredActivities")}>
           <input
             type="number"
             min={1}
@@ -149,7 +151,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Verification">
+        <Field label={t("admin.challengeForm.verification")}>
           <select
             value={verification}
             onChange={(e) =>
@@ -158,22 +160,26 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
             {VERIFY.map((v) => (
-              <option key={v}>{v}</option>
+              <option key={v} value={v}>
+                {t(`admin.challengeForm.verify.${v}`)}
+              </option>
             ))}
           </select>
         </Field>
-        <Field label="Status">
+        <Field label={t("admin.challengeForm.status")}>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as ChallengeStatus)}
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
             {STATUSES.map((s) => (
-              <option key={s}>{s}</option>
+              <option key={s} value={s}>
+                {t(`admin.challengeForm.statusOpt.${s}`)}
+              </option>
             ))}
           </select>
         </Field>
-        <Field label="Start date">
+        <Field label={t("admin.challengeForm.startDate")}>
           <input
             type="date"
             value={startDate}
@@ -182,7 +188,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="End date">
+        <Field label={t("admin.challengeForm.endDate")}>
           <input
             type="date"
             value={endDate}
@@ -192,7 +198,7 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
           />
         </Field>
         <div className="md:col-span-2">
-          <Field label="Description">
+          <Field label={t("admin.challengeForm.description")}>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -216,14 +222,18 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
           onClick={() => router.back()}
           className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-sm"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="submit"
           disabled={pending}
           className="px-5 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
         >
-          {pending ? "Saving…" : initial ? "Save challenge" : "Create challenge"}
+          {pending
+            ? t("common.saving")
+            : initial
+              ? t("admin.challengeForm.saveChallenge")
+              : t("admin.challengeForm.createChallenge")}
         </button>
       </div>
     </form>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTransition, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { deleteChallengeAction } from "@/app/actions/gamification.actions";
 import type { Challenge } from "@/types/gamification.types";
 import { useRouter } from "next/navigation";
@@ -20,12 +21,13 @@ interface Props {
 }
 
 export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const remove = (id: string) => {
-    if (!window.confirm("Delete this challenge?")) return;
+    if (!window.confirm(t("admin.challengeList.confirmDelete"))) return;
     setError(null);
     startTransition(async () => {
       const res = await deleteChallengeAction(id);
@@ -47,12 +49,12 @@ export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
       <table className="w-full text-sm">
         <thead className="text-left text-[#6E726E] text-xs uppercase">
           <tr className="border-b border-gray-100">
-            <th className="px-3 py-2">Name</th>
-            <th className="px-3 py-2">Category</th>
-            <th className="px-3 py-2">Status</th>
-            <th className="px-3 py-2">Points</th>
-            <th className="px-3 py-2">Window</th>
-            <th className="px-3 py-2">Scope</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.name")}</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.category")}</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.status")}</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.points")}</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.window")}</th>
+            <th className="px-3 py-2">{t("admin.challengeList.col.scope")}</th>
             <th className="px-3 py-2 text-right" />
           </tr>
         </thead>
@@ -60,7 +62,7 @@ export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
           {challenges.length === 0 ? (
             <tr>
               <td colSpan={7} className="px-3 py-6 text-center text-[#AAAAAA]">
-                No challenges yet.
+                {t("admin.challengeList.empty")}
               </td>
             </tr>
           ) : (
@@ -76,7 +78,7 @@ export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
                         : "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {c.status}
+                    {t(`admin.challengeForm.statusOpt.${c.status}`)}
                   </span>
                 </td>
                 <td className="px-3 py-2 font-semibold text-[#155A03]">
@@ -86,14 +88,16 @@ export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
                   {c.start_date} → {c.end_date}
                 </td>
                 <td className="px-3 py-2 text-xs">
-                  {c.org_id ? "Org" : "Global"}
+                  {c.org_id
+                    ? t("admin.challengeList.scope.org")
+                    : t("admin.challengeList.scope.global")}
                 </td>
                 <td className="px-3 py-2 text-right space-x-3">
                   <Link
                     href={`${editHrefBase}/${c.id}/edit`}
                     className="text-[#1F8505] text-xs hover:underline"
                   >
-                    Edit
+                    {t("common.edit")}
                   </Link>
                   {canDelete && (
                     <button
@@ -102,7 +106,7 @@ export function ChallengeList({ challenges, editHrefBase, canDelete }: Props) {
                       disabled={pending}
                       className="text-red-600 text-xs hover:underline disabled:opacity-50"
                     >
-                      Delete
+                      {t("common.delete")}
                     </button>
                   )}
                 </td>

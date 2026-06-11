@@ -69,7 +69,7 @@ export default async function AdminRewardsPage() {
                             : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {r.status}
+                      <T k={`admin.rewardForm.statusOpt.${r.status}`} fallback={r.status} />
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right space-x-3">

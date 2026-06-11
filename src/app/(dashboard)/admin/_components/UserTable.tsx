@@ -14,6 +14,7 @@ interface UserTableProps {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const isActive = status === "active";
   return (
     <span
@@ -23,12 +24,13 @@ function StatusBadge({ status }: { status: string }) {
           : "bg-red-50 text-red-600"
       }`}
     >
-      {status}
+      {t(`admin.users.status.${status}`, { defaultValue: status })}
     </span>
   );
 }
 
 function RoleBadge({ isAdmin }: { isAdmin: boolean }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -37,7 +39,7 @@ function RoleBadge({ isAdmin }: { isAdmin: boolean }) {
           : "bg-[#E8F4FD] text-[#0C5460]"
       }`}
     >
-      {isAdmin ? "Admin" : "User"}
+      {isAdmin ? t("admin.users.role.admin") : t("admin.users.role.user")}
     </span>
   );
 }

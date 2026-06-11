@@ -77,10 +77,12 @@ export function FormulaBuilderForm({
     if (!formula.trim())  errs.formula = t("admin.ef.modal.required");
 
     const fv = FormulaEngine.validate(formula);
-    if (!fv.valid) errs.formula = fv.error ?? "Invalid formula";
+    if (!fv.valid) errs.formula = fv.error ?? t("admin.formula.errorInvalid");
 
     if (undeclaredVars.length > 0) {
-      errs.formula = `Formula uses undeclared variables: ${undeclaredVars.join(", ")}. Add them to Input Schema.`;
+      errs.formula = t("admin.formula.errorUndeclared", {
+        vars: undeclaredVars.join(", "),
+      });
     }
 
     inputSchema.forEach((f, i) => {
@@ -162,7 +164,11 @@ export function FormulaBuilderForm({
           <div className="flex flex-col gap-1.5">
             <label className="text-[#141514] text-sm font-medium">{t("admin.formula.form.method")}</label>
             <select value={method} onChange={(e) => setMethod(e.target.value as CalculationMethod)} className={`${inputCls} cursor-pointer appearance-none`}>
-              {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {t(`admin.formula.method.${m}`, { defaultValue: m })}
+                </option>
+              ))}
             </select>
           </div>
         </div>
