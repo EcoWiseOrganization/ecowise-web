@@ -51,6 +51,7 @@ export default function DashboardPage() {
         year={dash.period.year}
         rangeStart={dash.period.start}
         rangeEnd={dash.period.end}
+        onRangeChange={dash.setRange}
       />
 
       {/* Org info banner */}

@@ -976,6 +976,8 @@ export const en = {
   "dashboard.hotspotPrefix": "Hotspot",
   "dashboard.year": "Year {{value}}",
   "dashboard.auditCycle": "FY {{year}} Audit Cycle",
+  "dashboard.rangeStartLabel": "Start date",
+  "dashboard.rangeEndLabel": "End date",
   "dashboard.loading": "Loading emission data…",
   "dashboard.selectOrgTitle": "Select an Organization",
   "dashboard.selectOrgBody": "Please select an organization from the workspace selector before logging an emission.",
