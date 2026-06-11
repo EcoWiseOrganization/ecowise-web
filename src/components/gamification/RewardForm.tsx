@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { upsertRewardAction } from "@/app/actions/gamification.actions";
 import type {
   Reward,
@@ -20,6 +21,7 @@ export function RewardForm({
   initial?: Reward;
   redirectTo: string;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export function RewardForm({
       className="bg-white border border-[#DAEDD5] rounded-2xl p-6 max-w-3xl space-y-4"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Name">
+        <Field label={t("admin.rewardForm.name")}>
           <input
             type="text"
             value={name}
@@ -77,17 +79,17 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Category">
+        <Field label={t("admin.rewardForm.category")}>
           <input
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             maxLength={60}
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-            placeholder="Merchandise / Donation / Digital"
+            placeholder={t("admin.rewardForm.categoryPlaceholder")}
           />
         </Field>
-        <Field label="SKU">
+        <Field label={t("admin.rewardForm.sku")}>
           <input
             type="text"
             value={sku}
@@ -97,7 +99,7 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm font-mono disabled:bg-gray-50"
           />
         </Field>
-        <Field label="Image URL">
+        <Field label={t("admin.rewardForm.imageUrl")}>
           <input
             type="url"
             value={imageUrl}
@@ -106,7 +108,7 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Points cost">
+        <Field label={t("admin.rewardForm.pointsCost")}>
           <input
             type="number"
             min={1}
@@ -116,7 +118,7 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Total stock">
+        <Field label={t("admin.rewardForm.totalStock")}>
           <input
             type="number"
             min={0}
@@ -126,7 +128,7 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Fulfillment">
+        <Field label={t("admin.rewardForm.fulfillment")}>
           <select
             value={fulfillment}
             onChange={(e) =>
@@ -135,23 +137,27 @@ export function RewardForm({
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
             {FULFILL.map((f) => (
-              <option key={f}>{f}</option>
+              <option key={f} value={f}>
+                {t(`admin.rewardForm.fulfill.${f}`)}
+              </option>
             ))}
           </select>
         </Field>
-        <Field label="Status">
+        <Field label={t("admin.rewardForm.status")}>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as RewardStatus)}
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
             {STATUSES.map((s) => (
-              <option key={s}>{s}</option>
+              <option key={s} value={s}>
+                {t(`admin.rewardForm.statusOpt.${s}`)}
+              </option>
             ))}
           </select>
         </Field>
         <div className="md:col-span-2">
-          <Field label="Description">
+          <Field label={t("admin.rewardForm.description")}>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -175,14 +181,18 @@ export function RewardForm({
           onClick={() => router.back()}
           className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-sm"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="submit"
           disabled={pending}
           className="px-5 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
         >
-          {pending ? "Saving…" : initial ? "Save reward" : "Create reward"}
+          {pending
+            ? t("common.saving")
+            : initial
+              ? t("admin.rewardForm.saveReward")
+              : t("admin.rewardForm.createReward")}
         </button>
       </div>
     </form>

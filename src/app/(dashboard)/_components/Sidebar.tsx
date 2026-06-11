@@ -133,7 +133,7 @@ function SidebarContent({
             {userName}
           </span>
           <span className="text-[#AAAAAA] text-xs leading-4 truncate max-w-[120px]">
-            {userRole}
+            {t(`sidebar.role.${userRole.toLowerCase()}`, { defaultValue: userRole })}
           </span>
         </div>
       </div>
