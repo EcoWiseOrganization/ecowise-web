@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSystemAdmin, AuthError } from "@/lib/auth/roles";
 import { getAdminOrgDetail } from "@/services/admin-orgs.service";
+import { T } from "@/components/shared/TranslatedText";
 import { VerificationControls } from "./VerificationControls";
 
 interface PageProps {
@@ -26,7 +27,7 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
         href="/admin/organizations"
         className="text-sm text-[#1F8505] hover:underline"
       >
-        ← All organizations
+        ← <T k="admin.orgDetail.backToAll" />
       </Link>
 
       <div className="bg-white border border-[#DAEDD5] rounded-2xl p-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -34,27 +35,28 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
           <h1 className="text-2xl font-bold text-[#155A03]">{org.legal_name}</h1>
           <p className="text-sm text-[#6E726E] font-mono">{org.tax_code}</p>
           <p className="text-sm text-[#6E726E]">
-            {org.org_type ?? "—"} · {org.industry ?? "Unspecified"} · joined{" "}
+            {org.org_type ?? "—"} · {org.industry ?? "—"} ·{" "}
+            <T k="admin.orgDetail.joined" />{" "}
             {new Date(org.created_at).toLocaleDateString()}
           </p>
           {org.contact_email && (
             <p className="text-sm">
-              <span className="text-[#6E726E]">Contact:</span>{" "}
+              <span className="text-[#6E726E]"><T k="admin.orgDetail.contact" />:</span>{" "}
               {org.contact_email}
             </p>
           )}
         </div>
         <div className="space-y-2 text-sm">
           <div>
-            <p className="text-[10px] uppercase text-[#6E726E]">Members</p>
+            <p className="text-[10px] uppercase text-[#6E726E]"><T k="admin.organizations.col.members" /></p>
             <p className="font-semibold">{org.member_count}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-[#6E726E]">Subscription</p>
+            <p className="text-[10px] uppercase text-[#6E726E]"><T k="admin.organizations.col.subscription" /></p>
             <p className="font-semibold">{org.active_subscription ?? "—"}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-[#6E726E]">Verification</p>
+            <p className="text-[10px] uppercase text-[#6E726E]"><T k="admin.orgDetail.verification" /></p>
             <VerificationControls
               orgId={orgId}
               current={org.verification_status}
@@ -64,9 +66,9 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Section title={`Members (${members.length})`}>
+        <Section titleKey="admin.orgDetail.members" countSuffix={members.length}>
           {members.length === 0 ? (
-            <p className="text-sm text-[#AAAAAA]">No members.</p>
+            <p className="text-sm text-[#AAAAAA]"><T k="admin.orgDetail.noMembers" /></p>
           ) : (
             <ul className="text-sm divide-y divide-gray-50">
               {members.map((m) => (
@@ -85,9 +87,9 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
           )}
         </Section>
 
-        <Section title="Recent invoices">
+        <Section titleKey="admin.orgDetail.recentInvoices">
           {recentInvoices.length === 0 ? (
-            <p className="text-sm text-[#AAAAAA]">None.</p>
+            <p className="text-sm text-[#AAAAAA]"><T k="admin.orgDetail.none" /></p>
           ) : (
             <ul className="text-sm divide-y divide-gray-50">
               {recentInvoices.map((i) => (
@@ -108,9 +110,9 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
           )}
         </Section>
 
-        <Section title="Recent emission logs">
+        <Section titleKey="admin.orgDetail.recentLogs">
           {recentLogs.length === 0 ? (
-            <p className="text-sm text-[#AAAAAA]">None.</p>
+            <p className="text-sm text-[#AAAAAA]"><T k="admin.orgDetail.none" /></p>
           ) : (
             <ul className="text-sm divide-y divide-gray-50">
               {recentLogs.map((l) => (
@@ -133,9 +135,9 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
           )}
         </Section>
 
-        <Section title="Recent audit log">
+        <Section titleKey="admin.orgDetail.recentAudit">
           {recentAudits.length === 0 ? (
-            <p className="text-sm text-[#AAAAAA]">None.</p>
+            <p className="text-sm text-[#AAAAAA]"><T k="admin.orgDetail.none" /></p>
           ) : (
             <ul className="text-xs divide-y divide-gray-50">
               {recentAudits.map((a) => (
@@ -155,15 +157,20 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
 }
 
 function Section({
-  title,
+  titleKey,
+  countSuffix,
   children,
 }: {
-  title: string;
+  titleKey: string;
+  countSuffix?: number;
   children: React.ReactNode;
 }) {
   return (
     <section className="bg-white border border-[#DAEDD5] rounded-2xl p-5">
-      <h2 className="text-[#155A03] font-semibold mb-3">{title}</h2>
+      <h2 className="text-[#155A03] font-semibold mb-3">
+        <T k={titleKey} />
+        {countSuffix !== undefined ? ` (${countSuffix})` : ""}
+      </h2>
       {children}
     </section>
   );

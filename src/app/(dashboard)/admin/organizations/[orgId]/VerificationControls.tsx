@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { setOrgVerificationStatusAction } from "@/app/actions/admin.actions";
 
 const OPTIONS: ("Pending" | "Verified" | "Suspended")[] = [
@@ -17,6 +18,7 @@ export function VerificationControls({
   orgId: string;
   current: string | null;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<string>(current ?? "Pending");
@@ -50,7 +52,7 @@ export function VerificationControls({
                 : "bg-white border border-[#DAEDD5] text-[#155A03]"
             }`}
           >
-            {o}
+            {t(`admin.organizations.filter${o}`)}
           </button>
         ))}
       </div>
