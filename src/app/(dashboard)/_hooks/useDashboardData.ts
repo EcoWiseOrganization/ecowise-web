@@ -10,17 +10,28 @@ import type { EmissionLogWithCategory } from "@/types/emission-log.types";
 import type { CarbonTargetWithProgress } from "@/types/target.types";
 
 /**
- * Default period for the individual dashboard cards: the current
- * calendar year up to today. The same period is used to compute
- * every KPI / chart on the page so the numbers stay consistent.
- * The user already has a separate, full-screen date-range picker on
- * the Reports tab when they want to drill into other windows.
+ * Format a Date as YYYY-MM-DD using its LOCAL components. We can't
+ * use `toISOString()` here because that converts to UTC first — for
+ * a user in Asia/Ho_Chi_Minh (UTC+7), Jan 1 local midnight maps to
+ * Dec 31 of the prior year in UTC, which is what the dashboard chip
+ * was showing.
  */
-function currentYearWindow(): { start: string; end: string } {
+function fmtLocalISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Default period for the individual dashboard cards: the current
+ * calendar year up to today (local time). Used as the initial range
+ * when the consumer hasn't pinned a custom range yet.
+ */
+export function currentYearWindow(): { start: string; end: string } {
   const today = new Date();
   const start = new Date(today.getFullYear(), 0, 1);
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
-  return { start: fmt(start), end: fmt(today) };
+  return { start: fmtLocalISO(start), end: fmtLocalISO(today) };
 }
 
 export type DashboardStats = {
@@ -43,31 +54,45 @@ export interface DashboardData {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  /** Pin the dashboard window. Re-fetches everything as a side effect. */
+  setRange: (start: string, end: string) => void;
 }
 
 /**
  * Single-shot loader for the individual dashboard. Pulls personal
- * stats for the current year, the latest 5 logs, and the active
+ * stats for the chosen window, the latest 5 logs, and the active
  * carbon target in parallel — all KPIs / charts / lists on the page
  * derive from one of these three sources, so a single refresh
  * function is enough.
+ *
+ * Range is internal state initialised to the current calendar year;
+ * exposed via `setRange` so the header chip can drive the window
+ * without prop-drilling through every card.
  */
 export function useDashboardData(refreshKey = 0): DashboardData {
+  const initial = currentYearWindow();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentLogs, setRecentLogs] = useState<EmissionLogWithCategory[]>([]);
   const [target, setTarget] = useState<CarbonTargetWithProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
-  const period = currentYearWindow();
+  const [range, setRangeState] = useState<{ start: string; end: string }>(initial);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError(null);
     Promise.all([
-      getPersonalStatsAction(period.start, period.end),
-      getPersonalLogsAction({ pageSize: 5, page: 1 }),
+      getPersonalStatsAction(range.start, range.end),
+      // Recent-entries list stays anchored to the same window so it
+      // can't reference logs outside the chip the user selected.
+      getPersonalLogsAction({
+        pageSize: 5,
+        page: 1,
+        startDate: range.start,
+        endDate: range.end,
+      }),
       getActiveTargetAction(),
     ])
       .then(([statsRes, logsRes, targetRes]) => {
@@ -87,19 +112,28 @@ export function useDashboardData(refreshKey = 0): DashboardData {
     return () => {
       active = false;
     };
-    // refreshKey & tick drive manual re-fetches; period values are
-    // derived from "today" once per render and intentionally not in
-    // the dep array (re-running every minute would thrash the UI).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey, tick]);
+  }, [refreshKey, tick, range.start, range.end]);
 
   return {
     stats,
     recentLogs,
     target,
-    period: { ...period, year: new Date(period.start).getFullYear() },
+    period: { ...range, year: new Date(range.start).getFullYear() },
     loading,
     error,
     refresh: () => setTick((t) => t + 1),
+    setRange: (start, end) => {
+      // Guard against the user typing only one half of the range —
+      // the input fires onChange on every keystroke, and an empty
+      // string would surface as "Invalid Date" in the SQL query.
+      if (!start || !end) return;
+      // Auto-swap when the user picks an end-before-start range so
+      // the SQL .gte/.lte don't end up empty.
+      if (end < start) {
+        setRangeState({ start: end, end: start });
+        return;
+      }
+      setRangeState({ start, end });
+    },
   };
 }

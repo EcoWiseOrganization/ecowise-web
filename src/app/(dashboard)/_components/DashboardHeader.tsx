@@ -8,10 +8,12 @@ interface DashboardHeaderProps {
   onAddEmission?: () => void;
   /** Year of the dashboard window (derived from useDashboardData). */
   year: number;
-  /** "YYYY-MM-DD" formatted range start. */
+  /** "YYYY-MM-DD" range start. */
   rangeStart: string;
-  /** "YYYY-MM-DD" formatted range end. */
+  /** "YYYY-MM-DD" range end. */
   rangeEnd: string;
+  /** Driven from useDashboardData.setRange; updates both halves. */
+  onRangeChange: (start: string, end: string) => void;
 }
 
 export function DashboardHeader({
@@ -19,8 +21,14 @@ export function DashboardHeader({
   year,
   rangeStart,
   rangeEnd,
+  onRangeChange,
 }: DashboardHeaderProps) {
   const { t } = useTranslation();
+  // Don't let the user pick a window that extends into the future —
+  // we have no data past `today` and an empty period reads as "you
+  // logged 0 this year" which is misleading.
+  const todayIso = new Date().toISOString().split("T")[0];
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="flex flex-col">
@@ -38,13 +46,29 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-        {/* Date range — derived from the dashboard window, not a picker
-            (the dashboard always shows the current year). */}
-        <div className="h-10 sm:h-11 px-3 sm:px-4 py-2 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-xl border border-[#E2E8F0] flex items-center gap-2 sm:gap-3">
+        {/* Real range picker — every field change kicks the dashboard
+            fetcher via onRangeChange. The chip stays compact on mobile
+            by reusing the native date input UI. */}
+        <div className="px-3 py-1.5 bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] rounded-xl border border-[#E2E8F0] flex items-center gap-2">
           <CalendarTodayIcon sx={{ fontSize: 18, color: "#79B669" }} />
-          <span className="text-[#155A03] text-xs sm:text-sm leading-5">
-            {rangeStart} → {rangeEnd}
-          </span>
+          <input
+            type="date"
+            value={rangeStart}
+            max={rangeEnd || todayIso}
+            onChange={(e) => onRangeChange(e.target.value, rangeEnd)}
+            aria-label={t("dashboard.rangeStartLabel")}
+            className="text-[#155A03] text-xs sm:text-sm leading-5 bg-transparent border-none outline-none cursor-pointer focus:text-[#1F8505]"
+          />
+          <span className="text-[#79B669] text-xs sm:text-sm">→</span>
+          <input
+            type="date"
+            value={rangeEnd}
+            min={rangeStart}
+            max={todayIso}
+            onChange={(e) => onRangeChange(rangeStart, e.target.value)}
+            aria-label={t("dashboard.rangeEndLabel")}
+            className="text-[#155A03] text-xs sm:text-sm leading-5 bg-transparent border-none outline-none cursor-pointer focus:text-[#1F8505]"
+          />
         </div>
 
         <button

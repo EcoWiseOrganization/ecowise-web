@@ -977,6 +977,8 @@ export const vi = {
   "dashboard.hotspotPrefix": "Điểm Nóng",
   "dashboard.year": "Năm {{value}}",
   "dashboard.auditCycle": "Năm {{year}}",
+  "dashboard.rangeStartLabel": "Ngày bắt đầu",
+  "dashboard.rangeEndLabel": "Ngày kết thúc",
   "dashboard.loading": "Đang tải dữ liệu phát thải…",
   "dashboard.selectOrgTitle": "Chọn Tổ Chức",
   "dashboard.selectOrgBody": "Vui lòng chọn một tổ chức từ workspace selector trước khi ghi phát thải.",
