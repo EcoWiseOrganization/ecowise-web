@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   createPlanAction,
   updatePlanAction,
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function PlanForm({ initial }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export function PlanForm({ initial }: Props) {
   return (
     <form onSubmit={submit} className="bg-white rounded-2xl border border-[#DAEDD5] p-6 max-w-3xl space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Plan code">
+        <Field label={t("admin.planForm.planCode")}>
           <input
             type="text"
             value={planCode}
@@ -105,7 +107,7 @@ export function PlanForm({ initial }: Props) {
             placeholder="B2B_PRO"
           />
         </Field>
-        <Field label="Plan name">
+        <Field label={t("admin.planForm.planName")}>
           <input
             type="text"
             value={planName}
@@ -115,7 +117,7 @@ export function PlanForm({ initial }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Target customer">
+        <Field label={t("admin.planForm.target")}>
           <select
             value={target}
             onChange={(e) => setTarget(e.target.value as "B2B" | "B2C")}
@@ -125,17 +127,17 @@ export function PlanForm({ initial }: Props) {
             <option value="B2C">B2C</option>
           </select>
         </Field>
-        <Field label="Billing cycle">
+        <Field label={t("admin.planForm.cycle")}>
           <select
             value={cycle}
             onChange={(e) => setCycle(e.target.value as "Monthly" | "Annual")}
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
-            <option value="Monthly">Monthly</option>
-            <option value="Annual">Annual</option>
+            <option value="Monthly">{t("admin.planForm.cycleMonthly")}</option>
+            <option value="Annual">{t("admin.planForm.cycleAnnual")}</option>
           </select>
         </Field>
-        <Field label="Base price (USD)">
+        <Field label={t("admin.planForm.price")}>
           <input
             type="number"
             step="any"
@@ -145,7 +147,7 @@ export function PlanForm({ initial }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Trial days">
+        <Field label={t("admin.planForm.trial")}>
           <input
             type="number"
             min={0}
@@ -154,7 +156,7 @@ export function PlanForm({ initial }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Max users (blank = unlimited)">
+        <Field label={t("admin.planForm.maxUsers")}>
           <input
             type="number"
             min={0}
@@ -163,7 +165,7 @@ export function PlanForm({ initial }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Max events (blank = unlimited)">
+        <Field label={t("admin.planForm.maxEvents")}>
           <input
             type="number"
             min={0}
@@ -172,20 +174,20 @@ export function PlanForm({ initial }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
         </Field>
-        <Field label="Status">
+        <Field label={t("admin.planForm.status")}>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as "Active" | "Inactive")}
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value="Active">{t("admin.planForm.statusActive")}</option>
+            <option value="Inactive">{t("admin.planForm.statusInactive")}</option>
           </select>
         </Field>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-[#155A03] mb-2">Features</h3>
+        <h3 className="text-sm font-semibold text-[#155A03] mb-2">{t("admin.planForm.features")}</h3>
         <ul className="space-y-1 text-sm">
           {features.map((f) => (
             <li
@@ -203,7 +205,7 @@ export function PlanForm({ initial }: Props) {
                 onClick={() => removeFeature(f.key)}
                 className="text-xs text-red-600 hover:underline"
               >
-                Remove
+                {t("admin.planForm.removeFeature")}
               </button>
             </li>
           ))}
@@ -213,14 +215,14 @@ export function PlanForm({ initial }: Props) {
             type="text"
             value={newFeatureKey}
             onChange={(e) => setNewFeatureKey(e.target.value)}
-            placeholder="key"
+            placeholder={t("admin.planForm.featureKeyPlaceholder")}
             className="px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm font-mono w-32"
           />
           <input
             type="text"
             value={newFeatureLabel}
             onChange={(e) => setNewFeatureLabel(e.target.value)}
-            placeholder="Label"
+            placeholder={t("admin.planForm.featureLabelPlaceholder")}
             className="flex-1 px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
           />
           <button
@@ -228,7 +230,7 @@ export function PlanForm({ initial }: Props) {
             onClick={addFeature}
             className="px-4 py-2 rounded-lg border border-[#DAEDD5] text-sm"
           >
-            Add
+            {t("admin.planForm.addFeature")}
           </button>
         </div>
       </div>
@@ -245,14 +247,18 @@ export function PlanForm({ initial }: Props) {
           onClick={() => router.back()}
           className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-sm"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="submit"
           disabled={pending}
           className="px-5 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
         >
-          {pending ? "Saving…" : initial ? "Save plan" : "Create plan"}
+          {pending
+            ? t("common.saving")
+            : initial
+              ? t("admin.planForm.savePlan")
+              : t("admin.planForm.createPlan")}
         </button>
       </div>
     </form>

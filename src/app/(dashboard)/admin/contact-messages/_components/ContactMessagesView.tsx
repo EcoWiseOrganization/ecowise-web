@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { setContactMessageStatusAction } from "@/app/actions/admin.actions";
 import type { ContactMessageRow } from "@/types/admin.types";
 
@@ -35,6 +36,7 @@ const STATUS_COLOR: Record<ContactMessageRow["status"], string> = {
 };
 
 export function ContactMessagesView({ initial }: { initial: ContactMessageRow[] }) {
+  const { t } = useTranslation();
   const [rows, setRows] = useState(initial);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function ContactMessagesView({ initial }: { initial: ContactMessageRow[] 
       )}
       {rows.length === 0 ? (
         <div className="bg-white border border-[#DAEDD5] rounded-2xl p-12 text-center text-sm text-[#6E726E]">
-          No contact messages yet.
+          {t("admin.contactMessages.empty")}
         </div>
       ) : (
         <ul className="space-y-3">
@@ -81,7 +83,7 @@ export function ContactMessagesView({ initial }: { initial: ContactMessageRow[] 
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[m.status]}`}
                   >
-                    {m.status}
+                    {t(`admin.contactMessages.status.${m.status}`)}
                   </span>
                   <span className="text-xs text-[#AAAAAA]">
                     {new Date(m.created_at).toLocaleString()}
@@ -100,14 +102,14 @@ export function ContactMessagesView({ initial }: { initial: ContactMessageRow[] 
                     disabled={pending}
                     className="text-xs px-2 py-1 rounded-lg border border-[#E5E7EB] hover:bg-gray-50 disabled:opacity-50"
                   >
-                    Mark {s}
+                    {t(`admin.contactMessages.markAs.${s}`)}
                   </button>
                 ))}
                 <a
                   href={buildMailtoHref(m.email, m.subject)}
                   className="text-xs px-2 py-1 rounded-lg bg-[#155A03] text-white"
                 >
-                  Reply
+                  {t("admin.contactMessages.reply")}
                 </a>
               </div>
             </li>
