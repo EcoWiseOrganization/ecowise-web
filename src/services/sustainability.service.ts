@@ -21,7 +21,38 @@ import type {
   CreateEmissionCategoryInput,
   CreateEmissionFactorInput,
   CreateCalculationTemplateInput,
+  InputFieldSchema,
 } from "@/types/sustainability";
+
+/**
+ * Historical seeds wrote CalculationTemplates.input_schema with `key`
+ * / `default` (e.g. migration 019), but the TS type and the rest of
+ * the app expect `field` / `default_value`. Normalise both shapes
+ * into the canonical form at the read boundary so downstream UI code
+ * never has to branch on which seed the row came from. Also drops
+ * malformed entries that have no usable variable name.
+ */
+function normalizeInputSchema(raw: unknown): InputFieldSchema[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+    .map((item): InputFieldSchema => {
+      const field = String(item.field ?? item.key ?? "");
+      const label = String(item.label ?? field);
+      const type = item.type === "select" ? "select" : "number";
+      const unit = typeof item.unit === "string" ? item.unit : "";
+      const required = typeof item.required === "boolean" ? item.required : true;
+      const min = typeof item.min === "number" ? item.min : undefined;
+      const max = typeof item.max === "number" ? item.max : undefined;
+      const defaultRaw = item.default_value ?? item.default;
+      const default_value = typeof defaultRaw === "number" ? defaultRaw : undefined;
+      const options = Array.isArray(item.options)
+        ? (item.options as { value: string; label: string }[])
+        : undefined;
+      return { field, label, type, unit, required, min, max, default_value, options };
+    })
+    .filter((item) => item.field);
+}
 
 // ── EmissionCategories ───────────────────────────────────────────────────────
 
@@ -139,7 +170,10 @@ export async function getCalculationTemplates(
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as CalculationTemplateWithRelations[];
+  return ((data ?? []) as unknown as CalculationTemplateWithRelations[]).map((row) => ({
+    ...row,
+    input_schema: normalizeInputSchema(row.input_schema as unknown),
+  }));
 }
 
 export async function createCalculationTemplate(

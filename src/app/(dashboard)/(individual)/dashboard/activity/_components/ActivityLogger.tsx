@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePersonalActivity } from "@/hooks/usePersonalActivity";
 import { todayLocalISO } from "@/lib/dates";
+import { getCalculationTemplates } from "@/services/sustainability.service";
+import { FormulaEngine } from "@/lib/formula-engine";
 import type { GhgScope } from "@/types/emission-log.types";
+import type {
+  CalculationTemplateWithRelations,
+  InputFieldSchema,
+} from "@/types/sustainability";
 
 const SCOPES: GhgScope[] = ["Scope 1", "Scope 2", "Scope 3"];
 const PAGE_SIZE = 25;
@@ -57,51 +63,121 @@ export function ActivityLogger() {
   };
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<{
-    activity_name: string;
-    scope: GhgScope;
-    reporting_date: string;
-    quantity: string;
-    unit: string;
-    co2e_result: string;
-    evidence_url: string;
-  }>({
-    activity_name: "",
-    scope: "Scope 1",
-    reporting_date: todayLocalISO(),
-    quantity: "",
-    unit: "kWh",
-    co2e_result: "",
-    evidence_url: "",
-  });
+  const [templates, setTemplates] = useState<CalculationTemplateWithRelations[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templateId, setTemplateId] = useState("");
+  const [description, setDescription] = useState("");
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
 
   const remainingQuota = Math.max(0, quota.limit - quota.used);
   const atLimit = remainingQuota <= 0;
 
+  // Pull formulas lazily — only when the user actually opens the form.
+  // Templates without a default_ef can't resolve EF_TOTAL, so skip them.
+  useEffect(() => {
+    if (!showForm || templates.length || templatesLoading) return;
+    setTemplatesLoading(true);
+    getCalculationTemplates()
+      .then((rows) => setTemplates(rows.filter((t) => t.default_ef !== null)))
+      .catch((e) => console.error(e))
+      .finally(() => setTemplatesLoading(false));
+  }, [showForm, templates.length, templatesLoading]);
+
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === templateId) ?? null,
+    [templates, templateId],
+  );
+
+  // EF_TOTAL is resolved server-side from the linked emission factor;
+  // never ask the user to type it.
+  const visibleFields: InputFieldSchema[] = useMemo(() => {
+    if (!selectedTemplate) return [];
+    return selectedTemplate.input_schema.filter(
+      (f) => f.field.toUpperCase() !== "EF_TOTAL",
+    );
+  }, [selectedTemplate]);
+
+  // First numeric field becomes the persisted (quantity, unit) pair —
+  // the EmissionLog schema requires both NOT NULL with quantity > 0.
+  const primaryNumericField = useMemo(
+    () => visibleFields.find((f) => f.type === "number") ?? null,
+    [visibleFields],
+  );
+
+  // Live formula evaluation — driven by the user's inputs + the
+  // formula's linked EF. Returns null while inputs are missing /
+  // invalid so the UI can show a placeholder instead of NaN.
+  const evaluation = useMemo(() => {
+    if (!selectedTemplate || !selectedTemplate.default_ef) return null;
+    const scope: Record<string, number> = {
+      EF_TOTAL: Number(selectedTemplate.default_ef.co2e_total) || 0,
+    };
+    for (const f of visibleFields) {
+      const raw = inputValues[f.field];
+      const n = raw === undefined || raw === "" ? NaN : Number(raw);
+      if (!Number.isFinite(n)) return null;
+      scope[f.field] = n;
+    }
+    try {
+      const kg = FormulaEngine.evaluate(selectedTemplate.formula_string, scope);
+      if (!Number.isFinite(kg) || kg < 0) return null;
+      return { kg, tonnes: kg / 1000 };
+    } catch {
+      return null;
+    }
+  }, [selectedTemplate, visibleFields, inputValues]);
+
+  function resetForm() {
+    setTemplateId("");
+    setDescription("");
+    setInputValues({});
+  }
+
+  function handleTemplateChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const id = e.target.value;
+    setTemplateId(id);
+    // Pre-fill numeric inputs with the schema's default_value if any.
+    const next: Record<string, string> = {};
+    const tmpl = templates.find((x) => x.id === id);
+    if (tmpl) {
+      for (const f of tmpl.input_schema) {
+        if (f.field.toUpperCase() === "EF_TOTAL") continue;
+        if (f.default_value !== undefined && f.default_value !== null) {
+          next[f.field] = String(f.default_value);
+        }
+      }
+    }
+    setInputValues(next);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const qty = parseFloat(form.quantity);
-    const co2 = form.co2e_result ? parseFloat(form.co2e_result) : undefined;
-    if (!form.activity_name.trim() || !Number.isFinite(qty) || qty <= 0) return;
+    if (!selectedTemplate || !selectedTemplate.default_ef) return;
+    if (!description.trim()) return;
+    if (evaluation == null) return;
+
+    // Derive the persisted (quantity, unit) pair from the primary
+    // numeric field; fall back to the formula result + result_unit
+    // when the formula has no numeric inputs (rare).
+    const quantity = primaryNumericField
+      ? Number(inputValues[primaryNumericField.field])
+      : Math.max(evaluation.kg, 0.0001);
+    if (!Number.isFinite(quantity) || quantity <= 0) return;
+    const unit = primaryNumericField?.unit ?? selectedTemplate.result_unit;
+
     const res = await create({
-      activity_name: form.activity_name,
-      scope: form.scope,
-      reporting_date: form.reporting_date,
-      quantity: qty,
-      unit: form.unit,
-      co2e_result: co2,
-      evidence_url: form.evidence_url || undefined,
+      activity_name: description.trim(),
+      scope: selectedTemplate.category.scope as GhgScope,
+      source_type_id: selectedTemplate.category_id,
+      reporting_date: todayLocalISO(),
+      quantity,
+      unit,
+      co2e_result: evaluation.tonnes,
       status: "Pending",
     });
     if (res.ok) {
       setShowForm(false);
-      setForm({
-        ...form,
-        activity_name: "",
-        quantity: "",
-        co2e_result: "",
-        evidence_url: "",
-      });
+      resetForm();
     }
   };
 
@@ -143,106 +219,132 @@ export function ActivityLogger() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-[#DAEDD5] p-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+          className="bg-white rounded-2xl border border-[#DAEDD5] p-6 flex flex-col gap-4"
         >
-          <Field label={t("activity.field.name")}>
-            <input
-              type="text"
-              value={form.activity_name}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, activity_name: e.target.value }))
-              }
-              required
-              maxLength={200}
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-            />
-          </Field>
-          <Field label={t("activity.field.scope")}>
+          {/* 1 — Pick a formula */}
+          <Field label={t("activity.field.formula")}>
             <select
-              value={form.scope}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, scope: e.target.value as GhgScope }))
-              }
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
+              value={templateId}
+              onChange={handleTemplateChange}
+              disabled={templatesLoading}
+              required
+              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white disabled:bg-[#F5F5F5] disabled:cursor-not-allowed"
             >
-              {SCOPES.map((s) => (
-                <option key={s}>{s}</option>
+              <option value="">
+                {templatesLoading
+                  ? t("activity.formula.loading")
+                  : templates.length === 0
+                    ? t("activity.formula.none")
+                    : t("activity.formula.placeholder")}
+              </option>
+              {templates.map((tmpl) => (
+                <option key={tmpl.id} value={tmpl.id}>
+                  {tmpl.name}
+                </option>
               ))}
             </select>
+            {selectedTemplate && (
+              <p className="mt-1 text-[11px] text-[#AAAAAA] font-mono">
+                {selectedTemplate.formula_string}
+                {" · "}
+                <span className="font-sans">
+                  {selectedTemplate.category.scope}
+                </span>
+              </p>
+            )}
           </Field>
-          <Field label={t("activity.field.date")}>
+
+          {/* 2 — Description (note → activity_name) */}
+          <Field label={t("activity.field.description")}>
             <input
-              type="date"
-              value={form.reporting_date}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, reporting_date: e.target.value }))
-              }
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               required
+              maxLength={200}
+              placeholder={t("activity.description.placeholder")}
               className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
             />
           </Field>
-          <Field label={t("activity.field.quantity")}>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={form.quantity}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, quantity: e.target.value }))
-                }
-                required
-                min={0}
-                step="any"
-                className="flex-1 px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-              />
-              <input
-                type="text"
-                value={form.unit}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, unit: e.target.value }))
-                }
-                required
-                maxLength={20}
-                className="w-24 px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-                placeholder={t("activity.field.unit")}
-              />
+
+          {/* 3 — Dynamic formula inputs */}
+          {selectedTemplate && visibleFields.length > 0 && (
+            <div className="rounded-xl border border-[#DAEDD5] bg-[#F7FBF5] p-4 flex flex-col gap-3">
+              <p className="text-[#155A03] text-xs font-bold uppercase tracking-wide">
+                {t("activity.formula.inputsTitle")}
+              </p>
+              {visibleFields.map((f) => {
+                const value = inputValues[f.field] ?? "";
+                return (
+                  <Field
+                    key={f.field}
+                    label={`${f.label}${f.unit ? ` (${f.unit})` : ""}`}
+                  >
+                    {f.type === "select" ? (
+                      <select
+                        value={value}
+                        onChange={(e) =>
+                          setInputValues((p) => ({
+                            ...p,
+                            [f.field]: e.target.value,
+                          }))
+                        }
+                        required={f.required !== false}
+                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
+                      >
+                        <option value="">—</option>
+                        {(f.options ?? []).map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) =>
+                          setInputValues((p) => ({
+                            ...p,
+                            [f.field]: e.target.value,
+                          }))
+                        }
+                        required={f.required !== false}
+                        min={f.min}
+                        max={f.max}
+                        step="any"
+                        placeholder="0"
+                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
+                      />
+                    )}
+                  </Field>
+                );
+              })}
+              {/* Live CO₂e preview — informational only, the server
+                  re-evaluates on submit. */}
+              <div className="text-xs text-[#155A03] pt-1 border-t border-[#DAEDD5]">
+                {evaluation
+                  ? `≈ ${evaluation.kg.toFixed(2)} kg CO₂e (${evaluation.tonnes.toFixed(4)} t)`
+                  : t("activity.field.co2e")}
+              </div>
             </div>
-          </Field>
-          <Field label={t("activity.field.co2e")}>
-            <input
-              type="number"
-              value={form.co2e_result}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, co2e_result: e.target.value }))
-              }
-              min={0}
-              step="any"
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-              placeholder="kg"
-            />
-          </Field>
-          <Field label={t("activity.field.evidence")}>
-            <input
-              type="url"
-              value={form.evidence_url}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, evidence_url: e.target.value }))
-              }
-              placeholder="https://"
-              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
-            />
-          </Field>
-          <div className="md:col-span-2 flex justify-end gap-2 pt-2">
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                resetForm();
+              }}
               className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-sm"
             >
               {t("common.cancel")}
             </button>
             <button
               type="submit"
-              disabled={submitting}
-              className="px-5 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50"
+              disabled={submitting || !selectedTemplate || evaluation == null}
+              className="px-5 py-2 rounded-lg bg-[#155A03] text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? t("activity.saving") : t("activity.save")}
             </button>
