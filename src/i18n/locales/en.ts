@@ -1143,6 +1143,10 @@ export const en = {
   "admin.users.table.greenPoints": "Green Points",
   "admin.users.table.joined": "Joined",
   "admin.users.empty": "No users found",
+  "admin.users.export.xlsx": "Export Excel",
+  "admin.users.export.csv": "Export CSV",
+  "admin.users.export.busy": "Exporting…",
+  "admin.users.export.error": "Export failed",
 
   // Admin – Settings page
   "admin.settings.title": "Settings",

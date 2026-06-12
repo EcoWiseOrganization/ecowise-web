@@ -1144,6 +1144,10 @@ export const vi = {
   "admin.users.table.greenPoints": "Điểm Xanh",
   "admin.users.table.joined": "Ngày Tham Gia",
   "admin.users.empty": "Không tìm thấy người dùng",
+  "admin.users.export.xlsx": "Xuất Excel",
+  "admin.users.export.csv": "Xuất CSV",
+  "admin.users.export.busy": "Đang xuất…",
+  "admin.users.export.error": "Xuất dữ liệu thất bại",
 
   // Admin – Settings page
   "admin.settings.title": "Cài Đặt",

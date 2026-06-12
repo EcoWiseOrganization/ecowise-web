@@ -224,6 +224,39 @@ export async function listAdminUsers({
   };
 }
 
+/** Projection used for the System Admin "Export users" feature. */
+export type AdminUserExportRow = Pick<
+  User,
+  | "id"
+  | "email"
+  | "full_name"
+  | "user_name"
+  | "phone"
+  | "is_admin"
+  | "status"
+  | "green_points"
+  | "created_at"
+  | "last_login_at"
+>;
+
+/**
+ * Read every user row for export (no pagination). Caller MUST guard with
+ * `requireSystemAdmin()` first — we deliberately bypass RLS via the admin
+ * client and skip soft-deleted rows from the dump.
+ */
+export async function listUsersForExport(): Promise<AdminUserExportRow[]> {
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from("User")
+    .select(
+      "id, email, full_name, user_name, phone, is_admin, status, green_points, created_at, last_login_at",
+    )
+    .neq("status", "deleted")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`Failed to fetch users for export: ${error.message}`);
+  return (data ?? []) as AdminUserExportRow[];
+}
+
 // ── Phase 1: Profile management ───────────────────────────────────────────
 
 /**

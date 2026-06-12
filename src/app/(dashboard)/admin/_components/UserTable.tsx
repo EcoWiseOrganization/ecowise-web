@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AdminUserListRow } from "@/services/user.service";
+import { UserExportButton } from "./UserExportButton";
 
 interface UserTableProps {
   users: AdminUserListRow[];
@@ -67,35 +68,38 @@ export function UserTable({ users, total, page, pageSize, search }: UserTablePro
 
   return (
     <div className="flex flex-col gap-3">
-      <form onSubmit={onSearchSubmit} className="flex items-center gap-2">
-        <input
-          type="search"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          placeholder={t("admin.users.searchPlaceholder", {
-            defaultValue: "Search by email or name…",
-          })}
-          className="flex-1 max-w-md px-3 py-2 rounded-xl border border-[#DAEDD5] text-sm text-[#3B3D3B] focus:outline-none focus:ring-2 focus:ring-[#79B669]"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-xl bg-[#1F8505] text-white text-sm font-medium hover:bg-[#176d04]"
-        >
-          {t("common.search", { defaultValue: "Search" })}
-        </button>
-        {search ? (
+      <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+        <form onSubmit={onSearchSubmit} className="flex flex-1 items-center gap-2">
+          <input
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder={t("admin.users.searchPlaceholder", {
+              defaultValue: "Search by email or name…",
+            })}
+            className="flex-1 max-w-md px-3 py-2 rounded-xl border border-[#DAEDD5] text-sm text-[#3B3D3B] focus:outline-none focus:ring-2 focus:ring-[#79B669]"
+          />
           <button
-            type="button"
-            onClick={() => {
-              setSearchValue("");
-              navigate(1, "");
-            }}
-            className="px-3 py-2 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm hover:bg-[#f5f5f5]"
+            type="submit"
+            className="px-4 py-2 rounded-xl bg-[#1F8505] text-white text-sm font-medium hover:bg-[#176d04]"
           >
-            {t("common.clear", { defaultValue: "Clear" })}
+            {t("common.search", { defaultValue: "Search" })}
           </button>
-        ) : null}
-      </form>
+          {search ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchValue("");
+                navigate(1, "");
+              }}
+              className="px-3 py-2 rounded-xl border border-[#DAEDD5] text-[#3B3D3B] text-sm hover:bg-[#f5f5f5]"
+            >
+              {t("common.clear", { defaultValue: "Clear" })}
+            </button>
+          ) : null}
+        </form>
+        <UserExportButton />
+      </div>
 
       <div className="bg-white rounded-3xl border border-[#B8D6B0] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden">
         <table className="w-full">
