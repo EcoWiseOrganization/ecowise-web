@@ -1,8 +1,19 @@
 # Admin dashboard
 
-The `/admin` landing page is the System Admin's at-a-glance view of platform
-health. This document records what is shown, why, where the data comes from,
-and how to extend it.
+The System Admin area splits into two pages with deliberately separate
+responsibilities — no metric appears on both:
+
+| Page                          | Owns                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `/admin` (Dashboard)          | **Platform & business health.** Users / orgs / emission logs / CO₂e / revenue + the trend, scope, sector, status, and subscription breakdowns. |
+| `/admin/system-overview`      | **Audit & governance.** Who did what on the platform, when, and whether anything is failing — driven entirely by `AuditLogs` (30-day window by default). |
+
+Decision rule when adding a metric: if it answers "what is the state of
+EcoWise as a product right now?", it goes on the **dashboard**. If it
+answers "what is happening to the EcoWise *system*, and is it healthy?", it
+goes on **system overview**. This document covers the dashboard; the system
+overview page reuses the same `KpiCard` + `DashboardSection` building blocks
+with an audit lens.
 
 ## What changed
 
