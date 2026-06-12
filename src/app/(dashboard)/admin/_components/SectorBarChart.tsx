@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { SectorTotal } from "@/types/admin.types";
+import { formatKg } from "@/lib/format-number";
 
 interface SectorBarChartProps {
   sectors: SectorTotal[];
@@ -73,11 +74,3 @@ export function SectorBarChart({ sectors, topN = 6 }: SectorBarChartProps) {
   );
 }
 
-function formatKg(kg: number) {
-  if (kg >= 1000) {
-    return `${(kg / 1000).toLocaleString(undefined, {
-      maximumFractionDigits: 1,
-    })} tCO₂e`;
-  }
-  return `${kg.toFixed(1)} kg`;
-}

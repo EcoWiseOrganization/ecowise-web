@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { EmissionLogStatusCounts } from "@/types/admin.types";
+import { formatInt } from "@/lib/format-number";
 
 /** Order matters: this is the lifecycle order shown in the chart. */
 const ROWS: Array<{
@@ -79,7 +80,7 @@ export function StatusBreakdown({ counts }: { counts: EmissionLogStatusCounts })
               {t(r.labelKey)}
             </span>
             <span className="text-brand-700 font-semibold">
-              {counts[r.key].toLocaleString()}
+              {formatInt(counts[r.key])}
             </span>
           </li>
         ))}

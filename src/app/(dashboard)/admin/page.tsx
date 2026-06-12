@@ -16,6 +16,7 @@ import {
   getPlatformMetrics,
   getSubscriptionMix,
 } from "@/services/admin-metrics.service";
+import { formatInt, formatKg, formatUsd } from "@/lib/format-number";
 
 import { PageHeader } from "./_components/PageHeader";
 import { KpiCard } from "./_components/KpiCard";
@@ -60,19 +61,19 @@ export default async function AdminDashboardPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           titleKey="admin.dashboard.stats.totalUsers"
-          value={userStats.totalUsers.toLocaleString()}
+          value={formatInt(userStats.totalUsers)}
           icon={PeopleIcon}
           hintKey="admin.dashboard.stats.totalUsersHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.totalOrgs"
-          value={platform.totalOrgs.toLocaleString()}
+          value={formatInt(platform.totalOrgs)}
           icon={BusinessIcon}
           hintKey="admin.dashboard.stats.totalOrgsHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.totalLogs"
-          value={platform.totalEmissionLogs.toLocaleString()}
+          value={formatInt(platform.totalEmissionLogs)}
           icon={ReceiptLongIcon}
           hintKey="admin.dashboard.stats.totalLogsHint"
         />
@@ -88,27 +89,25 @@ export default async function AdminDashboardPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           titleKey="admin.dashboard.stats.activeUsers"
-          value={userStats.activeCount.toLocaleString()}
+          value={formatInt(userStats.activeCount)}
           icon={CheckCircleIcon}
           hintKey="admin.dashboard.stats.activeUsersHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.admins"
-          value={userStats.adminCount.toLocaleString()}
+          value={formatInt(userStats.adminCount)}
           icon={AdminPanelSettingsIcon}
           hintKey="admin.dashboard.stats.adminsHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.revenue"
-          value={`$${platform.monthlyRevenueUsd.toLocaleString(undefined, {
-            maximumFractionDigits: 2,
-          })}`}
+          value={formatUsd(platform.monthlyRevenueUsd)}
           icon={PaidIcon}
           hintKey="admin.dashboard.stats.revenueHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.needsAttention"
-          value={attentionCount.toLocaleString()}
+          value={formatInt(attentionCount)}
           icon={PendingActionsIcon}
           variant={attentionCount > 0 ? "alert" : "default"}
           hintKey="admin.dashboard.stats.needsAttentionHint"
@@ -166,14 +165,4 @@ export default async function AdminDashboardPage() {
       <AdminAuthBanner />
     </div>
   );
-}
-
-/** Compact CO₂e formatter: tonnes once we cross the 1,000-kg mark. */
-function formatKg(kg: number): string {
-  if (kg >= 1000) {
-    return `${(kg / 1000).toLocaleString(undefined, {
-      maximumFractionDigits: 1,
-    })} tCO₂e`;
-  }
-  return `${kg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`;
 }

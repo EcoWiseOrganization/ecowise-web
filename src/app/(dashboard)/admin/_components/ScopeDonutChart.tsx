@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { ScopeTotal } from "@/types/admin.types";
+import { formatInt, formatKg } from "@/lib/format-number";
 
 /** Scope → brand-aligned colour (Scope 1 fuel, 2 electricity, 3 indirect). */
 const SCOPE_COLOR: Record<ScopeTotal["scope"], string> = {
@@ -108,7 +109,7 @@ export function ScopeDonutChart({ scopes }: ScopeDonutChartProps) {
                 />
                 {r.scope}
                 <span className="text-neutral-soft text-xs">
-                  · {r.log_count.toLocaleString()}
+                  · {formatInt(r.log_count)}
                 </span>
               </span>
               <span className="text-brand-700 text-sm font-semibold">
@@ -122,11 +123,3 @@ export function ScopeDonutChart({ scopes }: ScopeDonutChartProps) {
   );
 }
 
-function formatKg(kg: number) {
-  if (kg >= 1000) {
-    return `${(kg / 1000).toLocaleString(undefined, {
-      maximumFractionDigits: 1,
-    })} tCO₂e`;
-  }
-  return `${kg.toFixed(1)} kg`;
-}

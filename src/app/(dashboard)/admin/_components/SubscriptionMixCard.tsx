@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { SubscriptionMix } from "@/types/admin.types";
+import { formatInt } from "@/lib/format-number";
 
 /** Cycles through brand-aligned colours so each plan gets a unique chip. */
 const COLORS = ["#1F8505", "#1F6FEB", "#7C3AED", "#F59E0B", "#E11D48"];
@@ -24,7 +25,7 @@ export function SubscriptionMixCard({ mix }: { mix: SubscriptionMix }) {
           {t("admin.dashboard.subs.totalActive")}
         </span>
         <span className="text-brand-700 text-2xl font-bold">
-          {mix.totalActive.toLocaleString()}
+          {formatInt(mix.totalActive)}
         </span>
       </div>
       <ul className="flex flex-col gap-2.5">
@@ -42,7 +43,7 @@ export function SubscriptionMixCard({ mix }: { mix: SubscriptionMix }) {
                   {p.plan_name}
                 </span>
                 <span className="text-brand-700 font-semibold">
-                  {p.count.toLocaleString()}
+                  {formatInt(p.count)}
                   <span className="text-neutral-soft ml-2 text-xs font-normal">
                     {pct.toFixed(1)}%
                   </span>
