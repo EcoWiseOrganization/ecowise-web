@@ -6,9 +6,12 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { bucketByMonth } from "@/lib/admin-metrics";
 import type {
+  EmissionLogStatusCounts,
   GrowthBucket,
   PlatformMetrics,
+  ScopeTotal,
   SectorTotal,
+  SubscriptionMix,
 } from "@/types/admin.types";
 
 export async function getPlatformMetrics(): Promise<PlatformMetrics> {
@@ -136,4 +139,87 @@ export async function getEmissionsBySector(): Promise<SectorTotal[]> {
       total_co2e_kg: Math.round(v.co2 * 100) / 100,
       org_count: v.orgs.size,
     }));
+}
+
+/**
+ * Emissions split by GHG scope (Scope 1/2/3). Includes both personal and
+ * org-owned logs so the chart matches "total CO₂e tracked" on the dashboard.
+ */
+export async function getEmissionsByScope(): Promise<ScopeTotal[]> {
+  const db = createServiceClient();
+  const { data } = await db.from("EmissionLogs").select("scope, co2e_result");
+
+  const rows = (data ?? []) as Array<{
+    scope: ScopeTotal["scope"];
+    co2e_result: number | null;
+  }>;
+
+  const buckets = new Map<ScopeTotal["scope"], ScopeTotal>([
+    ["Scope 1", { scope: "Scope 1", log_count: 0, total_co2e_kg: 0 }],
+    ["Scope 2", { scope: "Scope 2", log_count: 0, total_co2e_kg: 0 }],
+    ["Scope 3", { scope: "Scope 3", log_count: 0, total_co2e_kg: 0 }],
+  ]);
+  for (const r of rows) {
+    const b = buckets.get(r.scope);
+    if (!b) continue;
+    b.log_count += 1;
+    b.total_co2e_kg += Number(r.co2e_result) || 0;
+  }
+  for (const b of buckets.values()) {
+    b.total_co2e_kg = Math.round(b.total_co2e_kg * 100) / 100;
+  }
+  return Array.from(buckets.values());
+}
+
+/**
+ * Counts of EmissionLogs in each lifecycle state — surfaces how much data is
+ * waiting on the admin's attention vs already locked.
+ */
+export async function getEmissionLogStatusCounts(): Promise<EmissionLogStatusCounts> {
+  const db = createServiceClient();
+  const counters = await Promise.all(
+    (["Pending", "Review", "Verified", "Published", "Exported"] as const).map(
+      (status) =>
+        db
+          .from("EmissionLogs")
+          .select("id", { count: "exact", head: true })
+          .eq("status", status)
+    )
+  );
+  const [pending, review, verified, published, exported] = counters.map(
+    (r) => r.count ?? 0
+  );
+  return { pending, review, verified, published, exported };
+}
+
+/**
+ * Snapshot of platform subscription health: total active subjects plus a
+ * breakdown by plan name. Used for the "Subscription mix" chart.
+ */
+export async function getSubscriptionMix(): Promise<SubscriptionMix> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("Subscriptions")
+    .select("plan_id, SubscriptionPlans!inner(plan_name)")
+    .eq("status", "Active");
+
+  const rows = (data ?? []) as Array<{
+    plan_id: string;
+    SubscriptionPlans: { plan_name: string } | { plan_name: string }[] | null;
+  }>;
+
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const planRel = Array.isArray(r.SubscriptionPlans)
+      ? r.SubscriptionPlans[0]
+      : r.SubscriptionPlans;
+    const name = planRel?.plan_name ?? "Unknown";
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+
+  const byPlan = Array.from(counts.entries())
+    .map(([plan_name, count]) => ({ plan_name, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return { byPlan, totalActive: rows.length };
 }

@@ -21,6 +21,30 @@ export interface SectorTotal {
   org_count: number;
 }
 
+/** Aggregate of logged emissions grouped by GHG scope (Scope 1/2/3). */
+export interface ScopeTotal {
+  scope: "Scope 1" | "Scope 2" | "Scope 3";
+  log_count: number;
+  total_co2e_kg: number;
+}
+
+/** Counts grouped by EmissionLogs.status for the workflow snapshot. */
+export interface EmissionLogStatusCounts {
+  pending: number;
+  review: number;
+  verified: number;
+  published: number;
+  exported: number;
+}
+
+/** Subscription mix on the platform. */
+export interface SubscriptionMix {
+  /** Active subscriptions by plan name. */
+  byPlan: Array<{ plan_name: string; count: number }>;
+  /** Sum of subjects with status='Active'. */
+  totalActive: number;
+}
+
 // Re-use canonical enums from the org types module instead of re-declaring
 // string fields here. Drift between the two definitions was the original
 // concern raised in REVIEW.md type-safety §.
