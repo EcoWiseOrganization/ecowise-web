@@ -62,25 +62,24 @@ export default async function AdminDashboardPage() {
           titleKey="admin.dashboard.stats.totalUsers"
           value={userStats.totalUsers.toLocaleString()}
           icon={PeopleIcon}
-          tone="brand"
+          hintKey="admin.dashboard.stats.totalUsersHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.totalOrgs"
           value={platform.totalOrgs.toLocaleString()}
           icon={BusinessIcon}
-          tone="blue"
+          hintKey="admin.dashboard.stats.totalOrgsHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.totalLogs"
           value={platform.totalEmissionLogs.toLocaleString()}
           icon={ReceiptLongIcon}
-          tone="violet"
+          hintKey="admin.dashboard.stats.totalLogsHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.totalCo2e"
           value={formatKg(platform.totalCo2eKg)}
           icon={Co2Icon}
-          tone="brand"
           hintKey="admin.dashboard.stats.totalCo2eHint"
         />
       </section>
@@ -91,13 +90,13 @@ export default async function AdminDashboardPage() {
           titleKey="admin.dashboard.stats.activeUsers"
           value={userStats.activeCount.toLocaleString()}
           icon={CheckCircleIcon}
-          tone="brand"
+          hintKey="admin.dashboard.stats.activeUsersHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.admins"
           value={userStats.adminCount.toLocaleString()}
           icon={AdminPanelSettingsIcon}
-          tone="amber"
+          hintKey="admin.dashboard.stats.adminsHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.revenue"
@@ -105,14 +104,13 @@ export default async function AdminDashboardPage() {
             maximumFractionDigits: 2,
           })}`}
           icon={PaidIcon}
-          tone="blue"
           hintKey="admin.dashboard.stats.revenueHint"
         />
         <KpiCard
           titleKey="admin.dashboard.stats.needsAttention"
           value={attentionCount.toLocaleString()}
           icon={PendingActionsIcon}
-          tone={attentionCount > 0 ? "rose" : "brand"}
+          variant={attentionCount > 0 ? "alert" : "default"}
           hintKey="admin.dashboard.stats.needsAttentionHint"
           hintValue={`${platform.openIssuesCount} · ${platform.pendingContactMessages}`}
         />

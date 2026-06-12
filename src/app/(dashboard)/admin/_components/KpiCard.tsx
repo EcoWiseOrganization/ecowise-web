@@ -8,65 +8,82 @@ interface KpiCardProps {
   titleKey: string;
   /** Already-formatted display value (e.g. "1,234" or "2.4 tCO₂e"). */
   value: string | number;
-  /** Optional sub-line: short context, units, or a comparison hint. */
-  hintKey?: string;
-  /** Pre-formatted hint value rendered next to `hintKey`. */
+  /** Short context line, always rendered so every card has the same height. */
+  hintKey: string;
+  /** Pre-formatted hint suffix appended after the i18n hint text. */
   hintValue?: string;
   icon: SvgIconComponent;
-  /** Drives the icon tint AND a faint left-edge accent bar. */
-  tone?: "brand" | "blue" | "amber" | "rose" | "violet";
+  /**
+   * `alert` highlights the card subtly when the metric is asking for action
+   * (e.g. items in the review queue). Used sparingly — at most one card per
+   * row — so it actually draws the eye.
+   */
+  variant?: "default" | "alert";
 }
 
-const TONES: Record<
-  NonNullable<KpiCardProps["tone"]>,
-  { icon: string; bg: string; bar: string }
-> = {
-  brand: { icon: "#1F8505", bg: "#E8F4E2", bar: "#1F8505" },
-  blue: { icon: "#1F6FEB", bg: "#E1ECFF", bar: "#1F6FEB" },
-  amber: { icon: "#B45309", bg: "#FEF3C7", bar: "#F59E0B" },
-  rose: { icon: "#BE123C", bg: "#FFE4E6", bar: "#E11D48" },
-  violet: { icon: "#6D28D9", bg: "#EDE9FE", bar: "#7C3AED" },
-};
-
+/**
+ * Single KPI card. Designed for a clean, low-noise grid:
+ *   ─ no coloured side-bar, no per-tone palettes (those made the row look busy);
+ *   ─ every card same height because `hintKey` is required;
+ *   ─ subtle brand-tinted icon chip on every card;
+ *   ─ `variant="alert"` swaps to an amber chip + dot ONLY when it matters.
+ */
 export function KpiCard({
   titleKey,
   value,
   hintKey,
   hintValue,
   icon: Icon,
-  tone = "brand",
+  variant = "default",
 }: KpiCardProps) {
   const { t } = useTranslation();
-  const palette = TONES[tone];
+  const isAlert = variant === "alert";
+
   return (
-    <div className="relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-brand-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6">
-      <span
-        aria-hidden
-        className="absolute inset-y-3 left-0 w-1 rounded-r-full"
-        style={{ backgroundColor: palette.bar }}
-      />
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-neutral-muted text-xs font-medium uppercase tracking-wide sm:text-sm sm:normal-case sm:tracking-normal">
+    <div className="border-brand-100 hover:border-brand-200 group flex h-full flex-col justify-between gap-4 rounded-2xl border bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_4px_12px_rgba(21,90,3,0.06)]">
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-neutral-muted text-sm font-medium leading-tight">
           {t(titleKey)}
         </span>
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-          style={{ backgroundColor: palette.bg }}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+            isAlert ? "bg-amber-50" : "bg-brand-50"
+          }`}
         >
-          <Icon sx={{ fontSize: 20, color: palette.icon }} />
+          <Icon
+            sx={{
+              fontSize: 18,
+              color: isAlert ? "#B45309" : "#1F8505",
+            }}
+          />
         </div>
       </div>
-      <span className="text-brand-700 text-2xl font-bold leading-tight sm:text-3xl">
-        {value}
-      </span>
-      {hintKey && (
-        <span className="text-neutral-muted text-xs">
+
+      <div className="flex flex-col gap-2">
+        <div className="flex items-baseline gap-2">
+          <span className="text-brand-700 text-3xl font-bold leading-none tracking-tight">
+            {value}
+          </span>
+          {isAlert && (
+            <span className="relative flex h-2 w-2 self-end">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+            </span>
+          )}
+        </div>
+        <span className="text-neutral-soft text-xs">
           {t(hintKey)}
           {hintValue !== undefined && (
-            <span className="text-brand-700 ml-1 font-semibold">{hintValue}</span>
+            <span
+              className={`ml-1 font-semibold ${
+                isAlert ? "text-amber-700" : "text-brand-700"
+              }`}
+            >
+              {hintValue}
+            </span>
           )}
         </span>
-      )}
+      </div>
     </div>
   );
 }
