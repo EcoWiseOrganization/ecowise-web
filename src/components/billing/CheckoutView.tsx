@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { confirmMockPaymentAction } from "@/app/actions/subscription.actions";
 import { QrCode } from "@/components/ui/QrCode";
+import { formatMoney } from "@/lib/format-number";
 import type { Invoice, PaymentIntent } from "@/types/subscription.types";
 
 interface Props {
@@ -70,7 +71,7 @@ export function CheckoutView({ intent, invoice, successHref }: Props) {
                 {li.description} × {li.quantity}
               </span>
               <span className="font-semibold">
-                ${Number(li.amount).toFixed(2)}
+                {formatMoney(Number(li.amount), invoice.currency)}
               </span>
             </li>
           ))}
@@ -78,7 +79,7 @@ export function CheckoutView({ intent, invoice, successHref }: Props) {
         <div className="flex justify-between border-t border-gray-100 pt-3 text-base font-bold">
           <span>{t("billing.checkout.total")}</span>
           <span>
-            ${Number(invoice.amount).toFixed(2)} {invoice.currency}
+            {formatMoney(Number(invoice.amount), invoice.currency)}
           </span>
         </div>
         {!paid && !expired && (

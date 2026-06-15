@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { formatMoney } from "@/lib/format-number";
 import type { Invoice, PaymentIntent } from "@/types/subscription.types";
 
 export function InvoiceDetail({
@@ -48,7 +49,7 @@ export function InvoiceDetail({
         <Info label={t("billing.invoices.status")} value={invoice.status} />
         <Info
           label={t("billing.invoices.amount")}
-          value={`${Number(invoice.amount).toFixed(2)} ${invoice.currency}`}
+          value={formatMoney(Number(invoice.amount), invoice.currency)}
         />
       </div>
 
@@ -70,9 +71,11 @@ export function InvoiceDetail({
               <tr key={idx} className="border-t border-gray-100">
                 <td className="px-3 py-2">{li.description}</td>
                 <td className="px-3 py-2">{li.quantity}</td>
-                <td className="px-3 py-2">${Number(li.unit_price).toFixed(2)}</td>
+                <td className="px-3 py-2">
+                  {formatMoney(Number(li.unit_price), invoice.currency)}
+                </td>
                 <td className="px-3 py-2 font-semibold text-[#155A03]">
-                  ${Number(li.amount).toFixed(2)}
+                  {formatMoney(Number(li.amount), invoice.currency)}
                 </td>
               </tr>
             ))}
@@ -83,7 +86,7 @@ export function InvoiceDetail({
                 {t("billing.invoices.total")}
               </td>
               <td className="px-3 py-2 text-[#155A03]">
-                ${Number(invoice.amount).toFixed(2)} {invoice.currency}
+                {formatMoney(Number(invoice.amount), invoice.currency)}
               </td>
             </tr>
           </tfoot>

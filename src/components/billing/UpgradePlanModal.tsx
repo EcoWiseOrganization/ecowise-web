@@ -8,6 +8,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import { useToast } from "@/components/ui/Toast";
 import { requestPlanUpgradeAction } from "@/app/actions/upgrade-request.actions";
+import { formatVnd } from "@/lib/format-number";
 import type {
   SubscriptionPlan,
   SubscriptionSubjectType,
@@ -128,10 +129,10 @@ export function UpgradePlanModal({
           </h2>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-3xl font-extrabold">
-              ${Number(plan.base_price_usd).toFixed(2)}
+              {formatVnd(Number(plan.base_price_usd))}
             </span>
             <span className="text-sm text-white/80">
-              / {plan.billing_cycle.toLowerCase()}
+              / {t(`billing.cycle.${plan.billing_cycle}`)}
             </span>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { formatMoney } from "@/lib/format-number";
 import type { Invoice } from "@/types/subscription.types";
 
 const STATUS_COLOR: Record<Invoice["status"], string> = {
@@ -49,7 +50,7 @@ export function InvoiceList({
               <td className="px-3 py-2">{inv.issue_date}</td>
               <td className="px-3 py-2">{inv.billing_reason}</td>
               <td className="px-3 py-2 font-semibold text-[#155A03]">
-                ${Number(inv.amount).toFixed(2)} {inv.currency}
+                {formatMoney(Number(inv.amount), inv.currency)}
               </td>
               <td className="px-3 py-2">
                 <span

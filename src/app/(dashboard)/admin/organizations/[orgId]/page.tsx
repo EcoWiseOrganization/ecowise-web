@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireSystemAdmin, AuthError } from "@/lib/auth/roles";
 import { getAdminOrgDetail } from "@/services/admin-orgs.service";
 import { T } from "@/components/shared/TranslatedText";
+import { formatVnd } from "@/lib/format-number";
 import { VerificationControls } from "./VerificationControls";
 
 interface PageProps {
@@ -102,7 +103,7 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
                     <p className="text-xs text-[#AAAAAA]">{i.issue_date}</p>
                   </div>
                   <span className="text-sm font-semibold text-[#155A03]">
-                    ${Number(i.amount).toFixed(2)}
+                    {formatVnd(Number(i.amount))}
                   </span>
                 </li>
               ))}

@@ -34,6 +34,8 @@ export function periodEnd(
   const out = new Date(start);
   if (cycle === "Annual") {
     out.setUTCFullYear(out.getUTCFullYear() + count);
+  } else if (cycle === "Quarterly") {
+    out.setUTCMonth(out.getUTCMonth() + 3 * count);
   } else {
     out.setUTCMonth(out.getUTCMonth() + count);
   }

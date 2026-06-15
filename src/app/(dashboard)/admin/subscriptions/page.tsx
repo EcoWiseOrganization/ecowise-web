@@ -4,6 +4,7 @@ import { requireSystemAdmin, AuthError } from "@/lib/auth/roles";
 import { listPlans } from "@/services/subscription.service";
 import { PageHeader } from "../_components/PageHeader";
 import { T } from "@/components/shared/TranslatedText";
+import { formatVnd } from "@/lib/format-number";
 
 export default async function AdminSubscriptionsPage() {
   try {
@@ -73,7 +74,7 @@ export default async function AdminSubscriptionsPage() {
                   <td className="px-3 py-2">{p.target_customer}</td>
                   <td className="px-3 py-2">{p.billing_cycle}</td>
                   <td className="px-3 py-2 font-semibold text-[#155A03]">
-                    ${Number(p.base_price_usd).toFixed(2)}
+                    {formatVnd(Number(p.base_price_usd))}
                   </td>
                   <td className="px-3 py-2">{p.trial_days}d</td>
                   <td className="px-3 py-2">

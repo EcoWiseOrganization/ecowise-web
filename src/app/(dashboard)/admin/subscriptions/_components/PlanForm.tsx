@@ -29,7 +29,7 @@ export function PlanForm({ initial }: Props) {
     initial?.target_customer ?? "B2B"
   );
   const [price, setPrice] = useState(String(initial?.base_price_usd ?? "0"));
-  const [cycle, setCycle] = useState<"Monthly" | "Annual">(
+  const [cycle, setCycle] = useState<"Monthly" | "Quarterly" | "Annual">(
     initial?.billing_cycle ?? "Monthly"
   );
   const [trialDays, setTrialDays] = useState(String(initial?.trial_days ?? 0));
@@ -130,10 +130,13 @@ export function PlanForm({ initial }: Props) {
         <Field label={t("admin.planForm.cycle")}>
           <select
             value={cycle}
-            onChange={(e) => setCycle(e.target.value as "Monthly" | "Annual")}
+            onChange={(e) =>
+              setCycle(e.target.value as "Monthly" | "Quarterly" | "Annual")
+            }
             className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm bg-white"
           >
             <option value="Monthly">{t("admin.planForm.cycleMonthly")}</option>
+            <option value="Quarterly">{t("admin.planForm.cycleQuarterly")}</option>
             <option value="Annual">{t("admin.planForm.cycleAnnual")}</option>
           </select>
         </Field>

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useToast } from "@/components/ui/Toast";
+import { formatMoney } from "@/lib/format-number";
 import {
   approveUpgradeRequestAction,
   listUpgradeRequestsAction,
@@ -155,7 +156,7 @@ export function UpgradeRequestsView({
                     {r.plan?.plan_name ?? "—"}
                   </td>
                   <td className="px-3 py-3">
-                    ${Number(r.amount).toFixed(2)}
+                    {formatMoney(Number(r.amount), r.currency)}
                   </td>
                   <td className="px-3 py-3 font-mono text-xs">
                     {r.transfer_note ?? "—"}

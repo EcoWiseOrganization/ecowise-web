@@ -136,7 +136,7 @@ async function attemptRenewal(
       subject_id: sub.subject_id,
       billing_reason: "renewal",
       amount: Number(sub.plan.base_price_usd),
-      currency: "USD",
+      currency: "VND",
       status: outcome ? "Paid" : "PendingPayment",
       issue_date: now.toISOString().slice(0, 10),
       due_date: newEnd.toISOString().slice(0, 10),
@@ -279,7 +279,7 @@ export async function runLifecycleTick(
             const tpl = renewalSuccessEmail({
               planName: sub.plan.plan_name,
               amount: Number(sub.plan.base_price_usd),
-              currency: "USD",
+              currency: "VND",
               invoiceNumber: result.invoice!.invoice_number,
               nextBilling: result.newPeriodEnd!.toISOString().slice(0, 10),
             });
@@ -300,7 +300,7 @@ export async function runLifecycleTick(
             const tpl = renewalFailedEmail({
               planName: sub.plan.plan_name,
               amount: Number(sub.plan.base_price_usd),
-              currency: "USD",
+              currency: "VND",
               retryCount: sub.retry_count + 1,
               nextRetry: new Date(now.getTime() + 86_400_000)
                 .toISOString()

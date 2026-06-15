@@ -93,7 +93,7 @@ export async function createUpgradeRequest(opts: {
     plan_id: plan.id,
     current_plan_id: current?.plan_id ?? null,
     amount: Number(plan.base_price_usd),
-    currency: "USD",
+    currency: "VND",
     transfer_note: opts.transferNote ?? null,
     requested_by: opts.requestedBy,
   };

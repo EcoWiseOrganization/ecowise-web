@@ -16,7 +16,7 @@ import {
   getPlatformMetrics,
   getSubscriptionMix,
 } from "@/services/admin-metrics.service";
-import { formatInt, formatKg, formatUsd } from "@/lib/format-number";
+import { formatInt, formatKg, formatVnd } from "@/lib/format-number";
 
 import { PageHeader } from "./_components/PageHeader";
 import { KpiCard } from "./_components/KpiCard";
@@ -101,7 +101,7 @@ export default async function AdminDashboardPage() {
         />
         <KpiCard
           titleKey="admin.dashboard.stats.revenue"
-          value={formatUsd(platform.monthlyRevenueUsd)}
+          value={formatVnd(platform.monthlyRevenueUsd)}
           icon={PaidIcon}
           hintKey="admin.dashboard.stats.revenueHint"
         />

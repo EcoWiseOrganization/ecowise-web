@@ -24,6 +24,20 @@ export function formatUsd(amount: number): string {
   })}`;
 }
 
+/** VND amount, no decimals (e.g. 20000000 → "20,000,000 VND"). */
+export function formatVnd(amount: number): string {
+  return `${Math.round(amount).toLocaleString(LOCALE)} VND`;
+}
+
+/**
+ * Money formatter that respects the stored currency code. VND renders with
+ * no decimals + a "VND" suffix; everything else falls back to USD ($, 2dp).
+ * Keeps mixed historical (USD) and new (VND) invoices rendering correctly.
+ */
+export function formatMoney(amount: number, currency: string): string {
+  return currency === "VND" ? formatVnd(amount) : formatUsd(amount);
+}
+
 /**
  * CO₂e mass: "kg" under 1 t, "tCO₂e" above. One decimal in both cases.
  * Example: 925.4 → "925.4 kg", 12345 → "12.3 tCO₂e".

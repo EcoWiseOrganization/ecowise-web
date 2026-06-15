@@ -10,6 +10,7 @@ import {
   updateBillingInfoAction,
 } from "@/app/actions/subscription.actions";
 import { UpgradePlanModal } from "@/components/billing/UpgradePlanModal";
+import { formatVnd } from "@/lib/format-number";
 import type {
   BillingInfoInput,
   PlanUpgradeRequest,
@@ -214,10 +215,12 @@ function CurrentPlanCard({
             {current.plan.plan_name}
           </h2>
           <p className="text-sm text-[#6E726E]">
-            {t("billing.priceLine", {
-              price: Number(current.plan.base_price_usd).toFixed(2),
-              cycle: current.plan.billing_cycle,
-            })}
+            {Number(current.plan.base_price_usd) === 0
+              ? formatVnd(0)
+              : t("billing.priceLine", {
+                  price: formatVnd(Number(current.plan.base_price_usd)),
+                  cycle: t(`billing.cycle.${current.plan.billing_cycle}`),
+                })}
           </p>
           <span
             className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full ${statusColor(
@@ -351,11 +354,13 @@ function PlanCard({
       </div>
       <div className="mt-3">
         <span className="text-3xl font-bold text-[#155A03]">
-          ${Number(plan.base_price_usd).toFixed(2)}
+          {formatVnd(Number(plan.base_price_usd))}
         </span>
-        <span className="text-sm text-[#6E726E] ml-1">
-          / {plan.billing_cycle.toLowerCase()}
-        </span>
+        {Number(plan.base_price_usd) > 0 && (
+          <span className="text-sm text-[#6E726E] ml-1">
+            / {t(`billing.cycle.${plan.billing_cycle}`)}
+          </span>
+        )}
       </div>
       {plan.trial_days > 0 && (
         <span className="text-xs text-[#1F8505] mt-1">
