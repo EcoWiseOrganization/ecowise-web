@@ -164,6 +164,53 @@ export function trialEndingEmail(opts: {
   };
 }
 
+/** Sent when a System Admin approves a manual (bank-transfer) plan upgrade.
+ *  Mirrors the in-app `plan_upgrade_approved` notification. */
+export function planUpgradeApprovedEmail(opts: {
+  planName: string;
+  nextBilling: string;
+  billingUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[EcoWise] Your account has been upgraded — ${opts.planName}`,
+    html: wrap(`
+      <p>Good news — your account has been upgraded to <b>${opts.planName}</b>. 🎉</p>
+      <p>Your payment has been confirmed by our team and all premium features are now active.</p>
+      <p>Next billing date: <b>${opts.nextBilling}</b></p>
+      <p>
+        <a href="${opts.billingUrl}" style="display:inline-block;background:#1F8505;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
+          View my subscription
+        </a>
+      </p>
+      <p style="font-size:12px;color:#6E726E;">If the button doesn't work, open this link in your browser:<br/>${opts.billingUrl}</p>
+    `),
+  };
+}
+
+/** Sent when a System Admin rejects a manual plan-upgrade request. */
+export function planUpgradeRejectedEmail(opts: {
+  planName: string;
+  reason?: string;
+  billingUrl: string;
+}): { subject: string; html: string } {
+  const reason = opts.reason
+    ? `<p>Reason: <b>${opts.reason}</b></p>`
+    : "";
+  return {
+    subject: `[EcoWise] Upgrade request not approved — ${opts.planName}`,
+    html: wrap(`
+      <p>We could not approve your upgrade request for the <b>${opts.planName}</b> plan.</p>
+      ${reason}
+      <p>If you've already transferred the payment, please contact our support team and we'll sort it out.</p>
+      <p>
+        <a href="${opts.billingUrl}" style="display:inline-block;background:#1F8505;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
+          Back to billing
+        </a>
+      </p>
+    `),
+  };
+}
+
 /** Invite-to-org email sent when an Org Admin adds a brand-new user.
  * Includes a link to the forgot-password flow so the user can set their
  * own password — we never email a plaintext credential. */

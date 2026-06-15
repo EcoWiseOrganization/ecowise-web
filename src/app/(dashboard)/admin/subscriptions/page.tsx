@@ -26,12 +26,20 @@ export default async function AdminSubscriptionsPage() {
           titleKey="admin.subscriptions.title"
           subtitleKey="admin.subscriptions.subtitle"
         />
-        <Link
-          href="/admin/subscriptions/new"
-          className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold"
-        >
-          <T k="admin.subscriptions.newPlan" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/subscriptions/upgrade-requests"
+            className="px-4 py-2 rounded-lg border border-[#DAEDD5] text-[#1F8505] text-sm font-semibold hover:bg-[#f0f9ed]"
+          >
+            <T k="admin.menu.upgradeRequests" />
+          </Link>
+          <Link
+            href="/admin/subscriptions/new"
+            className="px-4 py-2 rounded-lg bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-sm font-semibold"
+          >
+            <T k="admin.subscriptions.newPlan" />
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white border border-[#DAEDD5] rounded-2xl overflow-x-auto">

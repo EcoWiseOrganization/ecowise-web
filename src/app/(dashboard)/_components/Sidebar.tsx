@@ -12,6 +12,7 @@ import { signOut } from "@/services/auth.actions";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { NotificationBell } from "./NotificationBell";
 import { useWorkspace } from "../_context/WorkspaceContext";
 
 export interface MenuItem {
@@ -128,14 +129,15 @@ function SidebarContent({
       {/* User Profile */}
       <div className="px-[19px] pt-5 flex items-center gap-2.5">
         <div className="w-10 h-10 rounded-full bg-[#D9D9D9] overflow-hidden flex-shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="text-[#155A03] text-sm font-semibold leading-none truncate max-w-[120px]">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <span className="text-[#155A03] text-sm font-semibold leading-none truncate max-w-[100px]">
             {userName}
           </span>
-          <span className="text-[#AAAAAA] text-xs leading-4 truncate max-w-[120px]">
+          <span className="text-[#AAAAAA] text-xs leading-4 truncate max-w-[100px]">
             {t(`sidebar.role.${userRole.toLowerCase()}`, { defaultValue: userRole })}
           </span>
         </div>
+        <NotificationBell />
       </div>
 
       {/* Workspace */}

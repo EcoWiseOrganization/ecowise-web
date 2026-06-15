@@ -132,3 +132,40 @@ export interface BillingInfoInput {
   billing_address?: string;
   billing_vat_id?: string;
 }
+
+// ── Manual plan-upgrade requests (bank-transfer / QR flow) ──────────────────
+
+export type PlanUpgradeRequestStatus =
+  | "Pending"
+  | "Approved"
+  | "Rejected"
+  | "Canceled";
+
+export interface PlanUpgradeRequest {
+  id: string;
+  subject_type: SubscriptionSubjectType;
+  subject_id: string;
+  plan_id: string;
+  current_plan_id: string | null;
+  status: PlanUpgradeRequestStatus;
+  amount: number;
+  currency: string;
+  transfer_note: string | null;
+  requested_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  reject_reason: string | null;
+  resulting_subscription_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Upgrade request joined with plan rows + requester identity for the
+ *  admin review queue. */
+export interface PlanUpgradeRequestWithDetails extends PlanUpgradeRequest {
+  plan: SubscriptionPlan | null;
+  current_plan: SubscriptionPlan | null;
+  requester_email: string | null;
+  requester_name: string | null;
+  subject_label: string | null;
+}

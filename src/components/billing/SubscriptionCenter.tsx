@@ -9,8 +9,10 @@ import {
   subscribeToPlanAction,
   updateBillingInfoAction,
 } from "@/app/actions/subscription.actions";
+import { UpgradePlanModal } from "@/components/billing/UpgradePlanModal";
 import type {
   BillingInfoInput,
+  PlanUpgradeRequest,
   Subscription,
   SubscriptionPlan,
   SubscriptionSubjectType,
@@ -27,6 +29,9 @@ interface Props {
   invoicesHref: string;
   cancelHref: string;
   basePath: string;
+  /** Most recent upgrade request for this subject — drives the "awaiting
+   *  approval" banner after a QR transfer. */
+  pendingRequest?: PlanUpgradeRequest | null;
 }
 
 export function SubscriptionCenter({
@@ -38,11 +43,23 @@ export function SubscriptionCenter({
   invoicesHref,
   cancelHref,
   basePath,
+  pendingRequest,
 }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // The paid plan the user is upgrading to (drives the QR modal). Free plans
+  // skip the modal and subscribe instantly.
+  const [upgradePlan, setUpgradePlan] = useState<SubscriptionPlan | null>(null);
+
+  const choosePlan = (plan: SubscriptionPlan) => {
+    if (Number(plan.base_price_usd) > 0) {
+      setUpgradePlan(plan);
+      return;
+    }
+    subscribe(plan.id);
+  };
 
   const subscribe = (planId: string) => {
     setError(null);
@@ -87,6 +104,20 @@ export function SubscriptionCenter({
         />
       )}
 
+      {pendingRequest && pendingRequest.status === "Pending" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <span className="mt-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              {t("upgrade.pending.title")}
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              {t("upgrade.pending.body")}
+            </p>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
           {t(`error.${error}`, { defaultValue: error })}
@@ -106,7 +137,7 @@ export function SubscriptionCenter({
                 key={p.id}
                 plan={p}
                 isCurrent={current?.plan_id === p.id}
-                onSubscribe={() => subscribe(p.id)}
+                onSubscribe={() => choosePlan(p)}
                 pending={pending}
               />
             ))}
@@ -121,6 +152,19 @@ export function SubscriptionCenter({
           ↻
         </Link>
       </p>
+
+      {upgradePlan && (
+        <UpgradePlanModal
+          plan={upgradePlan}
+          subjectType={subjectType}
+          subjectId={subjectId}
+          onClose={() => setUpgradePlan(null)}
+          onSubmitted={() => {
+            setUpgradePlan(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

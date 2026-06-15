@@ -4,6 +4,7 @@ import {
   getCurrentSubscription,
   listPlans,
 } from "@/services/subscription.service";
+import { getLatestRequestForSubject } from "@/services/upgrade-request.service";
 import { SubscriptionCenter } from "@/components/billing/SubscriptionCenter";
 import { T } from "@/components/shared/TranslatedText";
 
@@ -12,9 +13,10 @@ export default async function PersonalBillingPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [current, plans] = await Promise.all([
+  const [current, plans, pendingRequest] = await Promise.all([
     getCurrentSubscription("User", user.id),
     listPlans("B2C"),
+    getLatestRequestForSubject("User", user.id),
   ]);
 
   return (
@@ -36,6 +38,7 @@ export default async function PersonalBillingPage() {
         invoicesHref="/dashboard/billing/invoices"
         cancelHref="/dashboard/billing/cancel"
         basePath="/dashboard/billing"
+        pendingRequest={pendingRequest}
       />
     </div>
   );

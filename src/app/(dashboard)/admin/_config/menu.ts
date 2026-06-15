@@ -4,6 +4,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import ScienceIcon from "@mui/icons-material/Science";
 import FunctionsIcon from "@mui/icons-material/Functions";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
+import UpgradeIcon from "@mui/icons-material/Upgrade";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import RedeemIcon from "@mui/icons-material/Redeem";
 import InsightsIcon from "@mui/icons-material/Insights";
@@ -28,6 +29,7 @@ export const ADMIN_MENU_SECTIONS: MenuSection[] = [
     items: [
       { label: "admin.menu.userManagement", href: "/admin/users", icon: PeopleIcon },
       { label: "admin.menu.subscriptions", href: "/admin/subscriptions", icon: CardMembershipIcon },
+      { label: "admin.menu.upgradeRequests", href: "/admin/subscriptions/upgrade-requests", icon: UpgradeIcon },
     ],
   },
   {

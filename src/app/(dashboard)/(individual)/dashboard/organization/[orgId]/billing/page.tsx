@@ -10,6 +10,7 @@ import {
   getOrgUsage,
   listPlans,
 } from "@/services/subscription.service";
+import { getLatestRequestForSubject } from "@/services/upgrade-request.service";
 import { SubscriptionCenter } from "@/components/billing/SubscriptionCenter";
 
 interface PageProps {
@@ -36,10 +37,11 @@ export default async function OrgBillingPage({ params }: PageProps) {
     redirect(`/dashboard/organization/${orgId}/overview`);
   }
 
-  const [current, plans, usage] = await Promise.all([
+  const [current, plans, usage, pendingRequest] = await Promise.all([
     getCurrentSubscription("Org", orgId),
     listPlans("B2B"),
     getOrgUsage(orgId),
+    getLatestRequestForSubject("Org", orgId),
   ]);
 
   return (
@@ -52,6 +54,7 @@ export default async function OrgBillingPage({ params }: PageProps) {
       invoicesHref={`/dashboard/organization/${orgId}/billing/invoices`}
       cancelHref={`/dashboard/organization/${orgId}/billing/cancel`}
       basePath={`/dashboard/organization/${orgId}/billing`}
+      pendingRequest={pendingRequest}
     />
   );
 }
