@@ -363,8 +363,10 @@ function PlanCard({
         </span>
       )}
       <ul className="mt-3 space-y-1 text-sm text-[#3B3D3B] flex-1">
-        {plan.features.map((f) => (
-          <li key={f.key} className="flex items-start gap-2">
+        {plan.features.map((f, i) => (
+          // Features come from JSONB; admin-authored plans may have missing
+          // or duplicate `key`s, so fold the index in to guarantee uniqueness.
+          <li key={`${f.key ?? "feat"}-${i}`} className="flex items-start gap-2">
             <span className="text-[#1F8505] mt-0.5">✓</span>
             <span>{f.label}</span>
           </li>

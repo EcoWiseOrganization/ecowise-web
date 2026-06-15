@@ -189,9 +189,9 @@ export function PlanForm({ initial }: Props) {
       <div>
         <h3 className="text-sm font-semibold text-[#155A03] mb-2">{t("admin.planForm.features")}</h3>
         <ul className="space-y-1 text-sm">
-          {features.map((f) => (
+          {features.map((f, i) => (
             <li
-              key={f.key}
+              key={`${f.key ?? "feat"}-${i}`}
               className="flex items-center justify-between bg-[#F0FDF4] border border-[#DAEDD5] rounded px-3 py-1.5"
             >
               <span>
