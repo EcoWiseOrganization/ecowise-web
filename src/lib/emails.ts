@@ -164,50 +164,60 @@ export function trialEndingEmail(opts: {
   };
 }
 
+/** Footer tiếng Việt dùng cho các email liên quan tới nâng cấp gói. */
+const VI_FOOTER =
+  "Đây là email tự động từ EcoWise. Vui lòng trả lời email này nếu bạn cần hỗ trợ.";
+
 /** Sent when a System Admin approves a manual (bank-transfer) plan upgrade.
- *  Mirrors the in-app `plan_upgrade_approved` notification. */
+ *  Mirrors the in-app `plan_upgrade_approved` notification. (Tiếng Việt) */
 export function planUpgradeApprovedEmail(opts: {
   planName: string;
   nextBilling: string;
   billingUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `[EcoWise] Your account has been upgraded — ${opts.planName}`,
-    html: wrap(`
-      <p>Good news — your account has been upgraded to <b>${opts.planName}</b>. 🎉</p>
-      <p>Your payment has been confirmed by our team and all premium features are now active.</p>
-      <p>Next billing date: <b>${opts.nextBilling}</b></p>
+    subject: `[EcoWise] Tài khoản của bạn đã được nâng cấp — ${opts.planName}`,
+    html: wrapBrand(
+      `
+      <p>Tin vui — tài khoản của bạn đã được nâng cấp lên gói <b>${opts.planName}</b>. 🎉</p>
+      <p>Thanh toán của bạn đã được đội ngũ EcoWise xác nhận và toàn bộ tính năng cao cấp đã được kích hoạt.</p>
+      <p>Kỳ thanh toán tiếp theo: <b>${opts.nextBilling}</b></p>
       <p>
         <a href="${opts.billingUrl}" style="display:inline-block;background:#1F8505;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
-          View my subscription
+          Xem gói của tôi
         </a>
       </p>
-      <p style="font-size:12px;color:#6E726E;">If the button doesn't work, open this link in your browser:<br/>${opts.billingUrl}</p>
-    `),
+      <p style="font-size:12px;color:#6E726E;">Nếu nút trên không hoạt động, hãy mở liên kết này trong trình duyệt:<br/>${opts.billingUrl}</p>
+    `,
+      { footer: VI_FOOTER },
+    ),
   };
 }
 
-/** Sent when a System Admin rejects a manual plan-upgrade request. */
+/** Sent when a System Admin rejects a manual plan-upgrade request. (Tiếng Việt) */
 export function planUpgradeRejectedEmail(opts: {
   planName: string;
   reason?: string;
   billingUrl: string;
 }): { subject: string; html: string } {
   const reason = opts.reason
-    ? `<p>Reason: <b>${opts.reason}</b></p>`
+    ? `<p>Lý do: <b>${opts.reason}</b></p>`
     : "";
   return {
-    subject: `[EcoWise] Upgrade request not approved — ${opts.planName}`,
-    html: wrap(`
-      <p>We could not approve your upgrade request for the <b>${opts.planName}</b> plan.</p>
+    subject: `[EcoWise] Yêu cầu nâng cấp chưa được duyệt — ${opts.planName}`,
+    html: wrapBrand(
+      `
+      <p>Rất tiếc, chúng tôi chưa thể duyệt yêu cầu nâng cấp lên gói <b>${opts.planName}</b> của bạn.</p>
       ${reason}
-      <p>If you've already transferred the payment, please contact our support team and we'll sort it out.</p>
+      <p>Nếu bạn đã chuyển khoản, vui lòng liên hệ bộ phận hỗ trợ để được xử lý.</p>
       <p>
         <a href="${opts.billingUrl}" style="display:inline-block;background:#1F8505;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
-          Back to billing
+          Quay lại trang thanh toán
         </a>
       </p>
-    `),
+    `,
+      { footer: VI_FOOTER },
+    ),
   };
 }
 
