@@ -3,6 +3,7 @@
 import Link from "next/link";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PricingPlanConfig {
   nameKey: string;
@@ -63,7 +64,7 @@ const PLANS_CONFIG: PricingPlanConfig[] = [
   },
 ];
 
-function PricingCard({ plan }: { plan: PricingPlanConfig }) {
+function PricingCard({ plan, ctaHref }: { plan: PricingPlanConfig; ctaHref: string }) {
   const { t } = useTranslation();
   const isHighlighted = plan.highlighted;
 
@@ -103,7 +104,7 @@ function PricingCard({ plan }: { plan: PricingPlanConfig }) {
           {t(plan.descriptionKey)}
         </p>
         <Link
-          href="/register"
+          href={ctaHref}
           className={`w-full text-center px-5 py-4 sm:py-[18px] rounded-xl text-base sm:text-lg font-medium no-underline shadow-[0px_2px_4px_rgba(218,237,213,0.25)] border border-[#DAEDD5] transition-all duration-200 ${
             plan.buttonVariant === "filled"
               ? "bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white hover:brightness-110 hover:shadow-[0_4px_12px_rgba(31,133,5,0.3)]"
@@ -136,6 +137,11 @@ function PricingCard({ plan }: { plan: PricingPlanConfig }) {
 
 export function PricingSection() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  // Signed-in visitors jump straight into the billing / payment flow where
+  // they pick a plan (and the QR upgrade modal opens). Guests go to login
+  // first; the catalog they pay against lives behind auth anyway.
+  const ctaHref = user ? "/dashboard/billing" : "/login";
 
   return (
     <section id="products" className="w-full max-w-[1201px] mx-auto py-16 sm:py-20 px-4 sm:px-6 lg:px-0">
@@ -145,7 +151,7 @@ export function PricingSection() {
         </h2>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {PLANS_CONFIG.map((plan) => (
-            <PricingCard key={plan.nameKey} plan={plan} />
+            <PricingCard key={plan.nameKey} plan={plan} ctaHref={ctaHref} />
           ))}
         </div>
       </div>
