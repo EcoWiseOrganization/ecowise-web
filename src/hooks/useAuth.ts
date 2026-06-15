@@ -15,6 +15,9 @@ export function useAuth() {
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // System-admin flag from public.User.is_admin (not present in the auth
+  // JWT). Used to route admins to /admin instead of /dashboard.
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Get initial session (from cookie, no network call)
@@ -34,5 +37,33 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  return { user, loading };
+  // Resolve the system-admin flag whenever the signed-in user changes. This
+  // is a single PK lookup gated by RLS (a user can only read their own row),
+  // so a non-admin can't spoof their way to the admin dashboard — the /admin
+  // segment re-checks server-side regardless.
+  useEffect(() => {
+    if (!user) {
+      // Reset on sign-out so a returning guest never inherits the prior
+      // user's admin flag. Intentional sync setState (not a render loop).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    supabase
+      .from("User")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setIsAdmin((data as { is_admin: boolean } | null)?.is_admin === true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [supabase, user]);
+
+  const dashboardPath = isAdmin ? "/admin" : "/dashboard";
+
+  return { user, loading, isAdmin, dashboardPath };
 }

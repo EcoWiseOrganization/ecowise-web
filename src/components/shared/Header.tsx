@@ -32,7 +32,13 @@ function GuestActions() {
   );
 }
 
-function UserActions({ displayName }: { displayName: string }) {
+function UserActions({
+  displayName,
+  dashboardHref,
+}: {
+  displayName: string;
+  dashboardHref: string;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ function UserActions({ displayName }: { displayName: string }) {
         {open && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-[#DAEDD5] py-2 z-[60]">
             <Link
-              href="/dashboard"
+              href={dashboardHref}
               className="block px-4 py-2.5 text-sm text-[#155A03] no-underline hover:bg-[#f0f9ed] transition-colors"
             >
               {t("nav.dashboard")}
@@ -86,7 +92,7 @@ function UserActions({ displayName }: { displayName: string }) {
 
 export function Header() {
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, loading, dashboardPath } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const displayName =
@@ -136,7 +142,7 @@ export function Header() {
             {loading ? (
               <div className="hidden sm:block w-[140px] h-10" />
             ) : user ? (
-              <UserActions displayName={displayName} />
+              <UserActions displayName={displayName} dashboardHref={dashboardPath} />
             ) : (
               <div className="hidden sm:flex">
                 <GuestActions />
@@ -215,7 +221,7 @@ export function Header() {
                     </div>
                   </div>
                   <Link
-                    href="/dashboard"
+                    href={dashboardPath}
                     onClick={() => setMobileOpen(false)}
                     className="w-full text-center px-5 py-2.5 rounded-xl bg-[linear-gradient(270deg,#79B669_0%,#1F8505_100%)] text-white text-base font-medium no-underline"
                   >
