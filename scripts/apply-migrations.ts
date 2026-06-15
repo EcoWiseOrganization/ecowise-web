@@ -106,6 +106,7 @@ async function main() {
     "supabase/migrations/034_plan_upgrades_and_notifications.sql",
     "supabase/migrations/035_vnd_catalog.sql",
     "supabase/migrations/036_vnd_catalog_b2b.sql",
+    "supabase/migrations/037_fix_subscribe_atomic_enum_cast.sql",
   ];
 
   const client = new Client({ connectionString: url });
