@@ -28,13 +28,14 @@
 -- ─────────────────────────────────────────────────────────────────────────
 
 -- (1) Rewards: SoldOut enum value + tighter redeem_reward.
-DO $$
-BEGIN
-  ALTER TYPE reward_status ADD VALUE IF NOT EXISTS 'SoldOut';
-EXCEPTION WHEN duplicate_object THEN
-  NULL;
-END
-$$;
+-- The new enum value MUST be committed before anything references it
+-- (Postgres 55P04). The apply-migrations runner commits at the `-- @SPLIT`
+-- marker below, so the UPDATE + functions that follow see a value that was
+-- added in an already-committed transaction. `IF NOT EXISTS` keeps this
+-- idempotent across re-runs and on databases where the value pre-exists.
+ALTER TYPE reward_status ADD VALUE IF NOT EXISTS 'SoldOut';
+
+-- @SPLIT
 
 UPDATE "Rewards"
    SET status = 'SoldOut'::reward_status

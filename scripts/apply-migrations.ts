@@ -115,8 +115,22 @@ async function main() {
       const sql = readFileSync(path, "utf8");
       console.log(`\n→ Applying ${f} (${sql.length} bytes)…`);
       try {
-        await client.query(sql);
-        console.log(`  ✓ ${f} applied.`);
+        // node-pg runs a multi-statement query string inside ONE implicit
+        // transaction. That breaks `ALTER TYPE ... ADD VALUE` followed by a
+        // USE of that value in the same file (Postgres 55P04: a new enum
+        // value can't be referenced until the txn that added it commits).
+        // A migration that needs an intermediate commit marks the boundary
+        // with a line containing only `-- @SPLIT`; we run each segment as a
+        // separate query (hence a separate transaction). Files without the
+        // marker run as a single statement exactly as before.
+        const segments = sql
+          .split(/^\s*--\s*@SPLIT\s*$/m)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+        for (const segment of segments) {
+          await client.query(segment);
+        }
+        console.log(`  ✓ ${f} applied${segments.length > 1 ? ` (${segments.length} segments)` : ""}.`);
       } catch (err) {
         console.error(`  ✗ ${f} failed:`, err instanceof Error ? err.message : err);
         throw err;
