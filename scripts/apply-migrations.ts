@@ -105,6 +105,7 @@ async function main() {
     "supabase/migrations/033_rewards_partner_lockout.sql",
     "supabase/migrations/034_plan_upgrades_and_notifications.sql",
     "supabase/migrations/035_vnd_catalog.sql",
+    "supabase/migrations/036_vnd_catalog_b2b.sql",
   ];
 
   const client = new Client({ connectionString: url });
