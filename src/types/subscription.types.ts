@@ -1,5 +1,9 @@
 export type SubscriptionTarget = "B2B" | "B2C";
-export type SubscriptionBillingCycle = "Monthly" | "Quarterly" | "Annual";
+export type SubscriptionBillingCycle =
+  | "Monthly"
+  | "Quarterly"
+  | "Annual"
+  | "Lifetime";
 export type SubscriptionPlanStatus = "Active" | "Inactive";
 export type SubscriptionSubjectType = "Org" | "User";
 export type SubscriptionStatus =

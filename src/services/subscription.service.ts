@@ -171,6 +171,112 @@ export async function getOrgUsage(orgId: string): Promise<SubscriptionUsage> {
   };
 }
 
+// ── Subscribed-user roster (admin filter + export) ────────────────────────
+
+/** One row per User who currently holds a PAID subscription, joined with the
+ *  plan and their latest paid invoice — the "đã mua gói" list. */
+export interface SubscribedUserRow {
+  user_id: string;
+  full_name: string | null;
+  user_name: string | null;
+  email: string | null;
+  plan_name: string;
+  plan_code: string;
+  billing_cycle: SubscriptionPlan["billing_cycle"];
+  status: string;
+  current_period_start: string;
+  current_period_end: string;
+  auto_renew: boolean;
+  amount: number;
+  currency: string;
+  invoice_number: string | null;
+  invoice_paid_at: string | null;
+  subscribed_at: string;
+}
+
+export async function listSubscribedUsers(): Promise<SubscribedUserRow[]> {
+  const db = createServiceClient();
+  const { data: subs, error } = await db
+    .from("Subscriptions")
+    .select(`*, plan:SubscriptionPlans(*)`)
+    .eq("subject_type", "User")
+    .in("status", ["Trial", "Active", "PastDue"])
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  // "Bought a plan" = a current subscription on a paid (>0) plan. Free-tier
+  // sign-ups are excluded. One active sub per subject (unique index), but
+  // dedupe defensively keeping the most recent.
+  const seen = new Set<string>();
+  const rows = ((subs ?? []) as unknown as Array<
+    Subscription & { plan: SubscriptionPlan }
+  >).filter((s) => {
+    if (!s.plan || Number(s.plan.base_price_usd) <= 0) return false;
+    if (seen.has(s.subject_id)) return false;
+    seen.add(s.subject_id);
+    return true;
+  });
+  if (rows.length === 0) return [];
+
+  const userIds = [...new Set(rows.map((r) => r.subject_id))];
+  const subIds = rows.map((r) => r.id);
+  const [{ data: users }, { data: invoices }] = await Promise.all([
+    db.from("User").select("id, full_name, user_name, email").in("id", userIds),
+    db
+      .from("Invoices")
+      .select("subscription_id, invoice_number, paid_at, amount, currency")
+      .in("subscription_id", subIds)
+      .eq("status", "Paid")
+      .order("paid_at", { ascending: false }),
+  ]);
+
+  const userMap = new Map(
+    ((users ?? []) as Array<{
+      id: string;
+      full_name: string | null;
+      user_name: string | null;
+      email: string | null;
+    }>).map((u) => [u.id, u])
+  );
+  // First paid invoice per subscription = latest (query ordered desc).
+  const invMap = new Map<
+    string,
+    { invoice_number: string; paid_at: string | null; amount: number; currency: string }
+  >();
+  for (const inv of (invoices ?? []) as Array<{
+    subscription_id: string;
+    invoice_number: string;
+    paid_at: string | null;
+    amount: number;
+    currency: string;
+  }>) {
+    if (!invMap.has(inv.subscription_id)) invMap.set(inv.subscription_id, inv);
+  }
+
+  return rows.map((s) => {
+    const u = userMap.get(s.subject_id);
+    const inv = invMap.get(s.id);
+    return {
+      user_id: s.subject_id,
+      full_name: u?.full_name ?? null,
+      user_name: u?.user_name ?? null,
+      email: u?.email ?? null,
+      plan_name: s.plan.plan_name,
+      plan_code: s.plan.plan_code,
+      billing_cycle: s.plan.billing_cycle,
+      status: s.status,
+      current_period_start: s.current_period_start,
+      current_period_end: s.current_period_end,
+      auto_renew: s.auto_renew,
+      amount: inv ? Number(inv.amount) : Number(s.plan.base_price_usd),
+      currency: inv?.currency ?? "VND",
+      invoice_number: inv?.invoice_number ?? null,
+      invoice_paid_at: inv?.paid_at ?? null,
+      subscribed_at: s.created_at,
+    };
+  });
+}
+
 // ── Subscribe / upgrade flow (mock) ───────────────────────────────────────
 
 export interface SubscribeResult {

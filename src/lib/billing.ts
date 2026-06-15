@@ -32,7 +32,11 @@ export function periodEnd(
   count: number = 1
 ): Date {
   const out = new Date(start);
-  if (cycle === "Annual") {
+  if (cycle === "Lifetime") {
+    // No real expiry — park the period end a century out so lifecycle
+    // jobs never pick it up and the period-order CHECK is satisfied.
+    out.setUTCFullYear(out.getUTCFullYear() + 100);
+  } else if (cycle === "Annual") {
     out.setUTCFullYear(out.getUTCFullYear() + count);
   } else if (cycle === "Quarterly") {
     out.setUTCMonth(out.getUTCMonth() + 3 * count);

@@ -12,10 +12,15 @@
 import { requireSystemAdmin } from "@/lib/auth/roles";
 import { writeAuditLog } from "@/services/audit.service";
 import { listUsersForExport } from "@/services/user.service";
+import { listSubscribedUsers } from "@/services/subscription.service";
 import {
   buildUsersCsv,
   buildUsersXlsx,
 } from "@/lib/exporters/users-export";
+import {
+  buildSubscribedUsersCsv,
+  buildSubscribedUsersXlsx,
+} from "@/lib/exporters/subscribed-users-export";
 
 export type AdminUsersExportFormat = "xlsx" | "csv";
 
@@ -60,5 +65,38 @@ export async function exportAdminUsers(
     mimeType: MIME_BY_FORMAT[format],
     base64: buffer.toString("base64"),
     count: users.length,
+  };
+}
+
+/** Export only the users who bought a (paid) plan, with full payment info. */
+export async function exportSubscribedUsers(
+  format: AdminUsersExportFormat,
+): Promise<ExportResult> {
+  const ctx = await requireSystemAdmin();
+
+  const rows = await listSubscribedUsers();
+
+  const buffer =
+    format === "xlsx"
+      ? await buildSubscribedUsersXlsx(rows)
+      : Buffer.from(buildSubscribedUsersCsv(rows), "utf-8");
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  const filename = `ecowise_subscribed_users_${stamp}.${format}`;
+
+  await writeAuditLog({
+    actorUserId: ctx.userId,
+    actorRole: "system_admin",
+    action: "export_subscribed_users",
+    resourceType: "subscription",
+    newValue: { format, count: rows.length },
+    status: "success",
+  });
+
+  return {
+    filename,
+    mimeType: MIME_BY_FORMAT[format],
+    base64: buffer.toString("base64"),
+    count: rows.length,
   };
 }
