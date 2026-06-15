@@ -154,7 +154,7 @@ const ORGS = [
     key: "mfg",
     legal_name: "Green Manufacturing Co. Ltd",
     tax_code: "0398765432",
-    org_type: "SMB",
+    org_type: "SME",
     industry: "Manufacturing",
     contact_email: "operations@greenmfg.vn",
     website_url: "https://greenmfg.vn",

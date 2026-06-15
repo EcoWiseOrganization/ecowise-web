@@ -226,7 +226,7 @@ export const en = {
   "org.form.taxCodePlaceholder": "e.g. 0123456789",
   "org.form.type": "Organization Type",
   "org.type.enterprise": "Enterprise",
-  "org.type.smb": "Small & Medium Business (SMB)",
+  "org.type.sme": "Small & Medium Enterprise (SME)",
   "org.type.ngo": "Non-Governmental Organization (NGO)",
   "org.type.startup": "Startup",
 

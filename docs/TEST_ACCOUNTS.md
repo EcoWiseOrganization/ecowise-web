@@ -423,7 +423,7 @@ Response phải có `{ "ok": true, "report": { ... } }`.
 
 ### Flow 8.1: Create Organization
 1. `/dashboard/organization` → click **"Create organization"**
-2. Form: legal_name "My Demo Co", tax_code "TEST123", org_type "SMB"
+2. Form: legal_name "My Demo Co", tax_code "TEST123", org_type "SME"
 3. Save → user auto-assigned Org Admin role
 4. Quay lại list → org mới xuất hiện
 

@@ -86,7 +86,7 @@ export function useCreateOrganization(): UseCreateOrganizationReturn {
 
 export const ORG_TYPE_OPTIONS: { value: OrgType; labelKey: string }[] = [
   { value: "Enterprise", labelKey: "org.type.enterprise" },
-  { value: "SMB",        labelKey: "org.type.smb" },
+  { value: "SME",        labelKey: "org.type.sme" },
   { value: "NGO",        labelKey: "org.type.ngo" },
   { value: "Startup",    labelKey: "org.type.startup" },
 ];

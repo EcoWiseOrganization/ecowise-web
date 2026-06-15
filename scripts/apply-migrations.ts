@@ -107,6 +107,7 @@ async function main() {
     "supabase/migrations/035_vnd_catalog.sql",
     "supabase/migrations/036_vnd_catalog_b2b.sql",
     "supabase/migrations/037_fix_subscribe_atomic_enum_cast.sql",
+    "supabase/migrations/038_org_type_smb_to_sme.sql",
   ];
 
   const client = new Client({ connectionString: url });

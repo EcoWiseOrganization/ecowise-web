@@ -9,7 +9,7 @@ import type {
   UpdateOrganizationInput,
 } from "@/types/organization.types";
 
-const ORG_TYPES: OrgType[] = ["Enterprise", "SMB", "NGO", "Startup"];
+const ORG_TYPES: OrgType[] = ["Enterprise", "SME", "NGO", "Startup"];
 
 export function OrgSettingsForm({ org }: { org: Organization }) {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export function OrgSettingsForm({ org }: { org: Organization }) {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [form, setForm] = useState<UpdateOrganizationInput>({
     legal_name: org.legal_name ?? "",
-    org_type: (org.org_type as OrgType) ?? "SMB",
+    org_type: (org.org_type as OrgType) ?? "SME",
     industry: org.industry ?? "",
     website_url: org.website_url ?? "",
     address: org.address ?? "",
@@ -71,7 +71,7 @@ export function OrgSettingsForm({ org }: { org: Organization }) {
 
         <Field label={t("org.settings.orgType")}>
           <select
-            value={form.org_type ?? "SMB"}
+            value={form.org_type ?? "SME"}
             onChange={(e) =>
               handleChange("org_type", e.target.value as OrgType)
             }

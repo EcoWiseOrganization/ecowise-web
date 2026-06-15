@@ -227,7 +227,7 @@ export const vi = {
   "org.form.taxCodePlaceholder": "VD: 0123456789",
   "org.form.type": "Loại Tổ Chức",
   "org.type.enterprise": "Doanh Nghiệp Lớn",
-  "org.type.smb": "Doanh Nghiệp Vừa & Nhỏ (SMB)",
+  "org.type.sme": "Doanh Nghiệp Vừa & Nhỏ (SME)",
   "org.type.ngo": "Tổ Chức Phi Chính Phủ (NGO)",
   "org.type.startup": "Khởi Nghiệp",
 

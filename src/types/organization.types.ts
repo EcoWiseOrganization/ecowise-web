@@ -1,6 +1,6 @@
 import type { User } from "./user.types";
 
-export type OrgType = "Enterprise" | "SMB" | "NGO" | "Startup";
+export type OrgType = "Enterprise" | "SME" | "NGO" | "Startup";
 export type MemberRole = "Organization Admin" | "Standard Member";
 export type MemberStatus = "Active" | "Pending" | "Inactive";
 export type OrgVerificationStatus = "Pending" | "Verified" | "Suspended";
