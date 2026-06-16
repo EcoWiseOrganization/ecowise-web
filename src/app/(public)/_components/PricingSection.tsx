@@ -33,9 +33,8 @@ const PLANS_CONFIG: PricingPlanConfig[] = [
   },
   {
     nameKey: "pricing.plan2.name",
-    price: "20,000,000 VND",
-    periodKey: "pricing.quarter",
-    yearPriceKey: "pricing.plan2.yearPrice",
+    price: "499,000 VND",
+    yearPriceKey: "pricing.plan2.note",
     descriptionKey: "pricing.plan2.description",
     buttonKey: "pricing.plan2.button",
     buttonVariant: "filled",
@@ -49,9 +48,8 @@ const PLANS_CONFIG: PricingPlanConfig[] = [
   },
   {
     nameKey: "pricing.plan3.name",
-    price: "10,000,000 VND",
-    periodKey: "pricing.quarter",
-    yearPriceKey: "pricing.plan3.yearPrice",
+    price: "189,000 VND",
+    periodKey: "pricing.perYear",
     descriptionKey: "pricing.plan3.description",
     buttonKey: "pricing.plan3.button",
     buttonVariant: "outline",
