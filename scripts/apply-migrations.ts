@@ -110,6 +110,7 @@ async function main() {
     "supabase/migrations/038_org_type_smb_to_sme.sql",
     "supabase/migrations/039_lifetime_cycle_and_plans.sql",
     "supabase/migrations/040_individual_only_catalog.sql",
+    "supabase/migrations/041_repoint_legacy_user_subscriptions.sql",
   ];
 
   const client = new Client({ connectionString: url });
