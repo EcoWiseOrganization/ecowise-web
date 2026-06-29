@@ -43,29 +43,29 @@ BEGIN
     is_super_admin, is_sso_user, is_anonymous
   ) VALUES
     (uid_huong_giang, 'authenticated', 'authenticated',
-     'huong.giang@gmail.com',
-     '{"full_name":"Hương Giang"}'::jsonb,
+     'hoanglehuonggiang2005@gmail.com',
+     '{"full_name":"Hoàng Lê Hương Giang"}'::jsonb,
      '{"provider":"email","providers":["email"]}'::jsonb,
      crypt('DemoSeed2026!', gen_salt('bf')),
      '2026-06-24 01:00:00Z', '2026-06-24 01:00:00Z', '2026-06-24 01:00:00Z',
      false, false, false),
     (uid_minh_thu, 'authenticated', 'authenticated',
-     'minh.thu@gmail.com',
-     '{"full_name":"Minh Thư"}'::jsonb,
+     'thummhs180584@fpt.edu.vn',
+     '{"full_name":"Mai Minh Thư"}'::jsonb,
      '{"provider":"email","providers":["email"]}'::jsonb,
      crypt('DemoSeed2026!', gen_salt('bf')),
      '2026-06-24 02:00:00Z', '2026-06-24 02:00:00Z', '2026-06-24 02:00:00Z',
      false, false, false),
     (uid_phuong_anh, 'authenticated', 'authenticated',
-     'phuong.anh@gmail.com',
-     '{"full_name":"Phương Anh"}'::jsonb,
+     'phuonganht381@gmail.com',
+     '{"full_name":"Trần Phương Anh"}'::jsonb,
      '{"provider":"email","providers":["email"]}'::jsonb,
      crypt('DemoSeed2026!', gen_salt('bf')),
      '2026-06-29 01:00:00Z', '2026-06-29 01:00:00Z', '2026-06-29 01:00:00Z',
      false, false, false),
     (uid_hien_dieu, 'authenticated', 'authenticated',
-     'hien.dieu@gmail.com',
-     '{"full_name":"Hiền Diệu"}'::jsonb,
+     'ngochiendieu@gmail.com',
+     '{"full_name":"Nguyễn Ngọc Hiền Diệu"}'::jsonb,
      '{"provider":"email","providers":["email"]}'::jsonb,
      crypt('DemoSeed2026!', gen_salt('bf')),
      '2026-06-29 02:00:00Z', '2026-06-29 02:00:00Z', '2026-06-29 02:00:00Z',
@@ -76,10 +76,10 @@ BEGIN
   -- (trigger on auth.users may already have created these; upsert is safe)
   INSERT INTO public."User" (id, email, full_name, is_admin, status, green_points, created_at)
   VALUES
-    (uid_huong_giang, 'huong.giang@gmail.com', 'Hương Giang', false, 'active', 0, '2026-06-24 01:00:00Z'),
-    (uid_minh_thu,    'minh.thu@gmail.com',    'Minh Thư',    false, 'active', 0, '2026-06-24 02:00:00Z'),
-    (uid_phuong_anh,  'phuong.anh@gmail.com',  'Phương Anh',  false, 'active', 0, '2026-06-29 01:00:00Z'),
-    (uid_hien_dieu,   'hien.dieu@gmail.com',   'Hiền Diệu',   false, 'active', 0, '2026-06-29 02:00:00Z')
+    (uid_huong_giang, 'hoanglehuonggiang2005@gmail.com', 'Hoàng Lê Hương Giang',   false, 'active', 0, '2026-06-24 01:00:00Z'),
+    (uid_minh_thu,    'thummhs180584@fpt.edu.vn',        'Mai Minh Thư',            false, 'active', 0, '2026-06-24 02:00:00Z'),
+    (uid_phuong_anh,  'phuonganht381@gmail.com',         'Trần Phương Anh',         false, 'active', 0, '2026-06-29 01:00:00Z'),
+    (uid_hien_dieu,   'ngochiendieu@gmail.com',          'Nguyễn Ngọc Hiền Diệu',  false, 'active', 0, '2026-06-29 02:00:00Z')
   ON CONFLICT (id) DO UPDATE
     SET full_name = EXCLUDED.full_name;
 
@@ -92,22 +92,22 @@ BEGIN
     -- Hương Giang — Eco-Cá Nhân Trọn Đời (499k), 24/06
     (sub_id_1, 'User', uid_huong_giang, plan_lifetime_id,
      'Active', '2026-06-24 01:00:00Z', '2099-01-01 00:00:00Z',
-     false, 'huong.giang@gmail.com',
+     false, 'hoanglehuonggiang2005@gmail.com',
      '2026-06-24 01:00:00Z', '2026-06-24 01:00:00Z'),
     -- Minh Thư — Eco-Cá Nhân (Năm) (189k), 24/06
     (sub_id_2, 'User', uid_minh_thu, plan_annual_id,
      'Active', '2026-06-24 02:00:00Z', '2027-06-24 02:00:00Z',
-     true, 'minh.thu@gmail.com',
+     true, 'thummhs180584@fpt.edu.vn',
      '2026-06-24 02:00:00Z', '2026-06-24 02:00:00Z'),
     -- Phương Anh — Eco-Cá Nhân Trọn Đời (499k), 29/06
     (sub_id_3, 'User', uid_phuong_anh, plan_lifetime_id,
      'Active', '2026-06-29 01:00:00Z', '2099-01-01 00:00:00Z',
-     false, 'phuong.anh@gmail.com',
+     false, 'phuonganht381@gmail.com',
      '2026-06-29 01:00:00Z', '2026-06-29 01:00:00Z'),
     -- Hiền Diệu — Eco-Cá Nhân (Năm) (189k), 29/06
     (sub_id_4, 'User', uid_hien_dieu, plan_annual_id,
      'Active', '2026-06-29 02:00:00Z', '2027-06-29 02:00:00Z',
-     true, 'hien.dieu@gmail.com',
+     true, 'ngochiendieu@gmail.com',
      '2026-06-29 02:00:00Z', '2026-06-29 02:00:00Z')
   ON CONFLICT (id) DO NOTHING;
 
