@@ -9,6 +9,8 @@ import VerifiedIcon from "@mui/icons-material/Verified";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import Link from "next/link";
 import { getEmissionLogs, getEmissionLogStats } from "@/services/emissionLog.service";
 import type {
   EmissionLogWithCategory,
@@ -123,13 +125,15 @@ export function ActivityHistoryDashboard({ orgId, refreshKey = 0 }: Props) {
           bg="bg-[#DAEDD5]"
           textColor="text-[#155A03]"
         />
-        <StatCard
-          icon={<PendingActionsIcon sx={{ fontSize: 22, color: "#D97706" }} />}
-          label="Pending Reviews"
-          value={String(stats.pendingReviews)}
-          bg="bg-yellow-50"
-          textColor="text-yellow-700"
-        />
+        <Link href={`/dashboard/organization/${orgId}/emission-logs/review`} className="block group">
+          <StatCard
+            icon={<PendingActionsIcon sx={{ fontSize: 22, color: "#D97706" }} />}
+            label="Pending Reviews"
+            value={String(stats.pendingReviews)}
+            bg="bg-yellow-50 group-hover:bg-yellow-100 transition-colors"
+            textColor="text-yellow-700"
+          />
+        </Link>
         <StatCard
           icon={<VerifiedIcon sx={{ fontSize: 22, color: "#155A03" }} />}
           label="Verified Activities"
@@ -213,6 +217,15 @@ export function ActivityHistoryDashboard({ orgId, refreshKey = 0 }: Props) {
               Clear
             </button>
           )}
+
+          {/* Export Report Link */}
+          <Link
+            href={`/dashboard/organization/${orgId}/emission-logs/report`}
+            className="ml-auto h-9 px-3 rounded-lg border border-[#79B669] bg-[#F7FBF5] text-sm text-[#155A03] hover:bg-[#DAEDD5] transition-colors flex items-center gap-1.5 font-medium shadow-sm"
+          >
+            <FileDownloadIcon sx={{ fontSize: 18 }} />
+            Xuất Báo Cáo
+          </Link>
         </div>
       </div>
 
