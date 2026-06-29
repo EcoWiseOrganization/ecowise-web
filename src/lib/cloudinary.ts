@@ -1,6 +1,6 @@
 "use server";
 
-export async function uploadToCloudinary(file: File): Promise<{ url: string | null; error: string | null }> {
+export async function uploadToCloudinary(file: File | string): Promise<{ url: string | null; error: string | null }> {
   try {
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
