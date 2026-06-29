@@ -91,6 +91,7 @@ export async function upsertChallenge(opts: {
         status: opts.input.status ?? "Draft",
         start_date: opts.input.start_date,
         end_date: opts.input.end_date,
+        image_url: opts.input.image_url ?? null,
         org_id: opts.input.org_id ?? null,
       })
       .eq("id", opts.id)
@@ -113,6 +114,7 @@ export async function upsertChallenge(opts: {
       status: opts.input.status ?? "Draft",
       start_date: opts.input.start_date,
       end_date: opts.input.end_date,
+      image_url: opts.input.image_url ?? null,
       org_id: opts.input.org_id ?? null,
       created_by: opts.userId,
     })
@@ -167,7 +169,8 @@ export async function listMyChallenges(userId: string): Promise<UserChallenge[]>
 export async function completeChallenge(opts: {
   userId: string;
   challengeId: string;
-}): Promise<{ ok: boolean; pointsAwarded: number; error?: string }> {
+  evidence_url?: string;
+}): Promise<{ ok: boolean; pointsAwarded: number; status?: string; error?: string }> {
   const db = createServiceClient();
   const { data: challenge } = await db
     .from("Challenges")
@@ -177,10 +180,13 @@ export async function completeChallenge(opts: {
   if (!challenge) return { ok: false, pointsAwarded: 0, error: "CHALLENGE_NOT_FOUND" };
 
   const now = new Date();
+  const endDate = new Date(challenge.end_date);
+  endDate.setHours(23, 59, 59, 999);
+  
   // BR-14: must be inside active timeframe
   if (
     new Date(challenge.start_date) > now ||
-    new Date(challenge.end_date) < now
+    endDate < now
   ) {
     return { ok: false, pointsAwarded: 0, error: "CHALLENGE_NOT_ACTIVE" };
   }
@@ -195,14 +201,33 @@ export async function completeChallenge(opts: {
   if (uc.status === "Completed") {
     return { ok: false, pointsAwarded: 0, error: "ALREADY_COMPLETED" };
   }
+  if (uc.status === "PendingReview") {
+    return { ok: false, pointsAwarded: 0, error: "ALREADY_PENDING" };
+  }
+
+  const needsReview = challenge.verification_method === "Photo";
+  const newStatus = needsReview ? "PendingReview" : "Completed";
+
+  const updateData: Record<string, unknown> = {
+    status: newStatus,
+  };
+  
+  if (opts.evidence_url) {
+    updateData.evidence_url = opts.evidence_url;
+  }
+  
+  if (newStatus === "Completed" || newStatus === "PendingReview") {
+    updateData.completed_at = now.toISOString();
+  }
 
   await db
     .from("UserChallenges")
-    .update({
-      status: "Completed",
-      completed_at: now.toISOString(),
-    })
+    .update(updateData)
     .eq("id", uc.id);
+
+  if (newStatus === "PendingReview") {
+    return { ok: true, pointsAwarded: 0, status: newStatus };
+  }
 
   const points = Number(challenge.points_reward) || 0;
   if (points > 0) {
@@ -214,7 +239,37 @@ export async function completeChallenge(opts: {
       relatedType: "challenge",
     });
   }
-  return { ok: true, pointsAwarded: points };
+  return { ok: true, pointsAwarded: points, status: newStatus };
+}
+
+export async function getPendingChallengeSubmissions(): Promise<Record<string, unknown>[]> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("UserChallenges")
+    .select(`
+      *,
+      challenge:Challenges (id, name, points_reward, org_id)
+    `)
+    .eq("status", "PendingReview")
+    .order("completed_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  
+  const submissions = (data ?? []) as Record<string, unknown>[];
+  if (submissions.length === 0) return submissions;
+
+  const userIds = Array.from(new Set(submissions.map((s) => s.user_id as string)));
+  const { data: users } = await db
+    .from("User")
+    .select("id, full_name, user_name, email")
+    .in("id", userIds);
+    
+  const userMap = new Map((users ?? []).map(u => [u.id, u]));
+  
+  return submissions.map(sub => ({
+    ...sub,
+    user: userMap.get(sub.user_id as string) ?? null
+  }));
 }
 
 // ── Points (earn / spend) ────────────────────────────────────────────────
@@ -435,9 +490,9 @@ export async function getLeaderboard(
   const userIds = Array.from(new Set(logs.map((l) => l.user_id)));
   const { data: users } = userIds.length
     ? await db
-        .from("User")
-        .select("id, full_name, user_name, email")
-        .in("id", userIds)
+      .from("User")
+      .select("id, full_name, user_name, email")
+      .in("id", userIds)
     : { data: [] as unknown[] };
 
   const nameMap = new Map<string, { display_name: string; email: string }>();
@@ -457,10 +512,10 @@ export async function getLeaderboard(
     window === "all"
       ? logs
       : filterLogsToWindow(
-          logs,
-          new Date(Date.now() - (window === "week" ? 7 : 30) * 86_400_000).toISOString(),
-          new Date().toISOString()
-        );
+        logs,
+        new Date(Date.now() - (window === "week" ? 7 : 30) * 86_400_000).toISOString(),
+        new Date().toISOString()
+      );
 
   const rows = buildLeaderboard(filtered, (id) =>
     nameMap.get(id) ?? { display_name: "Anonymous", email: "" }

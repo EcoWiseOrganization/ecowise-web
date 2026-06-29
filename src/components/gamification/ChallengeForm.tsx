@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { upsertChallengeAction } from "@/app/actions/gamification.actions";
+import { upsertChallengeAction, uploadChallengeImageAction } from "@/app/actions/gamification.actions";
 import type {
   Challenge,
   ChallengeStatus,
@@ -37,6 +37,8 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState(initial?.category ?? "general");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [file, setFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState(initial?.image_url ?? "");
   const [targetAudience, setTargetAudience] = useState(
     initial?.target_audience ?? "all"
   );
@@ -61,21 +63,38 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const input: UpsertChallengeInput = {
-      name: name.trim(),
-      category: category.trim(),
-      description: description.trim() || undefined,
-      target_audience: targetAudience,
-      points_reward: Number(points) || 0,
-      duration_days: Number(duration) || 1,
-      verification_method: verification,
-      status,
-      start_date: startDate,
-      end_date: endDate,
-      org_id: orgId ?? null,
-      rules: { required_count: Number(requiredCount) || 1 },
-    };
+
     startTransition(async () => {
+      let finalImageUrl = imageUrl;
+      
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const uploadRes = await uploadChallengeImageAction(formData);
+        if (uploadRes.error || !uploadRes.url) {
+          setError(uploadRes.error ?? "Failed to upload image");
+          return;
+        }
+        finalImageUrl = uploadRes.url;
+      }
+
+      const input: UpsertChallengeInput = {
+        name: name.trim(),
+        category: category.trim(),
+        description: description.trim() || undefined,
+        image_url: finalImageUrl || undefined,
+        target_audience: targetAudience,
+        points_reward: Number(points) || 0,
+        duration_days: Number(duration) || 1,
+        verification_method: verification,
+        status,
+        start_date: startDate,
+        end_date: endDate,
+        org_id: orgId ?? null,
+        rules: { required_count: Number(requiredCount) || 1 },
+      };
+
       const res = await upsertChallengeAction({
         id: initial?.id,
         input,
@@ -207,6 +226,27 @@ export function ChallengeForm({ initial, orgId, redirectTo }: Props) {
               className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm resize-none"
             />
           </Field>
+        </div>
+        
+        <div className="md:col-span-2">
+          <Field label={t("admin.challengeForm.coverImage", "Cover Image")}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm"
+            />
+          </Field>
+          {(file || imageUrl) && (
+            <div className="mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={file ? URL.createObjectURL(file) : imageUrl}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+              />
+            </div>
+          )}
         </div>
       </div>
 

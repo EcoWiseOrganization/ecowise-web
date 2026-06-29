@@ -146,16 +146,33 @@ export async function joinChallengeAction(
   }
 }
 
-export async function completeChallengeAction(challengeId: string): Promise<{
+export async function completeChallengeAction(
+  challengeId: string,
+  evidenceBase64?: string
+): Promise<{
   ok: boolean;
   pointsAwarded: number;
+  status?: string;
   error: string | null;
 }> {
   try {
     const ctx = await requireSession();
+    
+    let evidence_url: string | undefined;
+    if (evidenceBase64) {
+      const { uploadToCloudinary } = await import("@/lib/cloudinary");
+      const uploadRes = await uploadToCloudinary(evidenceBase64);
+      if (uploadRes.url) {
+        evidence_url = uploadRes.url;
+      } else {
+        return { ok: false, pointsAwarded: 0, error: "Failed to upload evidence" };
+      }
+    }
+
     const result = await completeChallenge({
       userId: ctx.userId,
       challengeId,
+      evidence_url,
     });
     if (result.ok) {
       await writeAuditLog({
@@ -170,6 +187,7 @@ export async function completeChallengeAction(challengeId: string): Promise<{
     return {
       ok: result.ok,
       pointsAwarded: result.pointsAwarded,
+      status: result.status,
       error: result.error ?? null,
     };
   } catch (err) {
@@ -181,6 +199,137 @@ export async function completeChallengeAction(challengeId: string): Promise<{
       pointsAwarded: 0,
       error: err instanceof Error ? err.message : "unknown",
     };
+  }
+}
+
+export async function uploadChallengeImageAction(formData: FormData): Promise<{ url: string | null; error: string | null }> {
+  try {
+    await requireSession();
+    const file = formData.get("file") as File | null;
+    if (!file) return { url: null, error: "No file provided" };
+    if (file.size > 5 * 1024 * 1024) return { url: null, error: "File too large" };
+    
+    const { uploadToCloudinary } = await import("@/lib/cloudinary");
+    const res = await uploadToCloudinary(file);
+    return res;
+  } catch (err) {
+    if (err instanceof AuthError) return { url: null, error: err.code };
+    return { url: null, error: err instanceof Error ? err.message : "unknown" };
+  }
+}
+
+export async function completeChallengeEvidenceAction(
+  challengeId: string,
+  formData: FormData
+): Promise<{
+  ok: boolean;
+  pointsAwarded: number;
+  status?: string;
+  error: string | null;
+}> {
+  try {
+    const ctx = await requireSession();
+    
+    const file = formData.get("file") as File | null;
+    let evidence_url: string | undefined;
+    
+    if (!file) {
+      return { ok: false, pointsAwarded: 0, error: "Vui lòng tải lên ảnh bằng chứng" };
+    }
+
+    if (file.size > 5 * 1024 * 1024) return { ok: false, pointsAwarded: 0, error: "File too large" };
+    const { uploadToCloudinary } = await import("@/lib/cloudinary");
+    const uploadRes = await uploadToCloudinary(file);
+    if (uploadRes.url) {
+      evidence_url = uploadRes.url;
+    } else {
+      return { ok: false, pointsAwarded: 0, error: "Failed to upload evidence" };
+    }
+
+    const { completeChallenge } = await import("@/services/gamification.service");
+    const result = await completeChallenge({
+      userId: ctx.userId,
+      challengeId,
+      evidence_url,
+    });
+    
+    if (result.ok) {
+      await writeAuditLog({
+        action: "challenge_completed_with_evidence",
+        resourceType: "challenge",
+        resourceId: challengeId,
+        actorUserId: ctx.userId,
+        newValue: { pointsAwarded: result.pointsAwarded, status: result.status },
+      });
+    }
+    revalidatePath("/dashboard/challenges");
+    return {
+      ok: result.ok,
+      pointsAwarded: result.pointsAwarded,
+      status: result.status,
+      error: result.error ?? null,
+    };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { ok: false, pointsAwarded: 0, error: err.code };
+    }
+    return {
+      ok: false,
+      pointsAwarded: 0,
+      error: err instanceof Error ? err.message : "unknown",
+    };
+  }
+}
+
+export async function reviewChallengeSubmissionAction(opts: {
+  userChallengeId: string;
+  approved: boolean;
+}): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    await requireSystemAdmin();
+    const db = createServiceClient();
+    
+    const { data: uc } = await db.from("UserChallenges").select("*").eq("id", opts.userChallengeId).maybeSingle();
+    if (!uc) return { ok: false, error: "USER_CHALLENGE_NOT_FOUND" };
+    if (uc.status !== "PendingReview") return { ok: false, error: "NOT_PENDING_REVIEW" };
+
+    const { data: challenge } = await db.from("Challenges").select("*").eq("id", uc.challenge_id).maybeSingle();
+    if (!challenge) return { ok: false, error: "CHALLENGE_NOT_FOUND" };
+
+    if (opts.approved) {
+      await db.from("UserChallenges").update({ status: "Completed", completed_at: new Date().toISOString() }).eq("id", uc.id);
+      
+      const points = Number(challenge.points_reward) || 0;
+      if (points > 0) {
+        const { earnPoints } = await import("@/services/gamification.service");
+        await earnPoints({
+          userId: uc.user_id,
+          points,
+          reason: `Challenge completed: ${challenge.name}`,
+          relatedId: challenge.id,
+          relatedType: "challenge",
+        });
+      }
+    } else {
+      await db.from("UserChallenges").update({ status: "Failed" }).eq("id", uc.id);
+    }
+    
+    revalidatePath("/admin/challenges/review");
+    return { ok: true, error: null };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "unknown" };
+  }
+}
+
+export async function getPendingChallengeSubmissionsAction(): Promise<{ data: Record<string, unknown>[]; error: string | null }> {
+  try {
+    await requireSystemAdmin();
+    const { getPendingChallengeSubmissions } = await import("@/services/gamification.service");
+    const data = await getPendingChallengeSubmissions();
+    return { data, error: null };
+  } catch (err) {
+    if (err instanceof AuthError) return { data: [], error: err.code };
+    return { data: [], error: err instanceof Error ? err.message : "unknown" };
   }
 }
 

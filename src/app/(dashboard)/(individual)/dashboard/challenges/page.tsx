@@ -28,9 +28,13 @@ export default async function ChallengesIndexPage() {
     listMyChallenges(user.id),
   ]);
 
-  const visible: Challenge[] = allChallenges.filter(
-    (c) => c.status === "Active" || c.status === "Upcoming",
-  );
+  const now = new Date();
+  const visible: Challenge[] = allChallenges.filter((c) => {
+    if (c.status !== "Active" && c.status !== "Upcoming") return false;
+    const endDate = new Date(c.end_date);
+    endDate.setHours(23, 59, 59, 999);
+    return endDate >= now;
+  });
 
   return (
     <div className="flex flex-col gap-6 pt-6">

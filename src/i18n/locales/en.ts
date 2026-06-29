@@ -857,6 +857,7 @@ export const en = {
   "menu.leaderboard": "Leaderboard",
   "admin.menu.gamification": "Gamification",
   "admin.menu.challenges": "Challenges",
+  "admin.menu.reviewChallenges": "Review Submissions",
   "admin.menu.rewards": "Rewards",
   "org.tabs.challenges": "Challenges",
   "page.challenges.title": "Challenges",

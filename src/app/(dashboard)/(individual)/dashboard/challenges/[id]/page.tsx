@@ -29,10 +29,13 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
     .maybeSingle();
   const uc = (ucRow as UserChallenge | null) ?? null;
 
+  const endDate = new Date(ch.end_date);
+  endDate.setHours(23, 59, 59, 999);
+  
   const isActive =
     ch.status === "Active" &&
     new Date(ch.start_date) <= new Date() &&
-    new Date(ch.end_date) >= new Date();
+    endDate >= new Date();
 
   return (
     <div className="flex flex-col gap-6 pt-6 max-w-3xl">
@@ -76,6 +79,11 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
               <T k="challenges.joined" />
             </p>
           )}
+          {uc?.status === "PendingReview" && (
+            <p className="text-sm text-[#EAB308] font-semibold">
+              Pending Review
+            </p>
+          )}
           {uc?.status === "Completed" && (
             <p className="text-sm text-[#1F8505] font-semibold">
               <T k="challenges.completed" />
@@ -87,7 +95,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {uc && uc.status !== "Completed" && isActive && (
+      {uc && uc.status !== "Completed" && uc.status !== "PendingReview" && isActive && (
         <CompleteChallengeButton challengeId={ch.id} />
       )}
     </div>
