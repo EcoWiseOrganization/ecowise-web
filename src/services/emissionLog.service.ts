@@ -38,23 +38,17 @@ export async function createEmissionLog(
 
 export async function uploadEvidence(
   file: File,
-  orgId: string
+  // orgId không còn dùng trong path vì upload lên Cloudinary (folder cố định)
+  _orgId: string | null
 ): Promise<{ url: string | null; error: string | null }> {
-  const supabase = createClient();
-  const ext = file.name.split(".").pop() ?? "bin";
-  const path = `${orgId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const form = new FormData();
+  form.append("file", file);
 
-  const { error: uploadError } = await supabase.storage
-    .from("emission-evidence")
-    .upload(path, file, { cacheControl: "3600", upsert: false });
+  const res = await fetch("/api/upload", { method: "POST", body: form });
+  const result = await res.json();
 
-  if (uploadError) return { url: null, error: uploadError.message };
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("emission-evidence").getPublicUrl(path);
-
-  return { url: publicUrl, error: null };
+  if (!res.ok) return { url: null, error: result.error ?? "Upload failed" };
+  return { url: result.url, error: null };
 }
 
 // ── Read (paginated + filtered) ───────────────────────────────────────────

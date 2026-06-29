@@ -23,7 +23,7 @@ interface FormErrors {
 }
 
 interface Props {
-  orgId: string;
+  orgId: string | null;
   onClose: () => void;
   onSaved: () => void;
 }

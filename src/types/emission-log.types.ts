@@ -11,7 +11,7 @@ export type GhgScope = "Scope 1" | "Scope 2" | "Scope 3";
 
 export interface EmissionLog {
   id: string;
-  org_id: string;
+  org_id: string | null;
   activity_name: string;
   scope: GhgScope;
   source_type_id: string | null;
@@ -30,7 +30,7 @@ export interface EmissionLogWithCategory extends EmissionLog {
 }
 
 export interface CreateEmissionLogInput {
-  org_id: string;
+  org_id: string | null;
   activity_name: string;
   scope: GhgScope;
   source_type_id?: string;

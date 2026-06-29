@@ -115,33 +115,13 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Add Emission slide-over modal */}
-      {isModalOpen && selectedOrg && (
+      {/* Add Emission slide-over modal — personal users (no org) được phép tạo */}
+      {isModalOpen && (
         <AddEmissionModal
-          orgId={selectedOrg.id}
+          orgId={selectedOrg?.id ?? null}
           onClose={() => setIsModalOpen(false)}
           onSaved={handleSaved}
         />
-      )}
-
-      {/* Prompt to select org if user clicks Add Emission without an org selected */}
-      {isModalOpen && !selectedOrg && (
-        <div className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
-            <p className="text-[#155A03] text-base font-semibold mb-2">
-              {t("dashboard.selectOrgTitle")}
-            </p>
-            <p className="text-[#AAAAAA] text-sm mb-5">
-              {t("dashboard.selectOrgBody")}
-            </p>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="px-6 py-2.5 bg-[#1F8505] text-white text-sm font-bold rounded-xl border-none cursor-pointer hover:brightness-110 transition-all"
-            >
-              {t("common.gotIt")}
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );
