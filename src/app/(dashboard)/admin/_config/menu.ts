@@ -36,6 +36,7 @@ export const ADMIN_MENU_SECTIONS: MenuSection[] = [
     title: "admin.menu.gamification",
     items: [
       { label: "admin.menu.challenges", href: "/admin/challenges", icon: EmojiEventsIcon },
+      { label: "admin.menu.reviewChallenges", href: "/admin/challenges/review", icon: EmojiEventsIcon },
       { label: "admin.menu.rewards", href: "/admin/rewards", icon: RedeemIcon },
     ],
   },

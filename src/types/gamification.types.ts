@@ -10,6 +10,7 @@ export type ChallengeVerification = "Photo" | "Honor" | "Auto";
 export type UserChallengeStatus =
   | "Joined"
   | "InProgress"
+  | "PendingReview"
   | "Completed"
   | "Failed";
 
@@ -32,6 +33,7 @@ export interface Challenge {
   status: ChallengeStatus;
   start_date: string;
   end_date: string;
+  image_url?: string | null;
   created_at: string;
   created_by: string | null;
   updated_at: string;
@@ -49,6 +51,7 @@ export interface UpsertChallengeInput {
   status?: ChallengeStatus;
   start_date: string;
   end_date: string;
+  image_url?: string | null;
   org_id?: string | null;
 }
 
@@ -60,6 +63,7 @@ export interface UserChallenge {
   progress: Record<string, unknown>;
   joined_at: string;
   completed_at: string | null;
+  evidence_url?: string | null;
 }
 
 export interface Badge {
