@@ -1,6 +1,5 @@
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import InventoryIcon from "@mui/icons-material/Inventory";
 import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import BusinessIcon from "@mui/icons-material/Business";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -25,7 +24,6 @@ export const USER_MENU_SECTIONS: MenuSection[] = [
       { label: "menu.targets", href: "/dashboard/targets", icon: TrackChangesIcon },
       { label: "menu.recommendations", href: "/dashboard/recommendations", icon: LightbulbIcon },
       { label: "menu.compare", href: "/dashboard/compare", icon: CompareArrowsIcon },
-      { label: "menu.assets", href: "/dashboard/assets", icon: InventoryIcon },
     ],
   },
   {
