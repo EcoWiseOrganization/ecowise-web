@@ -18,7 +18,6 @@ import type {
 
 const TABS: PlanUpgradeRequestStatus[] = [
   "Pending",
-  "Approved",
   "Rejected",
 ];
 
