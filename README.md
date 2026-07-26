@@ -1,4 +1,4 @@
-# EcoWise — Carbon Footprint Management Platform (Web)
+# EcoWise — Carbon Footprint Management Platform
 
 EcoWise is a **carbon footprint management SaaS platform** for individuals and
 organizations (SMEs). It measures, analyzes, and helps reduce carbon
